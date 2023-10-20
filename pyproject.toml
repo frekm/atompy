@@ -1,0 +1,26 @@
+[project]
+name = "atompy"
+version = "1.0.0"
+authors = [
+    {name="Max Kircher", email="kircher@atom.uni-frankfurt.de"},
+]
+description = """
+    A collection of utility functions to create plots and do
+    analysis.
+"""
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: Creative Commons 1.0",
+    "Operating System :: OS Independent"
+]
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "uproot"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/crono-kircher/atompy"
+

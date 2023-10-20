@@ -1,1 +1,1 @@
-import atompy
+from atompy import *

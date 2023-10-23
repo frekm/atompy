@@ -20,12 +20,13 @@ release = '1.0.0'
 
 extensions = [
     "sphinx.ext.autodoc",
-    "numpydoc"
+    "numpydoc",
+    "sphinx.ext.viewcode",
 ]
 autodoc_type_aliases = {
     'ArrayLike': 'ArrayLike',
 }
-autodoc_typehints = "none"
+# autodoc_typehints = "none"
 
 templates_path = ['_templates']
 exclude_patterns = []

@@ -17,6 +17,30 @@ import matplotlib.axes as mplax
 import matplotlib.text as mpltxt
 import matplotlib.colorbar as mplcb
 
+PTS_PER_INCH = 72.0
+"""float: 72 pts = 1 inch"""
+
+MM_PER_INCH = 25.4
+"""float: 25.4 mm = 1 inch"""
+
+T = TypeVar('T')
+
+RED = "#ae1117"
+TEAL = "#008081"
+BLUE = "#2768f5"
+GREEN = "#007f00"
+GREY = "#404040"
+ORANGE = "#fd8d3c"
+PINK = "#d4b9da"
+YELLOW = "#fce205"
+LEMON = "#effd5f"
+CORN = "#e4cd05"
+PURPLE = "#ca8dfd"
+DARK_PURPLE = "#9300ff"
+FOREST_GREEN = "#0b6623"
+BRIGHT_GREEN = "#3bb143"
+
+
 
 ###############################################################################
 ###############################################################################
@@ -2651,25 +2675,6 @@ def project_onto_y(
 ###############################################################################
 
 
-pts_per_inch = 72.0
-mm_per_inch = 25.4
-T = TypeVar('T')
-
-red = "#ae1117"
-teal = "#008081"
-blue = "#2768f5"
-green = "#007f00"
-grey = "#404040"
-orange = "#fd8d3c"
-pink = "#d4b9da"
-yellow = "#fce205"
-lemon = "#effd5f"
-corn = "#e4cd05"
-purple = "#ca8dfd"
-dark_purple = "#9300ff"
-forest_green = "#0b6623"
-bright_green = "#3bb143"
-
 
 class _Colors(NamedTuple):
     red: Literal["#ae1117"]
@@ -2689,20 +2694,20 @@ class _Colors(NamedTuple):
 
 
 colors = _Colors(
-    red,
-    blue,
-    orange,
-    pink,
-    green,
-    teal,
-    grey,
-    yellow,
-    lemon,
-    corn,
-    purple,
-    dark_purple,
-    forest_green,
-    bright_green
+    RED,
+    BLUE,
+    ORANGE,
+    PINK,
+    GREEN,
+    TEAL,
+    GREY,
+    YELLOW,
+    LEMON,
+    CORN,
+    PURPLE,
+    DARK_PURPLE,
+    FOREST_GREEN,
+    BRIGHT_GREEN
 )
 
 _cm_whitered_dict = {
@@ -2862,7 +2867,24 @@ def flatten(
     input: Union[Sequence[T],
                  Sequence[Sequence[T]]]
 ) -> list[T]:
-    """ Flatten a Sequence of Sequences """
+    """
+    Flatten a Sequence of Sequences
+
+    Parameters
+    ----------
+    input : Sequence[T] or Sequence of Seqence[T]
+
+    Returns
+    -------
+    output : list[T]
+        The flattened Sequence as a list
+
+    Examples
+    --------
+
+    >>> flatten([[1, 2, 3], [4, 5, 6]])
+    [1, 2, 3, 4, 5, 6]
+    """
     output: list[T] = []
     for input_ in input:
         if isinstance(input_, str):
@@ -2912,6 +2934,14 @@ def get_column(n: int, lst: Sequence[Sequence[T]]) -> list[T]:
     -------
     list
         A list of the n-th element of each sublist
+
+    Examples
+    --------
+
+    >>> get_column(0, [[1, 2, 3], [4, 5, 6]])
+    [1, 4]
+    >>> get_column(-1, [[1, 2, 3], [4, 5, 6]])
+    [3, 6]
     """
     return [sublst[n] for sublst in lst]
 
@@ -2920,7 +2950,25 @@ def reshape(
     input: Sequence[T],
     rowscols: Sequence[int]
 ) -> list[list[T]]:
-    """ Reshape a Sequence to have rowscols[0] rows and rowscols[1] columns """
+    """
+    Reshape a Sequence to have rowscols[0] rows and rowscols[1] columns
+
+    Parameters
+    ----------
+    input : Sequence
+
+    rowscols : (number of rows, number of columns)
+
+    Returns
+    -------
+    output : list of lists
+
+    Examples
+    --------
+    
+    >>> reshape([1, 2, 3, 4, 5, 6], (2, 3))
+    [[1, 2, 3], [4, 5, 6]]
+    """
     if rowscols[0] * rowscols[1] != len(input):
         raise ValueError(
             "reshaping with this *shape* won't work"
@@ -2937,6 +2985,15 @@ def transpose(
 ) -> Sequence[Sequence[T]]:
     """
     Transpose a 2D Sequence
+
+    Parameters
+    ----------
+    input : Sequence[Sequence[T]]
+
+    Returns
+    -------
+    output : list[list[T]]
+        Transposed input
     """
     return list(map(list, zip(*input)))
 
@@ -2955,36 +3012,43 @@ def create_colormap(
 
     Parameters
     ----------
-    steps: Sequence floats
-        the steps of the colorbar ranging from 0.0 to 1.0
+    steps : Sequence floats
+        the steps of the colorbar ranging from :code:`0.0` to :code:`1.0`
 
-    reds/greens/blues: Sequence floats
-        The corresponding value of the colors ranging from 0.0 to 1.0
+    reds/greens/blues : Sequence floats
+        The corresponding value of the colors ranging from :code:`0.0` to
+        :code:`1.0`
 
-    n_colors: int, default 256
+    n_colors : int, default :code:`256`
         number of different colors in the colormap
 
-    cmap_name: str, default "MyCmap"
+    cmap_name : str, default :code:`"MyCmap"`
         The name of the colormap instance
 
     Returns
     -------
-    `matplotlib.colors.LinearSegmentedColormap`
+    :code:`matplotlib.colors.LinearSegmentedColormap`
 
     Notes
     -----
     The colormap can be registered using
+
     >>> import matplotlib
     >>> cmap_name = "MyCmap"
     >>> cmap = create_colormap(*args, cmap_name=cmap_name)
     >>> matplotlib.colormaps.register(cmap)
 
     It can then be set as default via rcParams
+
     >>> matplotlib.rcParams["image.cmap"] = cmap_name
 
     Examples
     --------
-    ::
+    .. code-block:: python
+
+        from atompy import create_colormap
+        import matplotlib.pyplot as plt
+        import numpy as np
 
         # create colormap starting white going through to red
         cmap = create_colormap([0.0, 1.0],
@@ -2999,8 +3063,6 @@ def create_colormap(
                                [1.0, 1.0, 0.0])
 
         # plottable with something like this
-        import matplotlib.pyplot as plt
-        import numpy as np
         image = np.arange(9).reshape((3, 3))
         plt.imshow(image, cmap=cmap)
 
@@ -3037,20 +3099,20 @@ def create_colormap_from_hex(
     Parameters
     ----------
     steps : Sequence floats
-        the steps of the colorbar ranging from 0.0 to 1.0
+        the steps of the colorbar ranging from :code:`0.0` to :code:`1.0`
 
-    colors : Sequence floats
-        The corresponding colors given as hex codes, e.g., :code:`#FF00FF`
+    colors : Sequence str
+        The corresponding colors given as hex codes, e.g., :code:`"#FF00FF"`
 
-    n_colors : int, default 256
+    n_colors : int, default :code:`256`
         number of different colors in the colormap
 
-    cmap_name : str, default "MyCmap"
+    cmap_name : str, default :code:`"MyCmap"`
         The name of the colormap instance
 
     Returns
     -------
-    `matplotlib.colors.LinearSegmentedColormap`
+    :code:`matplotlib.colors.LinearSegmentedColormap`
 
     Notes
     -----
@@ -3069,16 +3131,18 @@ def create_colormap_from_hex(
     --------
     .. code-block:: python
 
-        # create colormap starting white going through to red
-        cmap = create_colormap([0.0, 1.0], ["#FFFFFF", "#FF0000"])
-
-        # create colormap starting blue going through white to red
-        cmap = create_colormap([0.0, 0.5, 1.0],
-                               ["#0000FF", "#FFFFFF", "#FF0000"])
-
-        # plottable with something like this
+        from atompy import create_colormap_from_hex
         import matplotlib.pyplot as plt
         import numpy as np
+
+        # create colormap starting white going through to red
+        cmap = create_colormap_from_hex([0.0, 1.0], ["#FFFFFF", "#FF0000"])
+
+        # create colormap starting blue going through white to red
+        cmap = create_colormap_from_hex([0.0, 0.5, 1.0],
+                                        ["#0000FF", "#FFFFFF", "#FF0000"])
+
+        # plottable with something like this
         image = np.arange(9).reshape((3, 3))
         plt.imshow(image, cmap=cmap)
     """
@@ -3112,29 +3176,42 @@ def textwithbox(
     ax : `matplotlib.pyplot.axes`
         the axes
 
-    x,y : float
-        x/y-position
+    x : float
+        x-position
+
+    y : float
+        y-position
 
     text : str
         The text to be surrounded by the box
 
-    pad : float, default: 1.0 pts
+    pad : float, default: :code:`1.0` (in pts)
         padding between boxedge and text
 
-    boxbackground : {`None`, `False`, str}, default: 'white'
-        background of box, if any, using a xcolor named color for latex
-        - `None` or `False`: No background color
+    boxbackground : :code:`None`, :code:`False`, or str, \
+default: :code:`"white"`
+        background of box
+
+        - :code:`None` or :code:`False`: No background color
         - str: latex xcolor named color
 
-    boxedgecolor : str, optional, default: 'black'
-        edge color using named color from
+    boxedgecolor : str, optional, default: :code:`"black"`
+        edge color using named color from latex package *xcolor*
         only used if boxbackground != None
 
-    boxedgewidth : float, optional
-        edgelinewidth in points
+    boxedgewidth : float, default :code:`0.5` (in pts)
+        edgelinewidth of the box
 
-    kwargs : dictionary
-        `matplotlib.pyplot.text` properties
+    Returns
+    -------
+    `matplotlib.text.Text <https://matplotlib.org/stable/api/text_api.html#matplotlib.text.Text>`_
+        The created :code`matplotib.text.Text` instance
+
+    Other Parameters
+    ----------------
+    **kwargs : `matpotlib.text.Text <https://matplotlib.org/stable/api/text_api.html#matplotlib.text.Text>`_ \
+properties
+        Other miscellaneous text parameters
     """
     sep = r"\setlength{\fboxsep}{%lfpt}" % pad
     rule = r"\setlength{\fboxrule}{%lfpt}" % boxedgewidth
@@ -3203,16 +3280,18 @@ def dotted(
 
     Parameters
     ----------
-    linewidth (or lw): float, optional, default: rcParams["lines.linewidth"]
+    linewidth (or lw) : float, optional, default: rcParams["lines.linewidth"]
 
     fontsize : float or str, Optional, default: rcParams["legend.fontsize"]
         The fontsize used in the legend
-        - float: fontsize in pts
-        - str: {xx-small, x-small, small, medium, large, x-large, xx-large,
-          larger, smaller}
 
-    legend_handlelength (or lh) : float, default
-    rcParams["legend.handlelength"]
+        - float: fontsize in pts
+        - str: :code:`"xx-small"`, :code:`"x-small"`, :code:`"small"`,
+          :code:`"medium"`, :code:`"large"`, :code:`"x-large"`, 
+          :code:`"xx-large"`, :code:`"larger"`, or :code:`"smaller"`
+
+    legend_handlelength (or lh) : float, default \
+:code:`rcParams["legend.handlelength"]`
         Length of the legend handles (the dotted line, in this case) in font
         units
 
@@ -3260,12 +3339,14 @@ def dash_dotted(
 
     fontsize : float or str, Optional, default: `rcParams["legend.fontsize"]`
         The fontsize used in the legend
-        - float: fontsize in pts
-        - str: {xx-small, x-small, small, medium, large, x-large, xx-large,
-          larger, smaller}
 
-    legend_handlelength (or 'lh') : float, default
-    `rcParams["legend.handlelength"]`
+        - float: fontsize in pts
+        - str: :code:`"xx-small"`, :code:`"x-small"`, :code:`"small"`,
+          :code:`"medium"`, :code:`"large"`, :code:`"x-large"`, 
+          :code:`"xx-large"`, :code:`"larger"`, or :code:`"smaller"`
+
+    legend_handlelength (or 'lh') : float, default \
+:code:`rcParams["legend.handlelength"]`
         Length of the legend handles (the dotted line, in this case) in font
         units
 
@@ -3314,12 +3395,14 @@ def dashed(
 
     fontsize : float or str, Optional, default: rcParams["legend.fontsize"]
         The fontsize used in the legend
-        - float: fontsize in pts
-        - str: {xx-small, x-small, small, medium, large, x-large, xx-large,
-          larger, smaller}
 
-    legend_handlelength (or lh): float, default
-    rcParams["legend.handlelength"]
+        - float: fontsize in pts
+        - str: :code:`"xx-small"`, :code:`"x-small"`, :code:`"small"`,
+          :code:`"medium"`, :code:`"large"`, :code:`"x-large"`, 
+          :code:`"xx-large"`, :code:`"larger"`, or :code:`"smaller"`
+
+    legend_handlelength (or lh): float, default \
+:code:`rcParams["legend.handlelength"]`
         Length of the legend handles (the dotted line, in this case) in font
         units
 
@@ -3411,26 +3494,26 @@ def get_equal_tick_distance(
 
 def equalize_xtick_distance(
         axes: mplax.Axes,
-        n: int,
+        n: int = 4,
         limits: Optional[Sequence[float]] = None
 ) -> NDArray[np.float_]:
     """
-    Draw *n_ticks* number of ticks from xmin to xmax
+    Draw *n_ticks* number of ticks from 
 
     Parameters
     ----------
-    ax : `matplotlib.axes.Axes`
+    ax : :code:`matplotlib.axes.Axes`
         The axes to change the xticks from
 
-    n : int
+    n : int, default :code:`4`
         Number of equally spaced ticks
 
     limits : (float, float), optional
-        the limits inbetween to equalize
+        the limits inbetween to equalize.
 
     Returns
     -------
-    `numpy.ndarray`
+    :code:`numpy.ndarray`
         The values where the ticks are placed
     """
     limits = limits or axes.get_xlim()
@@ -3441,18 +3524,18 @@ def equalize_xtick_distance(
 
 def equalize_ytick_distance(
         axes: mplax.Axes,
-        n: int,
+        n: int = 4,
         limits: Optional[Sequence[float]] = None
 ) -> NDArray[np.float_]:
     """
-    Draw *n_ticks* number of ticks from ymin to ymax
+    Draw *n_ticks* number of ticks from *limits[0]* to *limits[1]*
 
     Parameters
     ----------
-    ax : `matplotlib.axes.Axes` or Sequence[`matplotlib.axes.Axes`]
+    ax : `matplotlib.axes.Axes`
         The axes to change the yticks from
 
-    n : int, default: 3
+    n : int, default: :code:`4`
         Number of equally spaced ticks
 
     limits : (float, float), optional
@@ -3496,9 +3579,9 @@ def get_figure_layout(
             f"{unit=} needs to be either 'mm', 'inch' or 'pts' instead"
         )
     if unit == "mm":
-        convert_factor = mm_per_inch
+        convert_factor = MM_PER_INCH
     elif unit == "pts":
-        convert_factor = pts_per_inch
+        convert_factor = PTS_PER_INCH
     else:
         convert_factor = 1.0
 
@@ -3621,85 +3704,98 @@ def _determine_lr_margins(
     return FigureMarginsFloat(leftover / 2.0, leftover / 2.0,
                               margins.top, margins.bottom)
 
-plt.imshow
 
 def subplots(
     nrows: int = 1,
     ncols: int = 1,
-    fig_width: Optional[float] = None,
-    fig_width_unit: str = "mm",
-    margins: ArrayLike = (35.0, 15.0, 5.0, 35.0),
-    margins_unit: str = "pts",
     axes_width: Optional[float] = None,
-    axes_width_unit: str = "mm",
+    margins: ArrayLike = (35.0, 15.0, 5.0, 35.0),
     xpad: Optional[float] = 45.0,
     ypad: Optional[float] = 35.0,
-    pads_unit: str = "pts",
+    fig_width: Optional[float] = None,
     ratio: float = 1.618,
     projections: Optional[Union[str, list[Union[str, None]]]] = None,
+    axes_width_unit: str = "mm",
+    margins_unit: str = "pts",
+    pads_unit: str = "pts",
+    fig_width_unit: str = "mm",
     axes_zorder: Optional[float] = 10000.0
 ) -> tuple[mplfig.Figure,
            list[list[mplax.Axes]]]:
     """
-    Create a `matplotlib.figure.Figure` with *grid* subaxes and fixed
-    margins, ratios, and pads
+    Create a :code:`matplotlib.figure.Figure` with *nrows* times *ncols*
+    subaxes and fixed margins, ratios, and pads
 
     Parameters
     ----------
 
-    nrows: int, default 1
+    nrows : int, default :code:`1`
         Number of rows of axes in the figure
 
-    ncols: int, default 1
+    ncols : int, default :code:`1`
         Number of columns of axes in the figure
 
-    fig_width: float or `None`, default `None`
-        Width of the figure. Units are specified by *fig_width_unit*.
-        If `None`, determine width corresponding to axes_width, xpad and
-        margins
-
-    axes_width: float or `None`, default 45 mm
+    axes_width : float or :code:`None`, default :code:`45`
         Width of all axes. Units are specified by *axes_width_unit*.
         If `None`, determine width corresponding to fig_width, xpad and margins
 
-    margins: tuple[float, float, float, float], default (35, 15, 5, 35) pts
+    margins : (float, float, float, float), default :code`(35, 15, 5, 35)`
         Left, right, top, bottom margins. Units are specified by *margins_unit*
 
-    xpad: float or `None`, default 35.0 pts
+    xpad : float or :code:`None`, default :code:`35.0`
         Horizontal space between axes. Units are specified by *pads_unit*.
         If `None`, determine width corresponding to fig_width, axes_width
         and margins
 
-    ypad: float or `None`, default 25 pts
+    ypad : float or :code:`None`, default :code:`25`
         Vertical space between axes. Units are specified by *pads_unit*
         If `None`, use same as xpad
 
-    X_unit: "inch" or "pts" or "mm"
-        Specifiy in what units X is given
+    fig_width : float or :code:`None`, default :code:`None`
+        Width of the figure. Units are specified by *fig_width_unit*.
+        If `None`, determine width corresponding to axes_width, xpad and
+        margins
 
-    ratio: float, default 1.618
+    ratio : float, default :code:`1.618`
         Axes width / axes height
 
-    projection : {None, 'aitoff', 'hammer', 'lambert', 'mollweide', 'polar', \
-'rectilinear', str} or list thereof, optional
+    projection : :code:`"aitoff"`, :code:`"hammer"`, :code:`"lambert"`, \
+:code:`"mollweide"`, :code:`"polar"`, :code:`"rectilinear"`, str,\
+or list thereof, optional
         The projection type of the `matplotlib.axes.Axes`. *str* is the name of
         a custom projection, see `~matplotlib.projections`. The default
         `None` results in a 'rectilinear' projection.
+
+    axes_width_unit : :code:`"inch"`, :code:`"pts"` or :code:`"mm"`, \
+default :code:`"mm"`
+        Unit of *axes_width*
+
+    margins_unit : :code:`"inch"`, :code:`"pts"` or :code:`"mm"`, \
+default :code:`"pts"`
+        Unit of *margins*
+
+    pads_unit : :code:`"inch"`, :code:`"pts"` or :code:`"mm"`, \
+default :code:`"pts"`
+        Units of *xpad* and *ypad*
+
+    fig_width_unit : :code:`"inch"`, :code:`"pts"` or :code:`"mm"`, \
+default :code:`"mm"`
+        Unit of *fig_width*
 
     axis_zorder : float, optional, default 10000.0 (because why not)
         Set zorder of the axes spines to this value
 
     Returns
     -------
-    `matplotlib.figure.Figure`
+    :code:`matplotlib.figure.Figure`:
         The figure
 
-    list[list[`matplotlib.axes.Axes`]]
+    list[list[:code:`matplotlib.axes.Axes`]]
         A two-dimensional list, where the first index refers to columns, the
         second index to rows
     """
-    XPAD_DEF = 45.0 / pts_per_inch
-    AW_DEF = 45.0 / mm_per_inch
+    XPAD_DEF = 45.0 / PTS_PER_INCH
+    AW_DEF = 45.0 / MM_PER_INCH
     # check and convert every layout parameters to inches if they are not None
     valid_units = ["mm", "pts", "inch"]
     for unit in [fig_width_unit, axes_width_unit, pads_unit, margins_unit]:
@@ -3710,21 +3806,21 @@ def subplots(
             )
 
     if fig_width_unit == "pts" and fig_width is not None:
-        fig_width = fig_width / pts_per_inch
+        fig_width = fig_width / PTS_PER_INCH
     elif fig_width_unit == "mm" and fig_width is not None:
-        fig_width = fig_width / mm_per_inch
+        fig_width = fig_width / MM_PER_INCH
 
     if axes_width_unit == "pts" and axes_width is not None:
-        axes_width = axes_width / pts_per_inch
+        axes_width = axes_width / PTS_PER_INCH
     elif axes_width_unit == "mm" and axes_width is not None:
-        axes_width = axes_width / mm_per_inch
+        axes_width = axes_width / MM_PER_INCH
 
     if pads_unit == "pts":
-        xpad = xpad / pts_per_inch if xpad else xpad
-        ypad = ypad / pts_per_inch if ypad else ypad
+        xpad = xpad / PTS_PER_INCH if xpad else xpad
+        ypad = ypad / PTS_PER_INCH if ypad else ypad
     elif pads_unit == "mm":
-        xpad = xpad / mm_per_inch if xpad else xpad
-        ypad = ypad / mm_per_inch if ypad else ypad
+        xpad = xpad / MM_PER_INCH if xpad else xpad
+        ypad = ypad / MM_PER_INCH if ypad else ypad
 
     try:
         iter(margins)
@@ -3734,9 +3830,9 @@ def subplots(
         margins_ = FigureMarginsFloat(*margins)
 
     if margins_unit == "pts":
-        margins_ = FigureMarginsFloat(*[m / pts_per_inch for m in margins_])
+        margins_ = FigureMarginsFloat(*[m / PTS_PER_INCH for m in margins_])
     if margins_unit == "mm":
-        margins_ = FigureMarginsFloat(*[m / mm_per_inch for m in margins_])
+        margins_ = FigureMarginsFloat(*[m / MM_PER_INCH for m in margins_])
 
     grid = (nrows, ncols)
 
@@ -3942,7 +4038,7 @@ def _get_offsets(
 
     margins = FigureMarginsFloat(*[np.min(m) for m in all_margins])
 
-    lw = plt.rcParams["axes.linewidth"] / pts_per_inch
+    lw = plt.rcParams["axes.linewidth"] / PTS_PER_INCH
     for i in range(4):
         if margins[i] < lw / 2.0:
             relevant_offsets[i] -= lw / 2.0
@@ -4119,10 +4215,10 @@ def make_margins_tight(
     try:
         iter(pad)
     except TypeError:
-        pad = FigureMarginsFloat(*[pad / pts_per_inch] * 4)
+        pad = FigureMarginsFloat(*[pad / PTS_PER_INCH] * 4)
     else:
         if not isinstance(pad, FigureMarginsFloat):
-            pad = FigureMarginsFloat(*[p / pts_per_inch for p in pad])
+            pad = FigureMarginsFloat(*[p / PTS_PER_INCH for p in pad])
 
     figure = figure or plt.gcf()
 
@@ -4363,17 +4459,17 @@ def add_colorbar(
         if where_[i] == "right":
             orientation = "vertical"
             x0 = bbox_ax.x0 + bbox_ax.width \
-                + pad_pts / pts_per_inch / figsize[0]
+                + pad_pts / PTS_PER_INCH / figsize[0]
             y0 = bbox_ax.y0
-            width = width_pts / pts_per_inch / figsize[0]
+            width = width_pts / PTS_PER_INCH / figsize[0]
             height = bbox_ax.height
         else:
             orientation = "horizontal"
             x0 = bbox_ax.x0
             y0 = bbox_ax.y0 + bbox_ax.height \
-                + pad_pts / pts_per_inch / figsize[1]
+                + pad_pts / PTS_PER_INCH / figsize[1]
             width = bbox_ax.width
-            height = width_pts / pts_per_inch / figsize[1]
+            height = width_pts / PTS_PER_INCH / figsize[1]
 
         cax = figure.add_axes([x0, y0, width, height])
         cb = plt.colorbar(image[i], cax=cax, orientation=orientation)
@@ -4383,7 +4479,7 @@ def add_colorbar(
 
         return_colorbars.append(
             Colorbar(cb, axes[i], where_[i],
-                     pad_pts / pts_per_inch, width_pts / pts_per_inch))
+                     pad_pts / PTS_PER_INCH, width_pts / PTS_PER_INCH))
 
     if original_shape:
         return reshape(return_colorbars, original_shape)
@@ -4465,16 +4561,16 @@ def add_colorbar_large(
 
     if where == "right":
         orientation = "vertical"
-        x0 = bbox_ax_1.x1 + pad_pts / pts_per_inch / figsize[0]
+        x0 = bbox_ax_1.x1 + pad_pts / PTS_PER_INCH / figsize[0]
         y0 = bbox_ax_1.y0
-        width = width_pts / pts_per_inch / figsize[0]
+        width = width_pts / PTS_PER_INCH / figsize[0]
         height = bbox_ax_0.y1 - bbox_ax_1.y0
     else:
         orientation = "horizontal"
         x0 = bbox_ax_0.x0
-        y0 = bbox_ax_0.y1 + pad_pts / pts_per_inch / figsize[1]
+        y0 = bbox_ax_0.y1 + pad_pts / PTS_PER_INCH / figsize[1]
         width = bbox_ax_1.x1 - bbox_ax_0.x0
-        height = width_pts / pts_per_inch / figsize[1]
+        height = width_pts / PTS_PER_INCH / figsize[1]
 
     cax = figure.add_axes([x0, y0, width, height])
     cb = plt.colorbar(image, cax=cax, orientation=orientation)
@@ -4482,7 +4578,7 @@ def add_colorbar_large(
 
     _format_colorbar(cb, where, label, **text_kwargs)
 
-    return ColorbarLarge(cb, tuple(axes), where, pad_pts / pts_per_inch, width)
+    return ColorbarLarge(cb, tuple(axes), where, pad_pts / PTS_PER_INCH, width)
 
 
 @overload
@@ -4856,13 +4952,13 @@ def add_abc(
             tbbox = ax.get_tightbbox(renderer)
             ofs_rel.dx = tbbox.x0 / figure.get_dpi() / layout_inch.fig_width - bbox.x0
         else:
-            ofs_rel.dx = xofs / pts_per_inch / layout_inch.fig_width
+            ofs_rel.dx = xofs / PTS_PER_INCH / layout_inch.fig_width
 
         if yofs is None:
             tbbox = ax.get_tightbbox(renderer)
             ofs_rel.dy = tbbox.y1 / layout_inch.fig_height / figure.get_dpi() - bbox.y1
         else:
-            ofs_rel.dy = yofs / pts_per_inch / layout_inch.fig_height
+            ofs_rel.dy = yofs / PTS_PER_INCH / layout_inch.fig_height
 
         if anchor.split()[0] == "upper":
             pos_abc_y = bbox.y1 + ofs_rel.dy

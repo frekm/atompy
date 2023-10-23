@@ -20,40 +20,40 @@ Constants
     :annotation: = "#008081"
 
 .. data:: atompy.BLUE
-    :annotation: = "#2768f5"
+    :annotation: = "#2768F5"
 
 .. data:: atompy.GREEN
-    :annotation: = "#007f00"
+    :annotation: = "#007F00"
 
 .. data:: atompy.GREY
     :annotation: = "#404040"
 
 .. data:: atompy.ORANGE
-    :annotation: = "#fd8d3c"
+    :annotation: = "#FD8D3C"
 
 .. data:: atompy.PINK
-    :annotation: = "#d4b9da"
+    :annotation: = "#D4B9DA"
 
 .. data:: atompy.YELLOW
-    :annotation: = "#fce205"
+    :annotation: = "#FCE205"
 
 .. data:: atompy.LEMON
-    :annotation: = "#effd5f"
+    :annotation: = "#EFFD5F"
 
 .. data:: atompy.CORN
-    :annotation: = "#e4cd05"
+    :annotation: = "#E4CD05"
 
 .. data:: atompy.PURPLE
-    :annotation: = "#ca8dfd"
+    :annotation: = "#CA8DFD"
 
 .. data:: atompy.DARK_PURPLE
-    :annotation: = "#9300ff"
+    :annotation: = "#9300FF"
 
 .. data:: atompy.FOREST_GREEN
-    :annotation: = "#0b6623"
+    :annotation: = "#0B6623"
 
 .. data:: atompy.BRIGHT_GREEN
-    :annotation: = "#3bb143"
+    :annotation: = "#3BB143"
 
 
 

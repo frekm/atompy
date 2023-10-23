@@ -24,21 +24,22 @@ MM_PER_INCH = 25.4
 """float: 25.4 mm = 1 inch"""
 
 T = TypeVar('T')
+DType = TypeVar("DType")
 
-RED = "#ae1117"
+RED = "#AE1117"
 TEAL = "#008081"
-BLUE = "#2768f5"
-GREEN = "#007f00"
+BLUE = "#2768F5"
+GREEN = "#007F00"
 GREY = "#404040"
-ORANGE = "#fd8d3c"
-PINK = "#d4b9da"
-YELLOW = "#fce205"
-LEMON = "#effd5f"
-CORN = "#e4cd05"
-PURPLE = "#ca8dfd"
-DARK_PURPLE = "#9300ff"
-FOREST_GREEN = "#0b6623"
-BRIGHT_GREEN = "#3bb143"
+ORANGE = "#FD8D3C"
+PINK = "#D4B9DA"
+YELLOW = "#FCE205"
+LEMON = "#EFFD5F"
+CORN = "#E4CD05"
+PURPLE = "#CA8DFD"
+DARK_PURPLE = "#9300FF"
+FOREST_GREEN = "#0B6623"
+BRIGHT_GREEN = "#3BB143"
 
 
 
@@ -1454,8 +1455,6 @@ def sample_distribution(
 ###############################################################################
 ###############################################################################
 ###############################################################################
-
-DType = TypeVar("DType")
 
 
 class Array(np.ndarray, Generic[DType]):

@@ -1,9 +1,0 @@
-LICENSE
-pyproject.toml
-src/atompy/__init__.py
-src/atompy/atompy.py
-src/atompy.egg-info/PKG-INFO
-src/atompy.egg-info/SOURCES.txt
-src/atompy.egg-info/dependency_links.txt
-src/atompy.egg-info/requires.txt
-src/atompy.egg-info/top_level.txt

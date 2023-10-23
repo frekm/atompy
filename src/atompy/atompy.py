@@ -1,3 +1,4 @@
+from __future__ import annotations
 import time
 import numpy as np
 import numpy.typing as npt
@@ -3035,16 +3036,16 @@ def create_colormap_from_hex(
 
     Parameters
     ----------
-    steps: Sequence floats
+    steps : Sequence floats
         the steps of the colorbar ranging from 0.0 to 1.0
 
-    colors: Sequence floats
-        The corresponding colors given as hex codes, e.g., "#FF00FF"
+    colors : Sequence floats
+        The corresponding colors given as hex codes, e.g., :code:`#FF00FF`
 
-    n_colors: int, default 256
+    n_colors : int, default 256
         number of different colors in the colormap
 
-    cmap_name: str, default "MyCmap"
+    cmap_name : str, default "MyCmap"
         The name of the colormap instance
 
     Returns
@@ -3054,17 +3055,19 @@ def create_colormap_from_hex(
     Notes
     -----
     The colormap can be registered using
+
     >>> import matplotlib
     >>> cmap_name = "MyCmap"
     >>> cmap = create_colormap(*args, cmap_name=cmap_name)
     >>> matplotlib.colormaps.register(cmap)
 
     It can then be set as default via rcParams
+
     >>> matplotlib.rcParams["image.cmap"] = cmap_name
 
     Examples
     --------
-    ::
+    .. code-block:: python
 
         # create colormap starting white going through to red
         cmap = create_colormap([0.0, 1.0], ["#FFFFFF", "#FF0000"])
@@ -3078,7 +3081,6 @@ def create_colormap_from_hex(
         import numpy as np
         image = np.arange(9).reshape((3, 3))
         plt.imshow(image, cmap=cmap)
-
     """
     reds, greens, blues = [], [], []
     for color in colors:
@@ -3619,6 +3621,7 @@ def _determine_lr_margins(
     return FigureMarginsFloat(leftover / 2.0, leftover / 2.0,
                               margins.top, margins.bottom)
 
+plt.imshow
 
 def subplots(
     nrows: int = 1,
@@ -3643,6 +3646,7 @@ def subplots(
 
     Parameters
     ----------
+
     nrows: int, default 1
         Number of rows of axes in the figure
 

@@ -1713,8 +1713,8 @@ def load_ascii_hist2d(
             x = np.unique(data[:, 0])
             y = np.unique(data[:, 1])
         else:
-            y = np.unique(data[:, 0])
             x = np.unique(data[:, 1])
+            y = np.unique(data[:, 0])
 
         xbinsize = x[1] - x[0]
         if not np.all(np.diff(x) - xbinsize < 1e-5):
@@ -1731,11 +1731,9 @@ def load_ascii_hist2d(
         yedges[-1] = y[-1] + 0.5 * ybinsize
 
         if permuting == "x":
-            z = data[:, 2].reshape(y.size, x.size).T
+            z = data[:, 2].reshape(y.size, x.size)
         else:
-            raise NotImplementedError(
-                f"{permuting=} not implemented yet"
-            )
+            z = data[:, 2].reshape(x.size, y.size).T
 
         output.append((z, xedges, yedges))
 

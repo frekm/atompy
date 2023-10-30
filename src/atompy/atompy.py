@@ -1630,7 +1630,7 @@ def load_ascii_hist1d(
 @overload
 def load_ascii_hist2d(
     fnames: str,
-    order: Literal["yx", "xy"] = "yx",
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
     **loadtxt_kwargs
 ) -> tuple[npt.NDArray[np.float64],
@@ -1641,7 +1641,7 @@ def load_ascii_hist2d(
 @overload
 def load_ascii_hist2d(
     fnames: Sequence[str],
-    order: Literal["yx", "xy"] = "yx",
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
     **loadtxt_kwargs
 ) -> Array[npt.NDArray[np.float64]]: ...
@@ -1649,7 +1649,7 @@ def load_ascii_hist2d(
 
 def load_ascii_hist2d(
     fnames: Union[str, Sequence[str]],
-    order: Literal["yx", "xy"] = "yx",
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
     **loadtxt_kwargs
 ) -> Union[tuple[npt.NDArray[np.float64],
@@ -1667,9 +1667,8 @@ def load_ascii_hist2d(
         the centers of the xbins, the second the centers of the ybins and
         the third values of the histogram.
 
-    order: "xy" or "yx", default "yx"
-        Specify order of first two columns. Default value corresponds to the
-        output of the "hist2ascii" root-macro used in our group
+    xyz_indiceds: (int, int, int), default (1, 0, 2)
+        Specify columns of x, y, and z, starting at 0
 
     permuting: "x" or "y", default "x"
         Order of permutation of x and y in ascii file
@@ -1693,10 +1692,6 @@ def load_ascii_hist2d(
 
         list of tuples of the above
     """
-    if order not in ["xy", "yx"]:
-        raise ValueError(
-            f"{order=}, but must be 'xy' or 'yx'"
-        )
     if permuting not in ["x", "y"]:
         raise ValueError(
             f"{permuting=}, but must be 'x' or 'y'"
@@ -1705,16 +1700,14 @@ def load_ascii_hist2d(
     if isinstance(fnames, str):
         fnames = [fnames]
 
+    idx_x, idx_y, idx_z = xyz_indices
+
     output = []
     for fname in fnames:
         data = np.loadtxt(fname, **loadtxt_kwargs)
 
-        if order == "xy":
-            x = np.unique(data[:, 0])
-            y = np.unique(data[:, 1])
-        else:
-            x = np.unique(data[:, 1])
-            y = np.unique(data[:, 0])
+        x = np.unique(data[:, idx_x])
+        y = np.unique(data[:, idx_y])
 
         xbinsize = x[1] - x[0]
         if not np.all(np.diff(x) - xbinsize < 1e-5):
@@ -1731,9 +1724,9 @@ def load_ascii_hist2d(
         yedges[-1] = y[-1] + 0.5 * ybinsize
 
         if permuting == "x":
-            z = data[:, 2].reshape(y.size, x.size)
+            z = data[:, idx_z].reshape(y.size, x.size)
         else:
-            z = data[:, 2].reshape(x.size, y.size).T
+            z = data[:, idx_z].reshape(x.size, y.size).T
 
         output.append((z, xedges, yedges))
 
@@ -1801,7 +1794,7 @@ def load_ascii_data1d(
 @overload
 def load_ascii_data2d(
     fnames: str,
-    order: Literal["yx", "xy"] = "yx",
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
     origin: Literal["upper", "lower", "auto"] = "auto",
     **kwargs
@@ -1811,7 +1804,7 @@ def load_ascii_data2d(
 @overload
 def load_ascii_data2d(
     fnames: Sequence[str],
-    order: Literal["yx", "xy"] = "yx",
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
     origin: Literal["upper", "lower", "auto"] = "auto",
     **kwargs
@@ -1820,7 +1813,7 @@ def load_ascii_data2d(
 
 def load_ascii_data2d(
     fnames: Union[str, Sequence[str]],
-    order: Literal["yx", "xy"] = "yx",
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
     origin: Literal["upper", "lower", "auto"] = "auto",
     **kwargs
@@ -1837,11 +1830,8 @@ def load_ascii_data2d(
         The filename(s) of the data. If a list is passed, return a list
         of images and extents
 
-    order : "xy" or "yx" default "yx"
-        the meaning of the columns of the data file. The default is the order
-        of files created by `Achim_Lutz_Till.C: hist2ascii()` root-macro
-        - "xy": first column is x, second is y, third is z-data
-        - "yx": first column is y, second is x, third is z-data
+    xyz_indiceds: (int, int, int), default (1, 0, 2)
+        Specify columns of x, y, and z, starting at 0
 
     permuting : "x" or "y"
         Order of permutation of x and y in ascii file
@@ -1880,10 +1870,6 @@ def load_ascii_data2d(
     if isinstance(fnames, str):
         fnames = [fnames]
 
-    if order not in ["xy", "yx"]:
-        raise ValueError(
-            f"{order=}, but it needs to be 'xy' or 'yx'"
-        )
     if permuting not in ["x", "y"]:
         raise ValueError(
             f"{permuting=}, but it needs to be 'x' or 'y'"
@@ -1897,31 +1883,27 @@ def load_ascii_data2d(
     if origin == "auto":
         origin = plt.rcParams["image.origin"]
 
+    idx_x, idx_y, idx_z = xyz_indices
+
     output = []
     for fname in fnames:
         data = np.loadtxt(fname, **kwargs)
 
-        if order == "xy":
-            x = np.unique(data[:, 0])
-            y = np.unique(data[:, 1])
-            shape0, shape1 = y.shape[0], x.shape[0]
-        else:
-            x = np.unique(data[:, 1])
-            y = np.unique(data[:, 0])
-            shape0, shape1 = y.shape[0], x.shape[0]
+        x = np.unique(data[:, idx_x])
+        y = np.unique(data[:, idx_y])
 
         if permuting == "x":
             if origin == "upper":
-                z = np.flip(data[:, 2].reshape(shape0, shape1),
+                z = np.flip(data[:, 2].reshape(y.shape[0], x.shape[0]),
                             axis=0)
             else:
-                z = data[:, 2].reshape(shape0, shape1)
+                z = data[:, 2].reshape(y.shape[0], x.shape[0])
         else:
             if origin == "upper":
-                z = np.flip(data[:, 2].reshape(shape1, shape0),
+                z = np.flip(data[:, idx_z].reshape(x.shape[0], y.shape[0]),
                             axis=1).T
             else:
-                z = data[:, 2].reshape(shape1, shape0).T
+                z = data[:, idx_z].reshape(x.shape[1], y.shape[0]).T
 
         binsize_x = x[1] - x[0]
         binsize_y = y[1] - y[0]
@@ -2575,6 +2557,20 @@ def for_imshow(
     return H_, edges
 
 
+def keep_x_where(
+    H: npt.NDArray[Any],
+    xedges: npt.NDArray[np.float_],
+    yedges: npt.NDArray[np.float_],
+    xmin: float,
+    xmax: float
+) -> tuple[npt.NDArray[Any], npt.NDArray[np.float_]]:
+    xcenters = xedges[:-1] + 0.5 * np.diff(xedges)
+    idx = np.flatnonzero(np.logical_and(xcenters >= xmin, xcenters <= xmax))
+    return H[:,idx[0]:idx[-1] + 1], xedges[idx[0]:idx[-1] + 2], yedges
+
+    
+
+
 def project_onto_x(
     H: npt.NDArray[Any],
     xedges: npt.NDArray[np.float_],
@@ -2614,8 +2610,8 @@ def project_onto_x(
     ymax = ymax or yedges[-1]
     ycenters = yedges[:-1] + 0.5 * np.diff(yedges)
     idx = np.flatnonzero(np.logical_and(ycenters >= ymin, ycenters <= ymax))
-    hist = H[:, idx[0]:idx[-1] + 1]
-    projection = np.sum(hist, axis=1)
+    hist = H[idx[0]:idx[-1] + 1]
+    projection = np.sum(hist, axis=0)
     return projection, xedges
 
 
@@ -2658,8 +2654,8 @@ def project_onto_y(
     xmax = xmax or xedges[-1]
     xcenters = xedges[:-1] + 0.5 * np.diff(xedges)
     idx = np.flatnonzero(np.logical_and(xcenters >= xmin, xcenters <= xmax))
-    hist = H[idx[0]:idx[-1] + 1]
-    projection = np.sum(hist, axis=0)
+    hist = H[:, idx[0]:idx[-1] + 1]
+    projection = np.sum(hist, axis=1)
     return projection, yedges
 
 

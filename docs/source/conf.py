@@ -12,7 +12,7 @@ sys.path.append(os.path.abspath('../../src/'))
 project = 'atompy'
 copyright = 'Max Kircher, CC BY-NC 4.0'
 author = 'Max Kircher'
-release = '1.0.0'
+release = '0.1.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -29,6 +29,12 @@ autodoc_type_aliases = {
 
 templates_path = ['_templates']
 exclude_patterns = []
+
+html_theme_options = {
+  "show_nav_level": 4,
+  "navigation_depth": 4,
+  "collapse_navigation": False
+}
 
 
 # -- Options for HTML output -------------------------------------------------

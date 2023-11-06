@@ -1,12 +1,9 @@
 from __future__ import annotations
-import time
 import numpy as np
-import numpy.typing as npt
 from numpy.typing import ArrayLike, NDArray
-import uproot
 from dataclasses import dataclass
 from typing import (Sequence, Union, Any, TypeVar, overload,
-                    Literal, Generic, Optional, NamedTuple)
+                    Literal, Optional, NamedTuple)
 import math
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -41,30 +38,22 @@ DARK_PURPLE = "#9300FF"
 FOREST_GREEN = "#0B6623"
 BRIGHT_GREEN = "#3BB143"
 
-###############################################################################
-###############################################################################
-###############################################################################
-# Plotting
-###############################################################################
-###############################################################################
-###############################################################################
-
 
 class _Colors(NamedTuple):
-    red: Literal["#ae1117"]
-    blue: Literal["#2768f5"]
-    orange: Literal["#fd8d3c"]
-    pink: Literal["#d4b9da"]
-    green: Literal["#007f00"]
+    red: Literal["#AE1117"]
+    blue: Literal["#2768F5"]
+    orange: Literal["#FD8D3C"]
+    pink: Literal["#D4B9DA"]
+    green: Literal["#007F00"]
     teal: Literal["#008081"]
     grey: Literal["#404040"]
-    yellow: Literal["#fce205"]
-    lemon: Literal["#effd5f"]
-    corn: Literal["#e4cd05"]
-    purple: Literal["#ca8dfd"]
-    dark_purple: Literal["#9300ff"]
-    forest_green: Literal["#0b6623"]
-    bright_green: Literal["#3bb143"]
+    yellow: Literal["#FCE205"]
+    lemon: Literal["#EFFD5F"]
+    corn: Literal["#E4CD05"]
+    purple: Literal["#CA8DFD"]
+    dark_purple: Literal["#9300FF"]
+    forest_green: Literal["#0B6623"]
+    bright_green: Literal["#3BB143"]
 
 
 colors = _Colors(
@@ -2392,32 +2381,3 @@ def abcify_axes(
     for i, a in enumerate(axes):
         output[abc[i]] = a
     return output
-
-
-if __name__ == "__main__":
-    import atompy as ap
-    fig, ax = subplots(2, 1, margins=50, ypad=40)
-
-    label = "abcdef"
-    for i, a in enumerate(ap.flatten(ax)):
-        a.text(0.5, 0.5, label[i], transform=a.transAxes)
-
-    data = np.arange(9).reshape(3, 3)
-    im = ax[0][0].imshow(data, aspect="auto")
-
-    # cb = ap.add_colorbar(fig, ax[0][0], im)
-
-    # change_ratio(1, [ax[0][0], ax[1][0]], adjust="height", anchor="center")
-    # change_ratio(1, ax[1][1], adjust="width")
-    # change_ratio(1, ax[2][0], adjust="width")
-    # change_ratio(1, get_column(0, ax), adjust="width")
-    # change_ratio(1, ax[0][0], adjust="width")
-    make_margins_tight(ax, fixed_figwidth=True,
-                       nruns=3, relevant_axes=(ax[1][0], ax[1][0], ax[0][0], ax[1][0]))
-    change_ratio(1, ax[0][0], adjust="width")
-
-    fig.savefig("test_tight.pdf")
-
-
-if __name__ == "__main__":
-    print("Achwas")

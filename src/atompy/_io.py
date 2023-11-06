@@ -1,5 +1,6 @@
 import numpy as np
 import numpy.typing as npt
+from numpy.typing import NDArray
 import uproot
 from typing import Generic, TypeVar, Literal, Sequence, Union, overload
 import matplotlib.pyplot as plt

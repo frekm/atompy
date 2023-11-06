@@ -5,6 +5,29 @@ import matplotlib.pyplot as plt
 import time
 
 
+def get_all_dividers(
+    n: int
+) -> tuple[int, ...]:
+    """
+    Return possible rebins of the integer *n*
+
+    Paramters
+    ---------
+    n: int
+        A number
+
+    Returns
+    -------
+    all_dividers: tuple
+        A tuple of all dividers of *n*
+    """
+    all_dividers = []
+    for divider in range(1, n // 2 + 1):
+        if n % divider == 0:
+            all_dividers.append(divider)
+    return tuple(all_dividers)
+
+
 def crop(
     x: npt.ArrayLike,
     y: npt.ArrayLike,

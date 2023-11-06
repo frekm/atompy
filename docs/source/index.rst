@@ -12,3 +12,9 @@ Welcome to atompy's documentation!
    :caption: Contents:
 
    plotting
+   Vector
+   Hist1d
+   Hist2d
+   io
+   physics
+   misc

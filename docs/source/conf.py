@@ -6,7 +6,8 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-import sys, os
+import sys
+import os
 sys.path.append(os.path.abspath('../../src/'))
 
 project = 'atompy'
@@ -25,15 +26,16 @@ extensions = [
 autodoc_type_aliases = {
     'ArrayLike': 'ArrayLike',
 }
-# autodoc_typehints = "none"
+autodoc_typehints = "none"
+numpydoc_class_members_toctree = False
 
 templates_path = ['_templates']
 exclude_patterns = []
 
 html_theme_options = {
-  "show_nav_level": 4,
-  "navigation_depth": 4,
-  "collapse_navigation": False
+    "show_nav_level": 4,
+    "navigation_depth": 4,
+    "collapse_navigation": False
 }
 
 

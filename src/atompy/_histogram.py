@@ -167,7 +167,7 @@ class Hist1d:
 
     def save_to_file(
             self,
-            fname : str,
+            fname: str,
             **kwargs
     ) -> None:
         """
@@ -177,7 +177,7 @@ class Hist1d:
         ----------
         fname : str
             Filename
-        
+
         Other Parameters
         ----------------
         kwargs
@@ -585,8 +585,6 @@ if __name__ == "__main__":
     ysamples = rng.normal(size=1000)
 
     hist = Hist2d(*np.histogram2d(xsamples, ysamples))
-    hist1d = Hist1d()
-    hist1d.
 
     plt.pcolormesh(
         *hist.row_normalized_to_sum.for_pcolormesh)

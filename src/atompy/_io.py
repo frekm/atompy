@@ -143,8 +143,8 @@ def load_ascii_hist1d(
     Load a 1d histogram from a file and return it analogous to the output
     of `numpy.histogram`
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     fnames: str or Sequence[str]
         Filename(s). Should contain two columns, where the first represents the
         centers of the xbins, the second the values of the histogram.
@@ -218,8 +218,8 @@ def load_ascii_hist2d(
     Load a 2d histogram from a file and return it corresponding to the output
     of `numpy.histogram2d`
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     fnames: str or Sequence[str]
         Filename(s). Should contain three columns, where the first represents
         the centers of the xbins, the second the centers of the ybins and

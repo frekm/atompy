@@ -142,6 +142,7 @@ class Vector:
 
     @property
     def vectors(self) -> npt.NDArray[np.float64]:
+        """ Get the numpy array """
         return self._data
 
     @vectors.setter
@@ -155,6 +156,7 @@ class Vector:
 
     @property
     def x(self) -> npt.NDArray[np.float64]:
+        """ x-Component of Vector """
         return self[:, 0]
 
     @x.setter
@@ -167,6 +169,7 @@ class Vector:
 
     @property
     def y(self) -> npt.NDArray[np.float64]:
+        """ y-Component of Vector """
         return self[:, 1]
 
     @y.setter
@@ -179,6 +182,7 @@ class Vector:
 
     @property
     def z(self) -> npt.NDArray[np.float64]:
+        """ z-Component of Vector """
         return self[:, 2]
 
     @z.setter
@@ -231,6 +235,7 @@ class Vector:
         return self.theta * 180.0 / np.pi
 
     def copy(self) -> "Vector":
+        """ Return deep copy """
         return Vector(self._data.copy())
 
     def dot(self, other: "Vector") -> npt.NDArray[np.float64]:
@@ -238,6 +243,9 @@ class Vector:
         return self.x * other.x + self.y * other.y + self.z * other.z
 
     def cross(self, other: "Vector") -> "Vector":
+        """ 
+        Return cross product between *self* and *other*
+        """
         if self.x.shape[0] == 1:
             result = other.copy()
         else:
@@ -248,6 +256,19 @@ class Vector:
         return result
 
     def angle_between(self, other: "Vector"):
+        """
+        Return the angle between Vector and *other*
+
+        Parameters
+        ----------
+        other : Vector
+            The other Vector
+
+        Returns
+        -------
+        angle : float
+            The angle between *self* and *other*
+        """
         return np.arccos(self.dot(other) / self.mag / other.mag)
 
     def rotated_around_x(
@@ -257,8 +278,8 @@ class Vector:
         """
         Return a new vector which is rotated around the x-axis by *angle*
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         angle : `ArrayLike`
             angle(s) in rad
 
@@ -279,8 +300,8 @@ class Vector:
         """
         Return a new vector which is rotated around the y-axis by *angle*
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         angle : `ArrayLike`
             angle(s) in rad
 
@@ -301,8 +322,8 @@ class Vector:
         """
         Return a new vector which is rotated around the z-axis by *angle*
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         angle : `ArrayLike`
             angle(s) in rad
 
@@ -323,8 +344,8 @@ class Vector:
         """
         Remove every vector `i` where `mask[i] == True`
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         mask: `numpy.ndarray`, shape `(len(self),)` 
             Array of booleans.
 
@@ -332,8 +353,8 @@ class Vector:
         -------
         `Vector`
 
-        Example
-        -------
+        Examples
+        --------
         ::
 
             >>> vec = Vector([[1, 2, 3], [4, 5, 6]])
@@ -357,8 +378,8 @@ class Vector:
         """
         Keep every vector `i` where `mask[i] == True`
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         mask: `numpy.ndarray`, shape `(len(self),)` 
             Array of booleans.
 
@@ -366,8 +387,8 @@ class Vector:
         -------
         `Vector`
 
-        Example
-        -------
+        Examples
+        --------
         ::
 
             >>> vec = Vector([[1, 2, 3], [4, 5, 6]])

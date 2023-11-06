@@ -1,11 +1,8 @@
-Related to plotting
-===================
+Plotting
+========
 
 .. automodule:: atompy
     :members: PTS_PER_INCH
-
-Constants
----------
 
 .. data:: atompy.PTS_PER_INCH
     :annotation: = 72.0
@@ -57,8 +54,17 @@ Constants
 
 
 
-Functions
----------
+.. autofunction:: atompy.add_colorbar
+
+.. autofunction:: atompy.add_colorbar_large
+
+.. autofunction:: atompy.square_polar_frame
+
+.. autofunction:: atompy.change_ratio
+
+.. autofunction:: atompy.add_abc
+
+.. autofunction:: atompy.abcify_axes
 
 .. autofunction:: atompy.create_colormap
 
@@ -69,6 +75,14 @@ Functions
 .. autofunction:: atompy.dash_dotted
 
 .. autofunction:: atompy.dashed
+
+.. autofunction:: atompy.emarker
+
+.. autofunction:: atompy.get_equal_tick_distance
+
+.. autofunction:: atompy.get_figure_layout
+
+.. autofunction:: atompy.convert_figure_layout_to_relative
 
 .. autofunction:: atompy.equalize_xtick_distance
 
@@ -83,5 +97,7 @@ Functions
 .. autofunction:: atompy.subplots
 
 .. autofunction:: atompy.textwithbox
+
+.. autofunction:: atompy.make_margins_tight
 
 .. autofunction:: atompy.transpose

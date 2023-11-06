@@ -923,8 +923,8 @@ def get_figure_layout(
     """
     Get the layout of the *figure* with *axes*
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     figure : `matplotlib.figure.Figure`
 
     axes : list[list[`matplotlib.axes.Axes`]]
@@ -1729,7 +1729,7 @@ def add_colorbar(
         The axes to append the colorbar to. If a list is given, append
         colorbar to all those
 
-    figure: `matplotlib.figure.Figure`, optional
+    figure : `matplotlib.figure.Figure`, optional
         if not provided, get current figure with plt.gcf()
 
     image : Mappable or list or list of lists thereof
@@ -1739,6 +1739,7 @@ def add_colorbar(
 
     width_pts : float, default: 4.8
         width of the colorbar in pts
+
         - float: overwrites ratio
         - `None`: ignore, use *ratio* instead
 
@@ -1747,6 +1748,7 @@ def add_colorbar(
 
     where : {'right', 'top'}, or list[str], default: 'right'
         Position of the colorbar
+
         - single string: global setting
         - sequence of string: different position for each *axes* (as long as
           a list of *axes* was given)
@@ -1757,6 +1759,7 @@ def add_colorbar(
 
     label : str or list[str], optional
         Label for the color
+
         - str: A label
         - `None`: draw no label
 
@@ -2350,8 +2353,8 @@ def abcify_axes(
     list of axes is provided, it cycles through rows first. (If you want to
     cycle through columns first, pass a transposed 2D list).
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     axes: `matplotlib.axes.Axes` or list or list of lists thereof
 
     Returns

@@ -3,29 +3,8 @@ import matplotlib.pyplot as plt
 import numpy.typing as npt
 from numpy.typing import NDArray
 from dataclasses import dataclass
-
-
-def get_all_dividers(
-    n: int
-) -> tuple[int, ...]:
-    """
-    Return possible rebins of the integer *n*
-
-    Paramters
-    ---------
-    n: int
-        A number
-
-    Returns
-    -------
-    all_dividers: tuple
-        A tuple of all dividers of *n*
-    """
-    all_dividers = []
-    for divider in range(1, n // 2 + 1):
-        if n % divider == 0:
-            all_dividers.append(divider)
-    return tuple(all_dividers)
+from ._io import save_ascii_hist1d, save_ascii_hist2d
+from ._miscellaneous import get_all_dividers
 
 
 @dataclass
@@ -497,6 +476,8 @@ if __name__ == "__main__":
     ysamples = rng.normal(size=1000)
 
     hist = Hist2d(*np.histogram2d(xsamples, ysamples))
+
+    hist.save_to_file("bla")
 
     plt.pcolormesh(
         *hist.row_normalized_to_sum.for_pcolormesh)

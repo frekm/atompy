@@ -315,7 +315,7 @@ class Hist2d:
         """
         Project histogram onto its x-axis
         """
-        return Hist1d(np.sum(self.H, axis=0), self.xedges)
+        return Hist1d(np.sum(self.H, axis=1), self.xedges)
 
     @property
     def prox(self) -> "Hist1d":
@@ -329,7 +329,7 @@ class Hist2d:
         """
         Project histogram onto its y-axis
         """
-        return Hist1d(np.sum(self.H, axis=1), self.yedges)
+        return Hist1d(np.sum(self.H, axis=0), self.yedges)
 
     @property
     def proy(self) -> "Hist1d":

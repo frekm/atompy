@@ -10,7 +10,7 @@ DType = TypeVar("DType")
 
 class Array(np.ndarray, Generic[DType]):
     def __getitem__(self, key) -> DType:
-        return super().__getitem__(key)
+        return super().__getitem__(key)  # type: ignore
 
 
 class NonconstantBinsizeError(Exception):
@@ -130,7 +130,8 @@ def load_ascii_hist1d(
 def load_ascii_hist1d(
     fnames: Sequence[str],
     **loadtxt_kwargs
-) -> Array[npt.NDArray[np.float64]]: ...
+) -> tuple[tuple[npt.NDArray[np.float64], ...],
+           tuple[npt.NDArray[np.float64], ...]]: ...
 
 
 def load_ascii_hist1d(
@@ -138,7 +139,8 @@ def load_ascii_hist1d(
     **loadtxt_kwargs
 ) -> Union[tuple[npt.NDArray[np.float64],
                  npt.NDArray[np.float64]],
-           Array[npt.NDArray[np.float64]]]:
+           tuple[tuple[npt.NDArray[np.float64], ...],
+                 tuple[npt.NDArray[np.float64], ...]]]:
     """
     Load a 1d histogram from a file and return it analogous to the output
     of `numpy.histogram`
@@ -154,19 +156,27 @@ def load_ascii_hist1d(
 
     Returns
     -------
-    * *filenames* is str
+    histogram : `np.ndarray, shape(n,)` or tuple[`np.ndarray`, ...]
+        The values of the histogram. If *fnames* was a Sequence, *histogram*
+        is a tuple.
 
-        histogram: `np.ndarray, shape(n,)`
+    edges : `np.ndarray, shape(n+1,)` or tuple[`np.ndarray`, ...]
+        The bin edges. If *fnames* was a Sequence, *edges* is a tuple.
 
-        edges: `np.ndarray, shape(n+1,)`
+    Examples
+    --------
+    ::
 
-    * *filenames* is Sequence[str]
+        # hist/edges are numpy arrays
+        hist, edges = load_ascii_hist1d("file.dat")
 
-        `np.ndarray` of tuples of the above
+        # hists/edges are tuples of two numpy arrays, respectively
+        hists, edges = load_ascii_hist1d(["file1.dat", "file2.dat"])
     """
     if isinstance(fnames, str):
         fnames = [fnames]
-    output = []
+    output_edges = []
+    output_hists = []
     for fname in fnames:
         data = np.loadtxt(fname, **loadtxt_kwargs)
 
@@ -179,10 +189,13 @@ def load_ascii_hist1d(
         edges[: -1] = data[:, 0] - 0.5 * binsize
         edges[-1] = data[-1, 0] + 0.5 * binsize
 
-        output.append((data[:, 1], edges))
+        output_hists.append(data[:, 1])
+        output_edges.append(edges)
 
-    output = np.array(output, dtype=object)
-    return output if len(output) > 1 else output[0]
+    if len(fnames) > 1:
+        return tuple(output_hists), tuple(output_edges)
+    else:
+        return output_hists[0], output_edges[0]
 
 
 @overload
@@ -202,7 +215,9 @@ def load_ascii_hist2d(
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
     **loadtxt_kwargs
-) -> Array[npt.NDArray[np.float64]]: ...
+) -> tuple[tuple[npt.NDArray[np.float64], ...],
+           tuple[npt.NDArray[np.float64], ...],
+           tuple[npt.NDArray[np.float64], ...]]: ...
 
 
 def load_ascii_hist2d(
@@ -213,7 +228,9 @@ def load_ascii_hist2d(
 ) -> Union[tuple[npt.NDArray[np.float64],
                  npt.NDArray[np.float64],
                  npt.NDArray[np.float64]],
-           Array[npt.NDArray[np.float64]]]:
+           tuple[tuple[npt.NDArray[np.float64], ...],
+                 tuple[npt.NDArray[np.float64], ...],
+                 tuple[npt.NDArray[np.float64], ...]]]:
     """
     Load a 2d histogram from a file and return it corresponding to the output
     of `numpy.histogram2d`
@@ -238,17 +255,17 @@ def load_ascii_hist2d(
 
     Returns
     -------
-    * *fnames* is a single string
+    H : `np.ndarray, shape(nx, ny)` or tuple[`np.ndarray`, ...]
+        The bi-dimensional histogram.
+        If *fnames* is a Sequence, *H* is a tuple of numpy arrays.
 
-        H: `np.ndarray, shape(nx, ny)`
+    xedges : `np.ndarray, shape(nx+1,)` or tuple[`np.ndarray`, ...]
+        The bin edges along the first dimension.
+        If *fnames* is a Sequence, *xedges* is a tuple of numpy arrays.
 
-        xedges: `np.ndarray, shape(nx+1,)`
-
-        yedges: `np.ndarray, shape(ny+1,)`
-
-    * *fnames* is a sequence
-
-        list of tuples of the above
+    yedges : `np.ndarray, shape(ny+1,)` or tuple[`np.ndarray`, ...]
+        The bin edges along the second dimension.
+        If *fnames* is a Sequence, *yedges* is a tuple of numpy arrays.
     """
     if permuting not in ["x", "y"]:
         raise ValueError(
@@ -260,7 +277,7 @@ def load_ascii_hist2d(
 
     idx_x, idx_y, idx_z = xyz_indices
 
-    output = []
+    out_xedges, out_yedges, out_hists = [], [], []
     for fname in fnames:
         data = np.loadtxt(fname, **loadtxt_kwargs)
 
@@ -286,31 +303,39 @@ def load_ascii_hist2d(
         else:
             z = data[:, idx_z].reshape(x.size, y.size).T
 
-        output.append((z, xedges, yedges))
+        out_xedges.append(xedges)
+        out_yedges.append(yedges)
+        out_hists.append(z)
 
-    output = np.array(output, dtype=object)
-    return output if len(output) > 1 else output[0]
+    if len(fnames) > 1:
+        return tuple(out_hists), tuple(out_xedges), tuple(out_yedges)
+    else:
+        return out_hists[0], out_xedges[0], out_yedges[0]
 
 
 @overload
 def load_ascii_data1d(
     fnames: str,
     **loadtxt_kwargs
-) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]: ...
+) -> tuple[npt.NDArray[np.float64],
+           npt.NDArray[np.float64]]: ...
 
 
 @overload
 def load_ascii_data1d(
     fnames: Sequence[str],
     **loadtxt_kwargs
-) -> Array[npt.NDArray[np.float64]]: ...
+) -> tuple[tuple[npt.NDArray[np.float64], ...],
+           tuple[npt.NDArray[np.float64], ...]]: ...
 
 
 def load_ascii_data1d(
     fnames: Union[str, Sequence[str]],
     **loadtxt_kwargs
-) -> Union[tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]],
-           Array[npt.NDArray[np.float64]]]:
+) -> Union[tuple[npt.NDArray[np.float64],
+                 npt.NDArray[np.float64]],
+           tuple[tuple[npt.NDArray[np.float64], ...],
+                 tuple[npt.NDArray[np.float64], ...]]]:
     """
     Import 1d data from an ascii file with two columns (x, y). For any other
     layout, directly use `np.loadtxt` instead.
@@ -325,28 +350,25 @@ def load_ascii_data1d(
 
     Returns
     -------
-    * *fnames* is str
+    x : `np.ndarray` or tuple[`np.ndarray`, ...]
+        Data of the first column of the file.
+        If *fnames* is a Sequence, *x* is a tuple of numpy arrays.
 
-        x : `np.ndarray`
-            Data of the first column of the file
+    y : `np.ndarray` or tuple[`np.ndarray`, ...]
+        Data of the second column of the file
+        If *fnames* is a Sequence, *y* is a tuple of numpy arrays.
 
-        y : `np.ndarray`
-            Data of the second column of the file
-
-    * *fnames* is Sequence[str]
-
-        `np.ndarray` of tuples of the above
     """
     if isinstance(fnames, str):
         x, y = np.loadtxt(fnames, **loadtxt_kwargs).T
         return x, y
-
-    output = np.empty((len(fnames), 2), dtype=object)
-    for i, fname in enumerate(fnames):
-        x, y = np.loadtxt(fname, **loadtxt_kwargs).T
-        output[i, 0] = x
-        output[i, 1] = y
-    return output
+    else:
+        outx, outy = [], []
+        for fname in fnames:
+            x, y = np.loadtxt(fname, **loadtxt_kwargs).T
+            outx.append(x)
+            outy.append(y)
+        return tuple(outx), tuple(outy)
 
 
 @overload
@@ -534,7 +556,7 @@ def load_root_data1d(
     """
     if isinstance(histogram_names, str):
         histogram_names = [histogram_names]
-    with uproot.open(root_filename) as file:
+    with uproot.open(root_filename) as file:  # type: ignore
         output = np.empty((len(histogram_names), 2), dtype=object)
         for i, h in enumerate(histogram_names):
             y, x = file[h].to_numpy()
@@ -709,10 +731,10 @@ def load_root_hist1d(
     """
     if isinstance(histogram_names, str):
         histogram_names = [histogram_names]
-    with uproot.open(root_filename) as file:
+    with uproot.open(root_filename) as file:  # type: ignore
         output = np.empty((len(histogram_names), 2), dtype=object)
         for i, h in enumerate(histogram_names):
-            hist, edges = file[h].to_numpy()
+            hist, edges = file[h].to_numpy()  # type: ignore
             output[i, 0] = hist
             output[i, 1] = edges
 
@@ -795,10 +817,10 @@ def load_root_hist2d(
     if isinstance(histogram_names, str):
         histogram_names = [histogram_names]
 
-    with uproot.open(root_filename) as file:
+    with uproot.open(root_filename) as file:  # type: ignore
         output = np.empty((len(histogram_names), 3), dtype=object)
         for i, h in enumerate(histogram_names):
-            hist, xedges, yedges = file[h].to_numpy()
+            hist, xedges, yedges = file[h].to_numpy()  # type: ignore
             output[i, 0] = hist
             output[i, 1] = xedges
             output[i, 2] = yedges

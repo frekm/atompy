@@ -3,8 +3,9 @@ import matplotlib.pyplot as plt
 import numpy.typing as npt
 from numpy.typing import NDArray
 from dataclasses import dataclass
-from ._io import save_ascii_hist1d, save_ascii_hist2d
-from ._miscellaneous import get_all_dividers
+# from ._io import save_ascii_hist1d, save_ascii_hist2d
+import atompy._io as apio
+from atompy._miscellaneous import get_all_dividers
 
 
 @dataclass
@@ -74,7 +75,7 @@ class Hist1d:
         kwargs
             Additional keyword arguments for numpy.savetxt()
         """
-        save_ascii_hist1d(self.histogram, self.edges, fname, **kwargs)
+        apio.save_ascii_hist1d(self.histogram, self.edges, fname, **kwargs)
 
 
 @dataclass
@@ -434,7 +435,7 @@ class Hist2d:
 
         **savetxt_kwargs : `numpy.savetxt` keyword args
         """
-        save_ascii_hist2d(
+        apio.save_ascii_hist2d(
             self.H, self.xedges, self.yedges, fname, **savetxt_kwargs)
 
     @property

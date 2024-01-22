@@ -28,6 +28,7 @@ autodoc_type_aliases = {
 }
 autodoc_typehints = "none"
 numpydoc_class_members_toctree = False
+navigation_with_keys = False
 
 templates_path = ['_templates']
 exclude_patterns = []
@@ -35,7 +36,8 @@ exclude_patterns = []
 html_theme_options = {
     "show_nav_level": 4,
     "navigation_depth": 4,
-    "collapse_navigation": False
+    "collapse_navigation": False,
+    "navigation_with_keys": False
 }
 
 

@@ -4,6 +4,11 @@ Input/Output
 Save histograms
 ---------------
 
+Save histograms created by `np.histogram <https://numpy.org/doc/stable/
+reference/generated/numpy.histogram.html>`_ or `np.histogram2d <https://
+numpy.org/doc/stable/reference/generated/numpy.histogram2d.html>`_ as 
+ASCII-files.
+
 .. autofunction:: atompy.save_ascii_hist1d
 
 .. autofunction:: atompy.save_ascii_hist2d
@@ -11,10 +16,9 @@ Save histograms
 Load data as histograms
 -----------------------
 
-When loading data as histograms, the output is analogous to numpy's
-histogram functions (`histogram <https://numpy.org/doc/stable/reference/
-generated/numpy.histogram.html>`_ and `histogram2d <https://numpy.org/doc/
-stable/reference/generated/numpy.histogram2d.html>`_).
+Loading data as histograms returns a :class:`.Hist1d` or :class:`.Hist2d`
+instance, which provides some histogram operations (e.g., rebinning,
+projections, etc).
 
 .. autofunction:: atompy.load_ascii_hist1d
 .. autofunction:: atompy.load_ascii_hist2d
@@ -33,19 +37,17 @@ bin and the corresponding y-value.
 .. autofunction:: atompy.load_ascii_data1d
 .. autofunction:: atompy.load_root_data1d
 
-Load 2D-data as images
-----------------------
+Import 2D-data for plotting
+---------------------------
 
 2D-data can be displayed using either `imshow <https://matplotlib.org/stable/
 api/_as_gen/matplotlib.pyplot.imshow.html>`_ or `pcolormesh <https://
 matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.pcolormesh.html>`_ (or
-using some other method that I don't know of). **atompy** provides a method
-to import 2D-data such that it can be plotted using `imshow`.
+using some other method that I don't know of). **atompy** provides
+methods to import ASCII data such that it can be plotted with either.
 
-If you want to use `pcolormesh` instead, load the data as a 2D-histogram
-(loading either :func:`ASCII <atompy.load_ascii_hist2d>` or
-:func:`ROOT <atompy.load_root_hist2d>` data), then plot the data using the 
-histogram, xedges, and yedges.
+.. autofunction:: atompy.import_ascii_for_imshow
+.. autofunction:: atompy.import_root_for_imshow
 
-.. autofunction:: atompy.load_ascii_for_imshow
-.. autofunction:: atompy.load_root_for_imshow
+.. autofunction:: atompy.import_ascii_for_pcolormesh
+.. autofunction:: atompy.import_root_for_pcolormesh

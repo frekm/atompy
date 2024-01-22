@@ -30,8 +30,8 @@ numpy.org/doc/stable/reference/generated/numpy.loadtxt.html>`_ (for
 completionist's sake). Loading ROOT-1D-histogram returns the center of the
 bin and the corresponding y-value.
 
+.. autofunction:: atompy.load_ascii_data1d
 .. autofunction:: atompy.load_root_data1d
-.. autofunction:: atompy.load_root_data2d
 
 Load 2D-data as images
 ----------------------
@@ -47,5 +47,5 @@ If you want to use `pcolormesh` instead, load the data as a 2D-histogram
 :func:`ROOT <atompy.load_root_hist2d>` data), then plot the data using the 
 histogram, xedges, and yedges.
 
-.. autofunction:: atompy.load_ascii_data1d
-.. autofunction:: atompy.load_ascii_data2d
+.. autofunction:: atompy.load_ascii_for_imshow
+.. autofunction:: atompy.load_root_for_imshow

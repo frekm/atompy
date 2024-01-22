@@ -372,7 +372,7 @@ def load_ascii_data1d(
 
 
 @overload
-def load_ascii_data2d(
+def import_ascii_for_imshow(
     fnames: str,
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
@@ -383,7 +383,7 @@ def load_ascii_data2d(
 
 
 @overload
-def load_ascii_data2d(
+def import_ascii_for_imshow(
     fnames: Sequence[str],
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
@@ -393,7 +393,7 @@ def load_ascii_data2d(
            tuple[npt.NDArray[np.float64], ...]]: ...
 
 
-def load_ascii_data2d(
+def import_ascii_for_imshow(
     fnames: Union[str, Sequence[str]],
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
@@ -453,12 +453,12 @@ def load_ascii_data2d(
     ::
 
         # 1 file
-        data, extent = load_ascii_data2d("filename.txt")
+        data, extent = import_ascii_for_imshow("filename.txt")
         plt.imshow(data, extent=extent)
 
         # 2 files
         filenames = ["filename1.txt", "filename2.txt"]
-        data, extents = load_ascii_data2d(filenames)
+        data, extents = import_ascii_for_imshow(filenames)
         plt.imshow(data[0], extent=extent[0])
         plt.imshow(data[1], extent=extent[1])
     """
@@ -480,7 +480,7 @@ def load_ascii_data2d(
 
     idx_x, idx_y, idx_z = xyz_indices
 
-    output_data, output_extent = []
+    output_data, output_extent = [], []
     for fname in fnames:
         data = np.loadtxt(fname, **kwargs)
 
@@ -600,7 +600,7 @@ def load_root_data1d(
 
 
 @overload
-def load_root_data2d(
+def import_root_for_imshow(
     root_filename: str,
     histogram_names: str,
     origin: Literal["auto", "upper", "lower"] = "auto"
@@ -608,7 +608,7 @@ def load_root_data2d(
 
 
 @overload
-def load_root_data2d(
+def import_root_for_imshow(
     root_filename: str,
     histogram_names: Sequence[str],
     origin: Literal["auto", "upper", "lower"] = "auto"
@@ -616,7 +616,7 @@ def load_root_data2d(
            tuple[npt.NDArray[np.float64], ...]]: ...
 
 
-def load_root_data2d(
+def import_root_for_imshow(
     root_filename: str,
     histogram_names: Union[str, Sequence[str]],
     origin: Literal["auto", "upper", "lower"] = "auto"
@@ -658,12 +658,12 @@ def load_root_data2d(
         import matplotlib.pyplot as plt
 
         # Import one histogram
-        data, extent = load_root_hist2d("rootfile.root", "path/to/hist")
+        data, extent = import_root_for_imshow("rootfile.root", "path/to/hist")
         plt.imshow(data, extent=extent)
 
         # Import multiple histograms
-        data, extents = load_root_hist2d("rootfile.root",
-                                         ["path/to/histo1", "path/to/histo2"])
+        data, extents = import_root_for_imshow(
+            "rootfile.root", ["path/to/histo1", "path/to/histo2"])
         for date, extent in zip(data, extents):
             plt.imshow(date, extent=extent),
 
@@ -873,3 +873,88 @@ def load_root_hist2d(
         return tuple(out_hist), tuple(out_xedges), tuple(out_yedges)
     else:
         return out_hist[0], out_xedges[0], out_yedges[0]
+
+
+@overload
+def import_ascii_for_pcolormesh(
+    fnames: str,
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
+    permuting: Literal["x", "y"] = "x",
+    **kwargs
+) -> tuple[npt.NDArray[np.float64],
+           npt.NDArray[np.float64],
+           npt.NDArray[np.float64]]: ...
+
+
+@overload
+def import_ascii_for_pcolormesh(
+    fnames: Sequence[str],
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
+    permuting: Literal["x", "y"] = "x",
+    **kwargs
+) -> tuple[tuple[npt.NDArray[np.float64], ...],
+           tuple[npt.NDArray[np.float64], ...],
+           tuple[npt.NDArray[np.float64], ...]]: ...
+
+
+def import_ascii_for_pcolormesh(
+    fnames: Union[str, Sequence[str]],
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
+    permuting: Literal["x", "y"] = "x",
+    **kwargs
+) -> Union[tuple[npt.NDArray[np.float64],
+                 npt.NDArray[np.float64],
+                 npt.NDArray[np.float64]],
+           tuple[tuple[npt.NDArray[np.float64], ...],
+                 tuple[npt.NDArray[np.float64], ...],
+                 tuple[npt.NDArray[np.float64], ...]]]:
+    """
+    Import 2d-histogram data and return three numpy arrays X, Y, C which are
+    formatted such that they can be plotted using `plt.pcolormesh <https://
+    matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.pcolormesh.html>`_
+
+    Parameters
+    ----------
+    fnames : str or Sequence[str]
+        The filename(s) of the data. If a list is passed, return a list
+        of images and extents
+
+    xyz_indiceds : (int, int, int), default (1, 0, 2)
+        Specify columns of x, y, and z, starting at 0
+
+    permuting : `"x"` or `"y"`
+        Order of permutation of x and y in ascii file
+
+        - `"x"`: first permutate through x-values before changing y-values
+        - `"y"`: first permutate through y-values before changing x-values
+
+    **kwargs :
+        `np.loadtxt <https://numpy.org/doc/stable/reference/generated/
+        numpy.loadtxt.html>`_ keyword arguments
+
+    Returns
+    -------
+    X : `np.ndarray` or tuple[`np.ndarray`, ...]
+
+    Z : `np.ndarray` or tuple[`np.ndarray`, ...]
+
+    C : `np.ndarray` or tuple[`np.ndarray`, ...]
+
+
+    Examples
+    --------
+    ::
+        import matplotlib.pyplots as plt
+        import atompy as ap
+
+        # 1 file
+        X, Y, C = ap.import_ascii_for_pcolormesh("filename.txt")
+        plt.pcolormesh(X, Y, C)
+
+        # 2 files
+        X, Y, C = ap.import_ascii_for_pcolormesh(
+            ["filename1.txt", "filename2.txt"]
+        plt.pcolormesh(X[0], Y[0], C[0])
+        plt.pcolormesh(X[1], Y[1], C[1])
+    """
+    raise NotImplementedError

@@ -19,11 +19,7 @@ jobs:
         zip -r atompy.zip atompy
 
     - name: Upload Release Asset
-      uses: actions/upload-release-asset@v2
       env:
         GITHUB_TOKEN: ${{ github.token }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./src/atompy.zip
-        asset_name: atompy.zip
-        asset_content_type: application/zip
+      run:
+        gh release upload ${{ github.event.release.tag_name }} ./src/atompy.zip

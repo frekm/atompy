@@ -1,6 +1,3 @@
-.. contents::
-
-
 Plotting
 ========
 
@@ -12,6 +9,9 @@ Constants
 
 .. data:: atompy.MM_PER_INCH
     :annotation: = 25.4
+
+The colors listed below are also wrapped in a class :code:`colors`. One can
+access these, e.g., like :code:`colors.RED`.
 
 .. data:: atompy.RED
     :annotation: = "#AE1117"
@@ -57,20 +57,26 @@ Constants
 
 
 
-Colorbars and colormaps
------------------------
+Colorbars
+---------
 
 .. autofunction:: atompy.add_colorbar
 
 .. autofunction:: atompy.add_colorbar_large
 
+.. autoclass:: atompy.Colorbar
+
+.. autoclass:: atompy.ColorbarLarge
+
+Colormaps
+---------
+
 .. autofunction:: atompy.create_colormap
 
 .. autofunction:: atompy.create_colormap_from_hex
 
-
-Format axes
------------
+Formatting
+----------
 
 .. autofunction:: atompy.square_polar_frame
 
@@ -80,6 +86,16 @@ Format axes
 
 .. autofunction:: atompy.abcify_axes
 
+.. autofunction:: atompy.get_equal_tick_distance
+
+.. autofunction:: atompy.equalize_xtick_distance
+
+.. autofunction:: atompy.equalize_ytick_distance
+
+
+
+Linestyles and markerstyles
+---------------------------
 
 .. autofunction:: atompy.dotted
 
@@ -89,15 +105,12 @@ Format axes
 
 .. autofunction:: atompy.emarker
 
-.. autofunction:: atompy.get_equal_tick_distance
-
 .. autofunction:: atompy.get_figure_layout
 
 .. autofunction:: atompy.convert_figure_layout_to_relative
 
-.. autofunction:: atompy.equalize_xtick_distance
-
-.. autofunction:: atompy.equalize_ytick_distance
+Miscellaneous
+-------------
 
 .. autofunction:: atompy.flatten
 

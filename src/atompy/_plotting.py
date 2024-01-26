@@ -191,27 +191,80 @@ class FigureLayout:
 
 @dataclass
 class Colorbar:
+    """
+    atompy's Colorbar class that stores additional information
+
+    Parameters
+    ----------
+    colorbar : `matplotlib.colorbar.Colorbar`
+        A colorbar
+
+    parent_axes : `matplotlib.axes.Axes`
+        The axes to which the colorbar belongs.
+
+    location : `"left"` or `"top"`
+        The location of the colorbar.
+
+    pad_inch : float
+        The padding between `parent_axes` and `colorbar.ax`
+
+    width_inch : float
+        Width of the colorbar.
+    """
     colorbar: mplcb.Colorbar
     parent_axes: mplax.Axes
-    location: str
+    location: Literal["left", "top"]
     pad_inch: float
     width_inch: float
 
     @property
     def ax(self) -> mplax.Axes:
+        """
+        Shortcut for `Colorbar.colorbar.ax`
+
+        Returns
+        -------
+        axes : `matplotlib.axes.Axes`
+            The axes in which the colorbar is placed.
+        """
         return self.colorbar.ax
 
 
 @dataclass
 class ColorbarLarge:
+    """
+    atompy's Colorbar class for colorbars that span multiple axes
+
+    Parameters
+    ----------
+    colorbar : `matplotlib.colorbar.Colorbar`
+        A colorbar
+
+    parent_axes : (`matplotlib.axes.Axes`, `matplot.axes.Axes`)
+        The leftmost/rightmost (topmost/bottommost) axes that the colorbar
+        spans. The *colorbar*-instance belongs to the leftmost (topmost)
+        axes.
+
+    location : `"left"` or `"top"`
+        The location of the colorbar.
+
+    pad_inch : float
+        The padding between `parent_axes` and `colorbar.ax`
+
+    width_inch : float
+        Width of the colorbar.
+    """
     colorbar: mplcb.Colorbar
     parent_axes: tuple[mplax.Axes, mplax.Axes]
-    location: str
+    location: Literal["left", "top"]
     pad_inch: float
     width_inch: float
 
     @property
     def ax(self) -> mplax.Axes:
+        """
+        Shortcut for `Colorbar.colorbar.ax`
+        """
         return self.colorbar.ax
 
 

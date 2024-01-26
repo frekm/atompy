@@ -1,4 +1,3 @@
 sphinx>=7.2.6
-pydata-sphinx-theme
-numpydoc
-git+https://github.com/crono-kircher/atompy/
+sphinx_rtd_theme
+-e ..

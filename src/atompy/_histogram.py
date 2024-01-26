@@ -3,14 +3,37 @@ import matplotlib.pyplot as plt
 import numpy.typing as npt
 from numpy.typing import NDArray
 from dataclasses import dataclass
-from ._io import save_ascii_hist1d, save_ascii_hist2d
-from ._miscellaneous import get_all_dividers
+import atompy._io as apio
+from atompy._miscellaneous import get_all_dividers
+
+
+@dataclass
+class _Hist1dIterator:
+    histogram: NDArray[np.float64]
+    edges: NDArray[np.float64]
+
+    def __post_init__(self) -> None:
+        self.index = 0
+
+    def __iter__(self) -> "_Hist1dIterator":
+        return self
+
+    def __next__(self) -> NDArray[np.float64]:
+        self.index += 1
+        if self.index == 1:
+            return self.histogram
+        if self.index == 2:
+            return self.edges
+        raise StopIteration
 
 
 @dataclass
 class Hist1d:
     histogram: NDArray[np.float64]
     edges: NDArray[np.float64]
+
+    def __iter__(self) -> _Hist1dIterator:
+        return _Hist1dIterator(self.histogram, self.edges)
 
     @property
     def centers(
@@ -74,7 +97,30 @@ class Hist1d:
         kwargs
             Additional keyword arguments for numpy.savetxt()
         """
-        save_ascii_hist1d(self.histogram, self.edges, fname, **kwargs)
+        apio.save_ascii_hist1d(self.histogram, self.edges, fname, **kwargs)
+
+
+@dataclass
+class _Hist2dIterator:
+    H: NDArray[np.float64]
+    xedges: NDArray[np.float64]
+    yedges: NDArray[np.float64]
+
+    def __post_init__(self) -> None:
+        self.index = 0
+
+    def __iter__(self) -> "_Hist2dIterator":
+        return self
+
+    def __next__(self) -> NDArray[np.float64]:
+        self.index += 1
+        if self.index == 1:
+            return self.H
+        if self.index == 2:
+            return self.xedges
+        if self.index == 3:
+            return self.yedges
+        raise StopIteration
 
 
 @dataclass
@@ -94,10 +140,38 @@ class Hist2d:
 
     yedges : ndarray, shape(ny+1,)
         The bin edges along the second dimension of *H*
+
+    Examples
+    --------
+    :: 
+
+        import numpy as np
+        import atompy as ap
+        import matplotlib.pyplot as plt
+
+        # get some random data going
+        rng = np.random.default_rng()
+        sample_x, sample_y = rng.normal(size=(2, 1_000))
+
+        # initiate a Hist2d instance
+        H, x, y = np.histogram2d(sample_x, sample_y)
+        hist2d = ap.Hist2d(H, x, y)
+        # or do a one-liner
+        hist2d = Hist2d(*np.histogram2d(sample_x, sample_y))
+
+        # plot
+        plt.pcolormesh(*hist2d.for_pcolormesh)
+
+        # or rebin, then plot
+        plt.pcolormesh(*hist2d.rebinned_x(2).for_pcolormesh)
+
     """
     H: NDArray[np.float64]
     xedges: NDArray[np.float64]
     yedges: NDArray[np.float64]
+
+    def __iter__(self) -> _Hist2dIterator:
+        return _Hist2dIterator(self.H, self.xedges, self.yedges)
 
     @property
     def xcenters(self) -> NDArray[np.float64]:
@@ -315,7 +389,7 @@ class Hist2d:
         """
         Project histogram onto its x-axis
         """
-        return Hist1d(np.sum(self.H, axis=0), self.xedges)
+        return Hist1d(np.sum(self.H, axis=1), self.xedges)
 
     @property
     def prox(self) -> "Hist1d":
@@ -329,7 +403,7 @@ class Hist2d:
         """
         Project histogram onto its y-axis
         """
-        return Hist1d(np.sum(self.H, axis=1), self.yedges)
+        return Hist1d(np.sum(self.H, axis=0), self.yedges)
 
     @property
     def proy(self) -> "Hist1d":
@@ -434,7 +508,7 @@ class Hist2d:
 
         **savetxt_kwargs : `numpy.savetxt` keyword args
         """
-        save_ascii_hist2d(
+        apio.save_ascii_hist2d(
             self.H, self.xedges, self.yedges, fname, **savetxt_kwargs)
 
     @property
@@ -471,14 +545,4 @@ class Hist2d:
 
 
 if __name__ == "__main__":
-    rng = np.random.default_rng(123)
-    xsamples = rng.normal(size=1000)
-    ysamples = rng.normal(size=1000)
-
-    hist = Hist2d(*np.histogram2d(xsamples, ysamples))
-
-    hist.save_to_file("bla")
-
-    plt.pcolormesh(
-        *hist.row_normalized_to_sum.for_pcolormesh)
-    plt.show()
+    print("achwas")

@@ -1,0 +1,25 @@
+name: Attach Zip to Release
+
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Zip atompy folder
+      run: |
+        cd src
+        zip -r atompy.zip atompy
+
+    - name: Upload Release Asset
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run:
+        gh release upload ${{ github.event.release.tag_name }} ./src/atompy.zip

@@ -11,8 +11,8 @@ def get_all_dividers(
     """
     Return possible rebins of the integer *n*
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     n: int
         A number
 

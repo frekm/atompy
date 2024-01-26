@@ -2,15 +2,9 @@ import numpy as np
 import numpy.typing as npt
 from numpy.typing import NDArray
 import uproot
-from typing import Generic, TypeVar, Literal, Sequence, Union, overload
+from typing import Literal, Sequence, Union, overload
 import matplotlib.pyplot as plt
-
-DType = TypeVar("DType")
-
-
-class Array(np.ndarray, Generic[DType]):
-    def __getitem__(self, key) -> DType:
-        return super().__getitem__(key)
+import atompy._histogram as aph
 
 
 class NonconstantBinsizeError(Exception):
@@ -56,10 +50,12 @@ def save_ascii_hist1d(
     ::
 
         import numpy as np
-        import atompy.histogram as ah
-        xsamples = np.random.normal(100_000)
+        import atompy as ap
+
+        rng = np.random.default_rng()
+        xsamples = rng.normal(100_000)
         histogram = np.histogram(xsamples, 50)
-        ah.save_ascii_hist1d(*histogram, "filename.txt")
+        ap.save_ascii_hist1d(*histogram, "filename.txt")
     """
     bincenters = edges[:-1] + 0.5 * np.diff(edges)
 
@@ -122,47 +118,50 @@ def save_ascii_hist2d(
 def load_ascii_hist1d(
     fnames: str,
     **loadtxt_kwargs
-) -> tuple[npt.NDArray[np.float64],
-           npt.NDArray[np.float64]]: ...
+) -> aph.Hist1d: ...
 
 
 @overload
 def load_ascii_hist1d(
     fnames: Sequence[str],
     **loadtxt_kwargs
-) -> Array[npt.NDArray[np.float64]]: ...
+) -> tuple[aph.Hist1d, ...]: ...
 
 
 def load_ascii_hist1d(
     fnames: Union[str, Sequence[str]],
     **loadtxt_kwargs
-) -> Union[tuple[npt.NDArray[np.float64],
-                 npt.NDArray[np.float64]],
-           Array[npt.NDArray[np.float64]]]:
+) -> Union[aph.Hist1d,
+           tuple[aph.Hist1d, ...]]:
     """
-    Load a 1d histogram from a file and return it analogous to the output
-    of `numpy.histogram`
+    Load :class:`.Hist1d` from a file. If you don't want a histogram but simply
+    (bincenters, histogram_values), use :func:`.load_ascii_hist1d` instead.
 
     Parameters
     ----------
-    fnames: str or Sequence[str]
+    fnames : str or Sequence[str]
         Filename(s). Should contain two columns, where the first represents the
         centers of the xbins, the second the values of the histogram.
 
     **loadtxt_kwargs
-        Keyword arguments for `numpy.loadtxt`
+        Keyword arguments for `np.loadtxt <https://numpy.org/doc/stable/
+        reference/generated/numpy.loadtxt.html>`_
 
     Returns
     -------
-    * *filenames* is str
+    histogram : :class:`.Hist1d` or tuple[`Hist1d`, ...]
+        A atompy Hist1d instance. If *fnames* is a Sequence,
+        *histogram* is a tuple of Hist1d instances.
 
-        histogram: `np.ndarray, shape(n,)`
+    Examples
+    --------
+    ::
 
-        edges: `np.ndarray, shape(n+1,)`
+        # hist.histogram are the histogram values, hist.edges its edges
+        hist = load_ascii_hist1d("file.dat")
 
-    * *filenames* is Sequence[str]
-
-        `np.ndarray` of tuples of the above
+        # Load multiple histograms at once
+        hists = load_ascii_hist1d(["file1.dat", "file2.dat"])
     """
     if isinstance(fnames, str):
         fnames = [fnames]
@@ -179,10 +178,9 @@ def load_ascii_hist1d(
         edges[: -1] = data[:, 0] - 0.5 * binsize
         edges[-1] = data[-1, 0] + 0.5 * binsize
 
-        output.append((data[:, 1], edges))
+        output.append(aph.Hist1d(data[:, 1], edges))
 
-    output = np.array(output, dtype=object)
-    return output if len(output) > 1 else output[0]
+    return tuple(output) if len(fnames) > 1 else output[0]
 
 
 @overload
@@ -191,9 +189,7 @@ def load_ascii_hist2d(
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
     **loadtxt_kwargs
-) -> tuple[npt.NDArray[np.float64],
-           npt.NDArray[np.float64],
-           npt.NDArray[np.float64]]: ...
+) -> aph.Hist2d: ...
 
 
 @overload
@@ -202,7 +198,7 @@ def load_ascii_hist2d(
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
     **loadtxt_kwargs
-) -> Array[npt.NDArray[np.float64]]: ...
+) -> tuple[aph.Hist2d, ...]: ...
 
 
 def load_ascii_hist2d(
@@ -210,51 +206,36 @@ def load_ascii_hist2d(
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
     **loadtxt_kwargs
-) -> Union[tuple[npt.NDArray[np.float64],
-                 npt.NDArray[np.float64],
-                 npt.NDArray[np.float64]],
-           Array[npt.NDArray[np.float64]]]:
+) -> Union[aph.Hist2d,
+           tuple[aph.Hist2d, ...]]:
     """
-    Load a 2d histogram from a file and return it corresponding to the output
-    of `numpy.histogram2d`
+    Load :class:`.Hist2d` from a file.
 
     Parameters
     ----------
-    fnames: str or Sequence[str]
-        Filename(s). Should contain three columns, where the first represents
-        the centers of the xbins, the second the centers of the ybins and
-        the third values of the histogram.
+    fnames : str or Sequence[str]
+        Filename(s). Should contain three columns defining the centers of
+        the x and y bins, and the histogram values. Which column is which
+        is defined by *xyz_indices*.
 
-    xyz_indiceds: (int, int, int), default (1, 0, 2)
+    xyz_indices : (int, int, int), default (1, 0, 2)
         Specify columns of x, y, and z, starting at 0
 
-    permuting: "x" or "y", default "x"
+    permuting : "x" or "y", default "x"
         Order of permutation of x and y in ascii file
         - "x": first permute through x-values before changing y-values
         - "y": first permute through y-values before changing x-values
 
     **loadtxt_kwargs
-        Keyword arguments for `numpy.loadtxt`
+        Keyword arguments for `np.loadtxt <https://numpy.org/doc/stable/
+        reference/generated/numpy.loadtxt.html>`_
 
     Returns
     -------
-    * *fnames* is a single string
-
-        H: `np.ndarray, shape(nx, ny)`
-
-        xedges: `np.ndarray, shape(nx+1,)`
-
-        yedges: `np.ndarray, shape(ny+1,)`
-
-    * *fnames* is a sequence
-
-        list of tuples of the above
+    histogram2d : :class:`.Hist2d` or tuple[`Hist2d`, ...]
+        A Hist2d instance of the histogram data. If *fnames* was
+        a Sequence, *histogram2d* will be a tuple of Hist2d instances.
     """
-    if permuting not in ["x", "y"]:
-        raise ValueError(
-            f"{permuting=}, but must be 'x' or 'y'"
-        )
-
     if isinstance(fnames, str):
         fnames = [fnames]
 
@@ -282,35 +263,41 @@ def load_ascii_hist2d(
         yedges[-1] = y[-1] + 0.5 * ybinsize
 
         if permuting == "x":
-            z = data[:, idx_z].reshape(y.size, x.size)
+            z = data[:, idx_z].reshape(y.size, x.size).T
+        elif permuting == "y":
+            z = data[:, idx_z].reshape(x.size, y.size)
         else:
-            z = data[:, idx_z].reshape(x.size, y.size).T
+            msg = f"'{permuting=}', but should be 'x' or 'y'"
+            raise ValueError(msg)
 
-        output.append((z, xedges, yedges))
+        output.append(aph.Hist2d(z, xedges, yedges))
 
-    output = np.array(output, dtype=object)
-    return output if len(output) > 1 else output[0]
+    return tuple(output) if len(fnames) > 1 else output[0]
 
 
 @overload
 def load_ascii_data1d(
     fnames: str,
     **loadtxt_kwargs
-) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]: ...
+) -> tuple[npt.NDArray[np.float64],
+           npt.NDArray[np.float64]]: ...
 
 
 @overload
 def load_ascii_data1d(
     fnames: Sequence[str],
     **loadtxt_kwargs
-) -> Array[npt.NDArray[np.float64]]: ...
+) -> tuple[tuple[npt.NDArray[np.float64], ...],
+           tuple[npt.NDArray[np.float64], ...]]: ...
 
 
 def load_ascii_data1d(
     fnames: Union[str, Sequence[str]],
     **loadtxt_kwargs
-) -> Union[tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]],
-           Array[npt.NDArray[np.float64]]]:
+) -> Union[tuple[npt.NDArray[np.float64],
+                 npt.NDArray[np.float64]],
+           tuple[tuple[npt.NDArray[np.float64], ...],
+                 tuple[npt.NDArray[np.float64], ...]]]:
     """
     Import 1d data from an ascii file with two columns (x, y). For any other
     layout, directly use `np.loadtxt` instead.
@@ -321,117 +308,125 @@ def load_ascii_data1d(
         Filename(s)
 
     **loadtxt_kwargs
-        optional `np.loadtxt` keyword arguments
+        optional `np.loadtxt <https://numpy.org/doc/stable/reference/
+        generated/numpy.loadtxt.html>`_ keyword arguments
 
     Returns
     -------
-    * *fnames* is str
+    x : `np.ndarray` or tuple[`np.ndarray`, ...]
+        Data of the first column of the file.
+        If *fnames* is a Sequence, *x* is a tuple of numpy arrays.
 
-        x : `np.ndarray`
-            Data of the first column of the file
+    y : `np.ndarray` or tuple[`np.ndarray`, ...]
+        Data of the second column of the file
+        If *fnames* is a Sequence, *y* is a tuple of numpy arrays.
 
-        y : `np.ndarray`
-            Data of the second column of the file
-
-    * *fnames* is Sequence[str]
-
-        `np.ndarray` of tuples of the above
     """
     if isinstance(fnames, str):
         x, y = np.loadtxt(fnames, **loadtxt_kwargs).T
         return x, y
-
-    output = np.empty((len(fnames), 2), dtype=object)
-    for i, fname in enumerate(fnames):
-        x, y = np.loadtxt(fname, **loadtxt_kwargs).T
-        output[i, 0] = x
-        output[i, 1] = y
-    return output
+    else:
+        outx, outy = [], []
+        for fname in fnames:
+            x, y = np.loadtxt(fname, **loadtxt_kwargs).T
+            outx.append(x)
+            outy.append(y)
+        return tuple(outx), tuple(outy)
 
 
 @overload
-def load_ascii_data2d(
+def import_ascii_for_imshow(
     fnames: str,
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
     origin: Literal["upper", "lower", "auto"] = "auto",
     **kwargs
-) -> tuple[npt.NDArray[np.float64], list[float]]: ...
+) -> tuple[npt.NDArray[np.float64],
+           npt.NDArray[np.float64]]: ...
 
 
 @overload
-def load_ascii_data2d(
+def import_ascii_for_imshow(
     fnames: Sequence[str],
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
     origin: Literal["upper", "lower", "auto"] = "auto",
     **kwargs
-) -> Array[npt.NDArray[np.float64]]: ...
+) -> tuple[tuple[npt.NDArray[np.float64], ...],
+           tuple[npt.NDArray[np.float64], ...]]: ...
 
 
-def load_ascii_data2d(
+def import_ascii_for_imshow(
     fnames: Union[str, Sequence[str]],
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
     origin: Literal["upper", "lower", "auto"] = "auto",
     **kwargs
-) -> Union[tuple[npt.NDArray[np.float64], list[float]],
-           Array[npt.NDArray[np.float64]]]:
+) -> Union[tuple[npt.NDArray[np.float64],
+                 npt.NDArray[np.float64]],
+           tuple[tuple[npt.NDArray[np.float64], ...],
+                 tuple[npt.NDArray[np.float64], ...]]]:
     """
-    Import 2d histogram data and return an image and the extents of the image.
-    If you want to work with the histogram, consider using `load_ascii_hist2d`
-    instead.
+    Import 2d-histogram data and return an image and the extents of the image.
+    If you want to work with the histogram, consider using
+    :func:`.load_ascii_hist2d` instead.
 
     Parameters
     ----------
-    filenames : str or Sequence[str]
+    fnames : str or Sequence[str]
         The filename(s) of the data. If a list is passed, return a list
         of images and extents
 
-    xyz_indiceds: (int, int, int), default (1, 0, 2)
+    xyz_indiceds : (int, int, int), default (1, 0, 2)
         Specify columns of x, y, and z, starting at 0
 
-    permuting : "x" or "y"
+    permuting : `"x"` or `"y"`
         Order of permutation of x and y in ascii file
-        - "x": first permutate through x-values before changing y-values
-        - "y": first permutate through y-values before changing x-values
+
+        - `"x"`: first permutate through x-values before changing y-values
+        - `"y"`: first permutate through y-values before changing x-values
+
+    origin : `"upper"`, `"lower"`, or `"auto"`, default (`"auto"`)
+        Origin of the image plotted by `plt.imshow
+        <https://matplotlib.org/stable/api/
+        _as_gen/matplotlib.pyplot.imshow.html>`_
+
+        - `"upper"`: origin is the upper left corner
+        - `"lower"`: origin is the lower left corner
+        - `"auto"`: *origin* is `rcParams["image.origin"] <https://
+          matplotlib.org/stable/users/explain/customizing.html
+          #the-default-matplotlibrc-file>`_
 
     **kwargs :
-        `numpy.loadtxt` keyword arguments
+        `np.loadtxt <https://numpy.org/doc/stable/reference/generated/
+        numpy.loadtxt.html>`_ keyword arguments
 
     Returns
     -------
-    `numpy.ndarray, numpy.ndarray` or lists thereof
-        *image*, *extent*
+    image : `np.ndarray` or tuple[`np.ndarray`, ...]
+        A 2d-array of pixel values.
+        If *fnames* is a Sequence, *image* is a tuple of arrays
 
-    Notes
-    -----
-    Data file should have three columns, the first two specifying x or y data
-    (which should match the keyword argument *order*). Third column should
-    contain the corresponding z-data. The order of the z-data should match
-    the keyword argument *sorting*
+    extent : `np.ndarray`, shape((4,)), or tuple[`np.ndarray`, ...]
+        The extent of the image, e.g., [-1, 1, -2, 2]
+        If *fnames* is a Sequence, *extent* is a tuple of arrays
 
     Examples
     --------
     ::
 
         # 1 file
-        data, extent = load_ascii_data2d("filename.txt")
+        data, extent = import_ascii_for_imshow("filename.txt")
         plt.imshow(data, extent=extent)
 
         # 2 files
         filenames = ["filename1.txt", "filename2.txt"]
-        data = load_ascii_data2d(filenames)
-        plt.imshow(data[0, 0], extent=data[0, 1])
-        plt.imshow(data[1, 0], extent=data[1, 1])
+        data, extents = import_ascii_for_imshow(filenames)
+        plt.imshow(data[0], extent=extent[0])
+        plt.imshow(data[1], extent=extent[1])
     """
     if isinstance(fnames, str):
         fnames = [fnames]
-
-    if permuting not in ["x", "y"]:
-        raise ValueError(
-            f"{permuting=}, but it needs to be 'x' or 'y'"
-        )
 
     if origin not in ["upper", "lower", "auto"]:
         raise ValueError(
@@ -443,7 +438,7 @@ def load_ascii_data2d(
 
     idx_x, idx_y, idx_z = xyz_indices
 
-    output = []
+    output_data, output_extent = [], []
     for fname in fnames:
         data = np.loadtxt(fname, **kwargs)
 
@@ -456,12 +451,16 @@ def load_ascii_data2d(
                             axis=0)
             else:
                 z = data[:, 2].reshape(y.shape[0], x.shape[0])
-        else:
+        elif permuting == "y":
             if origin == "upper":
                 z = np.flip(data[:, idx_z].reshape(x.shape[0], y.shape[0]),
                             axis=1).T
             else:
                 z = data[:, idx_z].reshape(x.shape[1], y.shape[0]).T
+        else:
+            raise ValueError(
+                f"{permuting=}, but it needs to be 'x' or 'y'"
+            )
 
         binsize_x = x[1] - x[0]
         binsize_y = y[1] - y[0]
@@ -470,33 +469,40 @@ def load_ascii_data2d(
              np.min(y) - binsize_y / 2.0, np.max(y) + binsize_y / 2.0]
         )
 
-        output.append((z, extent))
+        output_data.append(z)
+        output_extent.append(extent)
 
-    output = np.array(output, dtype=object)
-    return output if len(output) > 1 else output[0]
+    if len(fnames) > 1:
+        return tuple(output_data), tuple(output_extent)
+    else:
+        return output_data[0], output_extent[0]
 
 
 @overload
 def load_root_data1d(
     root_filename: str,
     histogram_names: str
-) -> npt.NDArray[np.float64]: ...
+) -> tuple[npt.NDArray[np.float64],
+           npt.NDArray[np.float64]]: ...
 
 
 @overload
 def load_root_data1d(
     root_filename: str,
     histogram_names: Sequence[str]
-) -> Array[npt.NDArray[np.float64]]: ...
+) -> tuple[tuple[npt.NDArray[np.float64], ...],
+           tuple[npt.NDArray[np.float64], ...]]: ...
 
 
 def load_root_data1d(
     root_filename: str,
     histogram_names: Union[str, Sequence[str]]
-) -> Union[npt.NDArray[np.float64],
-           Array[npt.NDArray[np.float64]]]:
+) -> Union[tuple[npt.NDArray[np.float64],
+                 npt.NDArray[np.float64]],
+           tuple[tuple[npt.NDArray[np.float64], ...],
+                 tuple[npt.NDArray[np.float64], ...]]]:
     """
-    Import 1d histogram(s) from a root file
+    Import 1d histogram(s) from a root file.
 
     Parameters
     ----------
@@ -504,48 +510,59 @@ def load_root_data1d(
         The filename of the root file,
         e.g., 'important_data.root'
 
-    histogram_names: str or Sequence thereof
+    histogram_names : str or Sequence thereof
         The name of the histogram(s) within the root file,
         e.g., 'path/to/histogram1d' or
         ['path/to/histogram1d_1', 'path/to/histogram1d_2']
 
     Returns
     -------
-    data `numpy.ndarray` or list[`numpy.ndarray`]
-        data[0] is x, data[1] is y. If *histogram_names* was provided as a
-        sequence, list[data] is returned instead.
+    x : `np.ndarray` or tuple[`np.ndarray`, ...]
+        The x-data.
+        If *histogram_names* was a Sequence, *x* is a tuple of arrays
+
+    y : `np.ndarray` or tuple[`np.ndarray`, ...]
+        The y-data.
+        If *histogram_names* was a Sequence, *y* is a tuple of arrays
 
 
     Examples
     --------
     ::
 
+        import matplotlib.pyplot as plt
+        import atompy as ap
+
         # single histogram
-        data = ap.load_root_hist1d("rootfile.root",
+        x, y = ap.load_root_hist1d("rootfile.root",
                                    "path/to/hist1d")
-        plt.plot(*data)
+        plt.plot(x, y)
 
         # multiple histograms
-        data = ap.load_root_hist1d("rootfile.root",
-                                   ["path/to/hist1d_0",
-                                    "path/to/hist1d_1"])
-        for date in data:
-            plt.plot(*date)
+        xs, ys = ap.load_root_hist1d("rootfile.root",
+                                     ["path/to/hist1d_0",
+                                      "path/to/hist1d_1"])
+        for x, y in zip(xs, ys):
+            plt.plot(x, y)
     """
     if isinstance(histogram_names, str):
         histogram_names = [histogram_names]
-    with uproot.open(root_filename) as file:
-        output = np.empty((len(histogram_names), 2), dtype=object)
+    with uproot.open(root_filename) as file:  # type: ignore
+        # np.empty((len(histogram_names), 2), dtype=object)
+        output_x, output_y = [], []
         for i, h in enumerate(histogram_names):
-            y, x = file[h].to_numpy()
+            y, x = file[h].to_numpy()  # type: ignore
             x = x[:-1] + 0.5 * np.diff(x)
-            output[i, 0] = x
-            output[i, 1] = y
-    return output if len(output) > 1 else output[0]
+            output_x.append(x)
+            output_y.append(y)
+    if len(histogram_names) > 1:
+        return tuple(output_x), tuple(output_y)
+    else:
+        return output_x[0], output_y[0]
 
 
 @overload
-def load_root_data2d(
+def import_root_for_imshow(
     root_filename: str,
     histogram_names: str,
     origin: Literal["auto", "upper", "lower"] = "auto"
@@ -553,22 +570,26 @@ def load_root_data2d(
 
 
 @overload
-def load_root_data2d(
+def import_root_for_imshow(
     root_filename: str,
     histogram_names: Sequence[str],
     origin: Literal["auto", "upper", "lower"] = "auto"
-) -> Array[npt.NDArray[np.float64]]: ...
+) -> tuple[tuple[npt.NDArray[np.float64], ...],
+           tuple[npt.NDArray[np.float64], ...]]: ...
 
 
-def load_root_data2d(
+def import_root_for_imshow(
     root_filename: str,
     histogram_names: Union[str, Sequence[str]],
     origin: Literal["auto", "upper", "lower"] = "auto"
-) -> Union[tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]],
-           Array[npt.NDArray[np.float64]]]:
+) -> Union[tuple[npt.NDArray[np.float64],
+                 npt.NDArray[np.float64]],
+           tuple[tuple[npt.NDArray[np.float64], ...],
+                 tuple[npt.NDArray[np.float64], ...]]]:
     """
     Import a 2d histogram from a root file to be plottable by
-    `maptlotlib.pyplot.imshow()`
+    `plt.imshow <https://matplotlib.org/stable/api/_as_gen/
+    matplotlib.pyplot.imshow.html>`_.
 
     Parameters
     ----------
@@ -576,43 +597,37 @@ def load_root_data2d(
         The filename of the root file,
         e.g., 'important_data.root'
 
-    histogram_names: str or Sequence[str]
+    histogram_names : str or Sequence[str]
         The name of the histogram within the root file,
-        e.g., 'path/to/histogram2d'
+        e.g., 'path/to/histogram2d'.
         If a list of strings is passed, get multiple 2d histograms from the
-        foot file
+        root file
 
     Returns
     -------
-    * *histogram_names* is str
+    image : `np.ndarray` or tuple[`np.ndarray`, ...]
+        A 2d-array of pixel values.
+        If *fnames* is a Sequence, *image* is a tuple of arrays
 
-        image: `numpy.ndarray`
-            2d array of the z-values
-
-        extent: tuple[float, float, float, float]
-            extent of the histogram
-
-    * *histogram_names* is Sequence[str]
-
-        list of tuples of the above
+    extent : `np.ndarray`, shape((4,)) or tuple[`np.ndarray`, ...]
+        The extent of the image, e.g., [-1, 1, -2, 2]
+        If *fnames* is a Sequence, *extent* is a tuple of arrays
 
     Examples
     --------
     ::
 
-        # Import one histogram and plot it
-        # with matplotlib.pyplot.imshow()
-        data = load_root_hist2d("rootfile.root",
-                                "histogram_name")
-        plt.imshow(data[0], extent=data[1])
+        import matplotlib.pyplot as plt
 
-        # Import multiple histograms and
-        # plot them with plt.imshow()
-        data = load_root_hist2d("rootfile.root",
-                                ["histogram_name_1",
-                                 "histogram_name_2"])
-        for date in data:
-            plt.imshow(date[0], extent=date[1]),
+        # Import one histogram
+        data, extent = import_root_for_imshow("rootfile.root", "path/to/hist")
+        plt.imshow(data, extent=extent)
+
+        # Import multiple histograms
+        data, extents = import_root_for_imshow(
+            "rootfile.root", ["path/to/histo1", "path/to/histo2"])
+        for date, extent in zip(data, extents):
+            plt.imshow(date, extent=extent),
 
     """
     if isinstance(histogram_names, str):
@@ -626,7 +641,8 @@ def load_root_data2d(
         )
 
     with uproot.open(root_filename) as file:  # type: ignore
-        output = []
+        output_data: list[npt.NDArray] = []
+        output_extent: list[npt.NDArray] = []
         for h in histogram_names:
             image, xedges, yedges = file[h].to_numpy()  # type: ignore
             if origin == "upper":
@@ -636,35 +652,38 @@ def load_root_data2d(
             extent = np.array((np.min(xedges), np.max(xedges),
                                np.min(yedges), np.max(yedges)))
 
-            output.append((image, extent))
+            output_data.append(image)
+            output_extent.append(extent)
 
-        output = np.array(output, dtype=object)
-        return output if len(output) > 1 else output[0]
+        if len(histogram_names) > 1:
+            return tuple(output_data), tuple(output_extent)
+        else:
+            return output_data[0], output_extent[0]
 
 
 @overload
 def load_root_hist1d(
     root_filename: str,
     histogram_names: str
-) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]: ...
+) -> aph.Hist1d: ...
 
 
 @overload
 def load_root_hist1d(
     root_filename: str,
     histogram_names: Sequence[str]
-) -> Array[npt.NDArray[np.float64]]: ...
+) -> tuple[aph.Hist1d, ...]: ...
 
 
 def load_root_hist1d(
     root_filename: str,
     histogram_names: Union[str, Sequence[str]]
-) -> Union[tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]],
-           Array[npt.NDArray[np.float64]]]:
+) -> Union[aph.Hist1d,
+           tuple[aph.Hist1d, ...]]:
     """
-    Import 1d histogram(s) from a root file. Returns output equivalent to
-    `numpy.histogram`, i.e. (histogram_values, edges)
-    If you want (bincenters, histogram_values), use `load_root_data1d` instead
+    Import :class:`.Hist1d` from a root file.
+    If you want (bincenters, histogram_values), use :func:`.load_root_data1d`
+    instead.
 
     Parameters
     ----------
@@ -672,76 +691,62 @@ def load_root_hist1d(
         The filename of the root file,
         e.g., 'important_data.root'
 
-    histogram_names: str or Sequence thereof
+    histogram_names : str or Sequence thereof
         The name of the histogram(s) within the root file,
         e.g., 'path/to/histogram1d' or
         ['path/to/histogram1d_1', 'path/to/histogram1d_2']
 
     Returns
     -------
-    * *histogram_names* is str
-
-        histogram: `numpy.ndarray, shape (N,)`
-            Histogram data
-
-        edges: `numpy.ndarray, shape (N+1,)`
-            edges of the bins
-
-    * *histogram_names* is Sequence[str]
-
-        list of tuples of the above
+    histogram : :class:`.Hist1d` or tuple[`Hist1d`, ...]
+        A atompy Hist1d instance. If *histogram_names* is a Sequence,
+        *histogram* is a tuple of Hist1d instances.
 
     Examples
     --------
     ::
 
+        import matplotlib.pyplot as plt
+        import atompy as ap
+
         # single histogram
-        hist = ap.load_root_hist1d("rootfile.root",
-                                   "path/to/hist1d")
-        plt.step(hist[1][1:], hist[0])
+        hist = ap.load_root_hist1d("rootfile.root", "path/to/hist1d")
+        plt.step(hist.edges[1:], hist.histogram)
 
         # multiple histograms
-        hists = ap.load_root_hist1d("rootfile.root",
-                                    ["path/to/hist1d_0",
-                                     "path/to/hist1d_1"])
+        hists = ap.load_root_hist1d(
+            "rootfile.root", ["path/to/hist1d_0", "path/to/hist1d_1"])
         for hist in hists:
-            plt.step(hist[1][1:], hist[0])
+            plt.step(hist.edge[1:], hist.histogram)
     """
     if isinstance(histogram_names, str):
         histogram_names = [histogram_names]
-    with uproot.open(root_filename) as file:
-        output = np.empty((len(histogram_names), 2), dtype=object)
-        for i, h in enumerate(histogram_names):
-            hist, edges = file[h].to_numpy()
-            output[i, 0] = hist
-            output[i, 1] = edges
-
-    return output if len(output) > 1 else output[0]
+    output = []
+    with uproot.open(root_filename) as file:  # type: ignore
+        for h in histogram_names:
+            output.append(aph.Hist1d(*file[h].to_numpy()))  # type: ignore
+    return tuple(output) if len(histogram_names) > 1 else output[0]
 
 
 @overload
 def load_root_hist2d(
     root_filename: str,
     histogram_names: str,
-) -> tuple[npt.NDArray[np.float64],
-           npt.NDArray[np.float64],
-           npt.NDArray[np.float64]]: ...
+) -> aph.Hist2d: ...
 
 
 @overload
 def load_root_hist2d(
     root_filename: str,
     histogram_names: Sequence[str],
-) -> Array[npt.NDArray[np.float64]]: ...
+) -> tuple[aph.Hist2d, ...]: ...
 
 
 def load_root_hist2d(
     root_filename: str,
     histogram_names: Union[str, Sequence[str]],
-) -> Union[tuple[npt.NDArray[np.float64],
-                 npt.NDArray[np.float64],
-                 npt.NDArray[np.float64]],
-           Array[npt.NDArray[np.float64]]]:
+) -> Union[aph.Hist2d,
+           tuple[aph.Hist2d, ...]]:
     """
     Import a 2d histogram from a root file equivalent to `numpy.histogram2d`
 
@@ -751,55 +756,218 @@ def load_root_hist2d(
         The filename of the root file,
         e.g., 'important_data.root'
 
-    histogram_names: str or Sequence[str]
+    histogram_names : str or Sequence[str]
         The name of the histogram within the root file,
         e.g., 'path/to/histogram2d'
         If a list of strings is passed, get multiple 2d histograms from the
-        foot file
+        root file.
 
     Returns
     -------
-    * *histogram_names* is str
-
-        H: `numpy.ndarray, shape (nx, ny)`
-            2d array of the z-values
-
-        xedges: `numpy.ndarray, shape (nx+1,)`
-
-        yedges: `numpy.ndarray, shape (ny+1,)`
-
-    * *histogram_names* is Sequence[str]
-
-        `np.ndarray` of tuples of the above
+    histogram2d : :class:`.Hist2d` or tuple[`Hist2d`, ...]
+        A Hist2d instance of the histogram data. If *histogram_names* was
+        a Sequence, *histogram2d* will be a tuple of Hist2d instances.
 
     Examples
     --------
     ::
 
-        # Import one histogram and plot it
-        # with matplotlib.pyplot.imshow()
-        from atompy.histogram import for_pcolormesh
-        hist = load_root_hist2d("rootfile.root",
-                                "histogram_name")
-        plt.pcolormesh(*for_pcolormesh(*hist))
+        import matplotlib.pyplot as plt
+        import atompy as ap
 
-        # Import multiple histograms and
-        # plot them with plt.imshow()
-        hists = load_root_hist2d("rootfile.root",
-                                 ["histogram_name_1",
-                                  "histogram_name_2"])
+        # Import one histogram and plot it
+        hist = load_root_hist2d("rootfile.root", "histogram_name")
+        plt.pcolormesh(*hist.for_pcolormesh)
+
+        # Import multiple histograms and plot them
+        hists = load_root_hist2d(
+            "rootfile.root", ["histogram_name_1", "histogram_name_2"])
         for hist in hists:
-            plt.pcolormesh(*for_pcolormesh(*hist))
+            plt.pcolormesh(*hist.for_pcolormesh)
 
     """
     if isinstance(histogram_names, str):
         histogram_names = [histogram_names]
+    output = []
+    with uproot.open(root_filename) as file:  # type: ignore
+        for h in histogram_names:
+            output.append(aph.Hist2d(*file[h].to_numpy()))  # type: ignore
+    return tuple(output) if len(histogram_names) > 1 else output[0]
 
-    with uproot.open(root_filename) as file:
-        output = np.empty((len(histogram_names), 3), dtype=object)
-        for i, h in enumerate(histogram_names):
-            hist, xedges, yedges = file[h].to_numpy()
-            output[i, 0] = hist
-            output[i, 1] = xedges
-            output[i, 2] = yedges
-        return output if len(output) > 1 else output[0]
+
+@overload
+def import_ascii_for_pcolormesh(
+    fnames: str,
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
+    permuting: Literal["x", "y"] = "x",
+    **kwargs
+) -> tuple[npt.NDArray[np.float64],
+           npt.NDArray[np.float64],
+           npt.NDArray[np.float64]]: ...
+
+
+@overload
+def import_ascii_for_pcolormesh(
+    fnames: Sequence[str],
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
+    permuting: Literal["x", "y"] = "x",
+    **kwargs
+) -> tuple[tuple[npt.NDArray[np.float64], ...],
+           tuple[npt.NDArray[np.float64], ...],
+           tuple[npt.NDArray[np.float64], ...]]: ...
+
+
+def import_ascii_for_pcolormesh(
+    fnames: Union[str, Sequence[str]],
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
+    permuting: Literal["x", "y"] = "x",
+    **kwargs
+) -> Union[tuple[npt.NDArray[np.float64],
+                 npt.NDArray[np.float64],
+                 npt.NDArray[np.float64]],
+           tuple[tuple[npt.NDArray[np.float64], ...],
+                 tuple[npt.NDArray[np.float64], ...],
+                 tuple[npt.NDArray[np.float64], ...]]]:
+    """
+    Import 2d-histogram data and return three numpy arrays X, Y, C which are
+    formatted such that they can be plotted using `plt.pcolormesh <https://
+    matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.pcolormesh.html>`_
+
+    Parameters
+    ----------
+    fnames : str or Sequence[str]
+        The filename(s) of the data. If a list is passed, return a list
+        of images and extents
+
+    xyz_indiceds : (int, int, int), default (1, 0, 2)
+        Specify columns of x, y, and z, starting at 0
+
+    permuting : `"x"` or `"y"`
+        Order of permutation of x and y in ascii file
+
+        - `"x"`: first permutate through x-values before changing y-values
+        - `"y"`: first permutate through y-values before changing x-values
+
+    **kwargs :
+        `np.loadtxt <https://numpy.org/doc/stable/reference/generated/
+        numpy.loadtxt.html>`_ keyword arguments
+
+    Returns
+    -------
+    X : `np.ndarray` or tuple[`np.ndarray`, ...]
+
+    Y : `np.ndarray` or tuple[`np.ndarray`, ...]
+
+    C : `np.ndarray` or tuple[`np.ndarray`, ...]
+
+
+    Examples
+    --------
+    ::
+
+        import matplotlib.pyplots as plt
+        import atompy as ap
+
+        # 1 file
+        X, Y, C = ap.import_ascii_for_pcolormesh("filename.txt")
+        plt.pcolormesh(X, Y, C)
+
+        # 2 files
+        X, Y, C = ap.import_ascii_for_pcolormesh(
+            ["filename1.txt", "filename2.txt"]
+        plt.pcolormesh(X[0], Y[0], C[0])
+        plt.pcolormesh(X[1], Y[1], C[1])
+    """
+    histos = load_ascii_hist2d(fnames, xyz_indices, permuting, **kwargs)
+    if isinstance(histos, aph.Hist2d):
+        return histos.for_pcolormesh
+    output_x, output_y, output_c = [], [], []
+    for histo in histos:
+        x, y, c = histo.for_pcolormesh
+        output_x.append(x)
+        output_y.append(y)
+        output_c.append(c)
+    return tuple(output_x), tuple(output_y), tuple(output_c)
+
+
+@overload
+def import_root_for_pcolormesh(
+    root_filename: str,
+    histogram_names: str
+) -> tuple[npt.NDArray[np.float64],
+           npt.NDArray[np.float64],
+           npt.NDArray[np.float64]]: ...
+
+
+@overload
+def import_root_for_pcolormesh(
+    root_filename: str,
+    histogram_names: Sequence[str]
+) -> tuple[tuple[npt.NDArray[np.float64], ...],
+           tuple[npt.NDArray[np.float64], ...],
+           tuple[npt.NDArray[np.float64], ...]]: ...
+
+
+def import_root_for_pcolormesh(
+    root_filename: str,
+    histogram_names: Union[str, Sequence[str]]
+) -> Union[tuple[npt.NDArray[np.float64],
+                 npt.NDArray[np.float64],
+                 npt.NDArray[np.float64]],
+           tuple[tuple[npt.NDArray[np.float64], ...],
+                 tuple[npt.NDArray[np.float64], ...],
+                 tuple[npt.NDArray[np.float64], ...]]]:
+    """
+    Import a 2d histogram from a root file to be plottable by
+    `plt.pcolormesh <https://matplotlib.org/stable/api/_as_gen/
+    matplotlib.pyplot.pcolormesh.html>`_.
+
+    Parameters
+    ----------
+    root_filename : str
+        The filename of the root file,
+        e.g., 'important_data.root'
+
+    histogram_names : str or Sequence[str]
+        The name of the histogram within the root file,
+        e.g., 'path/to/histogram2d'.
+        If a list of strings is passed, get multiple 2d histograms from the
+        root file
+
+    Returns
+    -------
+    X : `np.ndarray` or tuple[`np.ndarray`, ...]
+
+    Y : `np.ndarray` or tuple[`np.ndarray`, ...]
+
+    C : `np.ndarray` or tuple[`np.ndarray`, ...]
+
+    Examples
+    --------
+    ::
+
+        import matplotlib.pyplot as plt
+        import atompy as ap
+
+        # Import one histogram
+        x, y, c = ap.import_root_for_pcolormesh(
+            "rootfile.root", "path/to/hist")
+        plt.pcolormesh(x, y, c)
+
+        # Import multiple histograms
+        xs, ys, cs = import_root_for_pcolormesh(
+            "rootfile.root", ["path/to/histo1", "path/to/histo2"])
+        for x, y, c in zip(xs, ys, cs):
+            plt.pcolormesh(x, y, c)
+
+    """
+    histos = load_root_hist2d(root_filename, histogram_names)
+    if isinstance(histos, aph.Hist2d):
+        return histos.for_pcolormesh
+    output_x, output_y, output_c = [], [], []
+    for histo in histos:
+        x, y, c = histo.for_pcolormesh
+        output_x.append(x)
+        output_y.append(y)
+        output_c.append(c)
+    return tuple(output_x), tuple(output_y), tuple(output_c)

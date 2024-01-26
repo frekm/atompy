@@ -2,17 +2,9 @@ import numpy as np
 import numpy.typing as npt
 from numpy.typing import NDArray
 import uproot
-from typing import Generic, TypeVar, Literal, Sequence, Union, overload
+from typing import Literal, Sequence, Union, overload
 import matplotlib.pyplot as plt
-# from ._histogram import Hist1d, Hist2d
 import atompy._histogram as aph
-
-DType = TypeVar("DType")
-
-
-class Array(np.ndarray, Generic[DType]):
-    def __getitem__(self, key) -> DType:
-        return super().__getitem__(key)  # type: ignore
 
 
 class NonconstantBinsizeError(Exception):
@@ -58,10 +50,12 @@ def save_ascii_hist1d(
     ::
 
         import numpy as np
-        import atompy.histogram as ah
-        xsamples = np.random.normal(100_000)
+        import atompy as ap
+
+        rng = np.random.default_rng()
+        xsamples = rng.normal(100_000)
         histogram = np.histogram(xsamples, 50)
-        ah.save_ascii_hist1d(*histogram, "filename.txt")
+        ap.save_ascii_hist1d(*histogram, "filename.txt")
     """
     bincenters = edges[:-1] + 0.5 * np.diff(edges)
 
@@ -242,11 +236,6 @@ def load_ascii_hist2d(
         A Hist2d instance of the histogram data. If *fnames* was
         a Sequence, *histogram2d* will be a tuple of Hist2d instances.
     """
-    if permuting not in ["x", "y"]:
-        raise ValueError(
-            f"{permuting=}, but must be 'x' or 'y'"
-        )
-
     if isinstance(fnames, str):
         fnames = [fnames]
 
@@ -274,9 +263,12 @@ def load_ascii_hist2d(
         yedges[-1] = y[-1] + 0.5 * ybinsize
 
         if permuting == "x":
-            z = data[:, idx_z].reshape(y.size, x.size)
+            z = data[:, idx_z].reshape(y.size, x.size).T
+        elif permuting == "y":
+            z = data[:, idx_z].reshape(x.size, y.size)
         else:
-            z = data[:, idx_z].reshape(x.size, y.size).T
+            msg = f"'{permuting=}', but should be 'x' or 'y'"
+            raise ValueError(msg)
 
         output.append(aph.Hist2d(z, xedges, yedges))
 
@@ -436,11 +428,6 @@ def import_ascii_for_imshow(
     if isinstance(fnames, str):
         fnames = [fnames]
 
-    if permuting not in ["x", "y"]:
-        raise ValueError(
-            f"{permuting=}, but it needs to be 'x' or 'y'"
-        )
-
     if origin not in ["upper", "lower", "auto"]:
         raise ValueError(
             f"{origin=}, but it needs to be 'upper' or 'lower'"
@@ -464,12 +451,16 @@ def import_ascii_for_imshow(
                             axis=0)
             else:
                 z = data[:, 2].reshape(y.shape[0], x.shape[0])
-        else:
+        elif permuting == "y":
             if origin == "upper":
                 z = np.flip(data[:, idx_z].reshape(x.shape[0], y.shape[0]),
                             axis=1).T
             else:
                 z = data[:, idx_z].reshape(x.shape[1], y.shape[0]).T
+        else:
+            raise ValueError(
+                f"{permuting=}, but it needs to be 'x' or 'y'"
+            )
 
         binsize_x = x[1] - x[0]
         binsize_y = y[1] - y[0]
@@ -800,7 +791,7 @@ def load_root_hist2d(
     output = []
     with uproot.open(root_filename) as file:  # type: ignore
         for h in histogram_names:
-            output.append(Hist2d(*file[h].to_numpy()))  # type: ignore
+            output.append(aph.Hist2d(*file[h].to_numpy()))  # type: ignore
     return tuple(output) if len(histogram_names) > 1 else output[0]
 
 

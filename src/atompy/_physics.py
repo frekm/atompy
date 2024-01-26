@@ -466,13 +466,13 @@ def mom_init_distr_elec_mol(
     Rotate stretched atomic distribution and rotates it such that it
     corresponds to the isotropic distribution of molecules
     """
-    N = distr_atomic.vectors.shape[0]
+    N = distr_atomic.nparray.shape[0]
 
     print("Creating molecular orbitals... ")
     t0 = time.time()
 
     # stretch along x and y, i.e., molecule is aligned along z
-    distr_molecular = distr_atomic.vectors.copy()
+    distr_molecular = distr_atomic.nparray.copy()
     distr_molecular[:, :2] = distr_molecular[:, :2] * stretch_factor
     distr_molecular = Vector(distr_molecular)
 
@@ -480,7 +480,7 @@ def mom_init_distr_elec_mol(
     theta = np.arccos(2.0 * np.random.random(N) - 1)
     phi = 2.0 * np.pi * np.random.random(N)
 
-    molecular_orientation = np.zeros(distr_molecular.vectors.shape)
+    molecular_orientation = np.zeros(distr_molecular.nparray.shape)
     molecular_orientation[:, 0] = np.sin(theta) * np.cos(phi)
     molecular_orientation[:, 1] = np.sin(theta) * np.sin(phi)
     molecular_orientation[:, 2] = np.cos(theta)

@@ -1,8 +1,11 @@
+.. contents::
+
+
 Plotting
 ========
 
-.. automodule:: atompy
-    :members: PTS_PER_INCH
+Constants
+---------
 
 .. data:: atompy.PTS_PER_INCH
     :annotation: = 72.0
@@ -54,9 +57,20 @@ Plotting
 
 
 
+Colorbars and colormaps
+-----------------------
+
 .. autofunction:: atompy.add_colorbar
 
 .. autofunction:: atompy.add_colorbar_large
+
+.. autofunction:: atompy.create_colormap
+
+.. autofunction:: atompy.create_colormap_from_hex
+
+
+Format axes
+-----------
 
 .. autofunction:: atompy.square_polar_frame
 
@@ -66,9 +80,6 @@ Plotting
 
 .. autofunction:: atompy.abcify_axes
 
-.. autofunction:: atompy.create_colormap
-
-.. autofunction:: atompy.create_colormap_from_hex
 
 .. autofunction:: atompy.dotted
 

@@ -22,27 +22,23 @@ extensions = [
     "sphinx.ext.autodoc",
     "numpydoc",
     "sphinx.ext.viewcode",
+    "sphinx_rtd_theme",
 ]
 autodoc_type_aliases = {
     'ArrayLike': 'ArrayLike',
 }
 autodoc_typehints = "none"
 numpydoc_class_members_toctree = False
-navigation_with_keys = False
 
 templates_path = ['_templates']
 exclude_patterns = []
 
-html_theme_options = {
-    "show_nav_level": 4,
-    "navigation_depth": 4,
-    "collapse_navigation": False,
-    "navigation_with_keys": False
-}
-
-
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'pydata_sphinx_theme'
+html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+
+html_theme_options = {
+}
+html_logo = "_static/logo.png"

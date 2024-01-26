@@ -97,7 +97,7 @@ class Vector:
     ) -> "Vector":
         output = np.empty(self._data.shape, dtype=np.float64)
         for i in range(3):
-            output[:, i] = self._data[:, i] * other
+            output[:, i] = self._data[:, i] * np.array(other)
         return Vector(output)
 
     def __rmul__(
@@ -106,7 +106,7 @@ class Vector:
     ) -> "Vector":
         output = np.empty(self._data.shape, dtype=np.float64)
         for i in range(3):
-            output[:, i] = self._data[:, i] * other
+            output[:, i] = self._data[:, i] * np.array(other)
         return Vector(output)
 
     def __truediv__(
@@ -115,7 +115,7 @@ class Vector:
     ) -> "Vector":
         output = np.empty(self._data.shape, dtype=np.float64)
         for i in range(3):
-            output[:, i] = self._data[:, i] / other
+            output[:, i] = self._data[:, i] / np.array(other)
         return Vector(output)
 
     def __floordiv__(
@@ -124,7 +124,7 @@ class Vector:
     ) -> "Vector":
         output = np.empty(self._data.shape, dtype=np.float64)
         for i in range(3):
-            output[:, i] = self._data[:, i] // other
+            output[:, i] = self._data[:, i] // np.array(other)
         return Vector(output)
 
     def __neg__(self) -> "Vector":
@@ -141,12 +141,12 @@ class Vector:
         return _VectorIterator(self)
 
     @property
-    def vectors(self) -> npt.NDArray[np.float64]:
-        """ Get the numpy array """
+    def nparray(self) -> npt.NDArray[np.float64]:
+        """ Get the underlying numpy array """
         return self._data
 
-    @vectors.setter
-    def vectors(self, vectors: npt.NDArray[np.float64]) -> None:
+    @nparray.setter
+    def nparray(self, vectors: npt.NDArray[np.float64]) -> None:
         if self._data.shape != vectors.shape:
             raise ValueError(
                 f"Old ({self._data.shape}) and new ({vectors.shape})"
@@ -190,7 +190,7 @@ class Vector:
         if self[:, 2].shape != np.array(value).shape:
             raise ValueError(
                 "New z-values have wrong length "
-                f"old={self[:,2].shape[0]} vs new={np.array(value).shape}"
+                f"old={self[:, 2].shape[0]} vs new={np.array(value).shape}"
             )
         self[:, 2] = value
 

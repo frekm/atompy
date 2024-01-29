@@ -18,3 +18,4 @@ atompy's documentation
    io
    physics
    misc
+   examples

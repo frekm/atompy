@@ -43,7 +43,12 @@ def save_ascii_hist1d(
     edges : `np.ndarray`, `shape(n+1,)`
         Edges of histogram
 
-    **kwargs : `numpy.savetxt` keyword args
+    Other Parameters
+    ----------------
+
+    **savetxt_kwargs
+        `numpy.savetxt <https://numpy.org/doc/stable/reference/generated/
+        numpy.savetxt.html>`_ keyword argument
 
     Examples
     --------
@@ -94,7 +99,12 @@ def save_ascii_hist2d(
     fname : str
         Filename, including filetype
 
-    **savetxt_kwargs : `numpy.savetxt` keyword args
+    Other Parameters
+    ----------------
+
+    **savetxt_kwargs
+        `numpy.savetxt <https://numpy.org/doc/stable/reference/generated/
+        numpy.savetxt.html>`_ keyword argument
     """
     xbinsizes = np.diff(xedges, 1)
     ybinsizes = np.diff(yedges, 1)
@@ -135,7 +145,7 @@ def load_ascii_hist1d(
            tuple[aph.Hist1d, ...]]:
     """
     Load :class:`.Hist1d` from a file. If you don't want a histogram but simply
-    (bincenters, histogram_values), use :func:`.load_ascii_hist1d` instead.
+    (bincenters, histogram_values), use :func:`.load_ascii_data1d` instead.
 
     Parameters
     ----------
@@ -300,12 +310,16 @@ def load_ascii_data1d(
                  tuple[npt.NDArray[np.float64], ...]]]:
     """
     Import 1d data from an ascii file with two columns (x, y). For any other
-    layout, directly use `np.loadtxt` instead.
+    layout, directly use `np.loadtxt <https://numpy.org/doc/stable/reference/
+    generated/numpy.loadtxt.html>`_ instead.
 
     Parameters
     ----------
     fnames : str or Sequence[str]
         Filename(s)
+
+    Other Parameters
+    ----------------
 
     **loadtxt_kwargs
         optional `np.loadtxt <https://numpy.org/doc/stable/reference/
@@ -313,11 +327,13 @@ def load_ascii_data1d(
 
     Returns
     -------
-    x : `np.ndarray` or tuple[`np.ndarray`, ...]
+    x : `np.ndarray <https://numpy.org/doc/stable/reference/generated/numpy. \
+    ndarray.html>`_ or tuple[`np.ndarray`, ...]
         Data of the first column of the file.
         If *fnames* is a Sequence, *x* is a tuple of numpy arrays.
 
-    y : `np.ndarray` or tuple[`np.ndarray`, ...]
+    x : `np.ndarray <https://numpy.org/doc/stable/reference/generated/numpy. \
+    ndarray.html>`_ or tuple[`np.ndarray`, ...]
         Data of the second column of the file
         If *fnames* is a Sequence, *y* is a tuple of numpy arrays.
 

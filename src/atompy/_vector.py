@@ -231,7 +231,7 @@ class Vector:
 
     @property
     def theta_deg(self) -> npt.NDArray[np.float64]:
-        """ Return polar angle in degree form 0 to 180 """
+        """ Return polar angle in degree from 0 to 180 """
         return self.theta * 180.0 / np.pi
 
     def copy(self) -> "Vector":

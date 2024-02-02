@@ -38,6 +38,8 @@ DARK_PURPLE = "#9300FF"
 FOREST_GREEN = "#0B6623"
 BRIGHT_GREEN = "#3BB143"
 
+_change_ratio_has_been_called = False
+
 
 class _Colors(NamedTuple):
     red: Literal["#AE1117"]
@@ -80,7 +82,8 @@ _cm_whitered_dict = {
               (1.0, 128. / 255., 128. / 255.)),
     'blue': ((0.0, 1.0, 1.0),
              (1.0, 129. / 255., 129. / 255.))}
-cm_whitered = mplcolor.LinearSegmentedColormap('whitered', _cm_whitered_dict)
+cm_whitered = mplcolor.LinearSegmentedColormap(
+    'whitered', _cm_whitered_dict)  # type: ignore
 
 _cm_lmf2root_dict = {
     'red': [[0.0, 0.0, 0.5],
@@ -96,7 +99,7 @@ _cm_lmf2root_dict = {
              [0.7, 0.0, 0.0],
              [1.0, 0.0, 0.0]]}
 cm_lmf2root = mplcolor.LinearSegmentedColormap(
-    'lmf2root', _cm_lmf2root_dict)
+    'lmf2root', _cm_lmf2root_dict)  # type: ignore
 mpl.colormaps.register(cm_lmf2root, force=True)
 
 _cm_lmf2root_from_white_dict = {
@@ -116,7 +119,7 @@ _cm_lmf2root_from_white_dict = {
              (0.7, 0.0, 0.0),
              (1.0, 0.0, 0.0))}
 cm_lmf2root_from_white = mplcolor.LinearSegmentedColormap(
-    'lmf2root_from_white', _cm_lmf2root_from_white_dict)
+    'lmf2root_from_white', _cm_lmf2root_from_white_dict)  # type: ignore
 mpl.colormaps.register(cm_lmf2root_from_white, force=True)
 
 _font_scalings = {
@@ -304,14 +307,14 @@ def flatten(
     output: list[T] = []
     for input_ in input:
         if isinstance(input_, str):
-            output.append(input_)
+            output.append(input_)  # type: ignore
             continue
         try:
-            iter(input_)
+            iter(input_)  # type: ignore
         except TypeError:
-            output.append(input_)
+            output.append(input_)  # type: ignore
         else:
-            output += flatten(input_)
+            output += flatten(input_)  # type: ignore
     return output
 
 
@@ -326,12 +329,12 @@ def return_as_list(
     of length *desired_length*, otherwise return original list
     """
     if isinstance(input, str):
-        return [input] * desired_length
+        return [input] * desired_length  # type: ignore
     try:
-        iter(input)
+        iter(input)  # type: ignore
     except TypeError:
-        return [input] * desired_length
-    return flatten(input)
+        return [input] * desired_length  # type: ignore
+    return flatten(input)  # type: ignore
 
 
 def get_column(n: int, lst: Sequence[Sequence[T]]) -> list[T]:
@@ -497,7 +500,7 @@ def create_colormap(
 
     cm_dict = {"red": reds_, "green": greens_, "blue": blues_}
     cmap = mplcolor.LinearSegmentedColormap(
-        cmap_name, cm_dict, N=lut_size)
+        cmap_name, cm_dict, N=lut_size)  # type: ignore
     if register_cmap:
         mpl.colormaps.register(cmap)
     return cmap
@@ -621,11 +624,11 @@ default: :code:`"white"`
     Returns
     -------
     `matplotlib.text.Text <https://matplotlib.org/stable/api/text_api.html#matplotlib.text.Text>`_
-        The created :code`matplotib.text.Text` instance
+        The created :code:`matplotib.text.Text` instance
 
     Other Parameters
     ----------------
-    **kwargs : `matpotlib.text.Text <https://matplotlib.org/stable/api/text_api.html#matplotlib.text.Text>`_ \
+    **text_kwargs : `matpotlib.text.Text <https://matplotlib.org/stable/api/text_api.html#matplotlib.text.Text>`_ \
 properties
         Other miscellaneous text parameters
     """
@@ -715,6 +718,33 @@ def dotted(
     -------
     tuple : (float, (float, float))
         tuple to be used as linetype in plotting
+
+    Examples
+    --------
+    ::
+
+        import matplotlib.pyplot as plt
+        import atompy as ap
+
+        plt.plot([0., 1.], linestyle=ap.dotted())
+        plt.legend()
+
+        # if one changes the linewidth, the fontsize of the legend, or the
+        # handlelength of the legend from the default, this needs to be passed
+        # to dotted().
+        plt.plot([0., 1.],
+                 linewidth=2.,
+                 linestyle=(ap.dotted(linewidth=2.,
+                                      legend_handlelength=3.,
+                                      fontsize="x-small")))
+        plt.legend(fontsize="x-small", handlelength=3.)
+
+        # alternatively, use rcParams to set these values
+        plt.rcParams["lines.linewidth"] = 2.
+        plt.rcParams["legend.handlelength"] = 3.
+        plt.rcParams["legend.fontsize"] = "x-small"
+        plt.plot([0., 1.], linestyle=ap.dotted())
+        plt.legend()
     """
     lw_, fs_, lh_ = _set_lw_fs_lh(
         linewidth, fontsize, legend_handlelength, **aliases)
@@ -1140,7 +1170,7 @@ def subplots(
            list[list[mplax.Axes]]]:
     """
     Create a :code:`matplotlib.figure.Figure` with *nrows* times *ncols*
-    subaxes and fixed margins, ratios, and pads
+    subaxes and fixed margins, ratios, and pads.
 
     Parameters
     ----------
@@ -1155,7 +1185,7 @@ def subplots(
         Width of all axes. Units are specified by *axes_width_unit*.
         If `None`, determine width corresponding to fig_width, xpad and margins
 
-    margins : (float, float, float, float), default :code`(35, 15, 5, 35)`
+    margins : (float, float, float, float), default :code:`(35, 15, 5, 35)`
         Left, right, top, bottom margins. Units are specified by *margins_unit*
 
     xpad : float or :code:`None`, default :code:`35.0`
@@ -1179,8 +1209,9 @@ def subplots(
 :code:`"mollweide"`, :code:`"polar"`, :code:`"rectilinear"`, str,\
 or list thereof, optional
         The projection type of the `matplotlib.axes.Axes`. *str* is the name of
-        a custom projection, see `~matplotlib.projections`. The default
-        `None` results in a 'rectilinear' projection.
+        a custom projection, see `matplotlib.projections <https://matplotlib.
+        org/stable/api/projections_api.html>`_. The default
+        :code:`None` results in a *rectilinear* projection.
 
     axes_width_unit : :code:`"inch"`, :code:`"pts"` or :code:`"mm"`, \
 default :code:`"mm"`
@@ -1198,17 +1229,24 @@ default :code:`"pts"`
 default :code:`"mm"`
         Unit of *fig_width*
 
-    axis_zorder : float, optional, default 10000.0 (because why not)
+    axis_zorder : float, optional, default :code:`10000.0` (because why not)
         Set zorder of the axes spines to this value
 
     Returns
     -------
-    :code:`matplotlib.figure.Figure`:
+    `matplotlib.figure.Figure <https://matplotlib.org/3.3.4/api/_as_gen/matplotlib.figure.Figure.html>`_
         The figure
 
-    list[list[:code:`matplotlib.axes.Axes`]]
+    list[list[`matplotlib.axes.Axes <https://matplotlib.org/stable/api/axes_api.html>`_]]
         A two-dimensional list, where the first index refers to columns, the
         second index to rows
+
+    Examples
+    --------
+
+    .. plot:: _examples/subplots.py
+        :include-source:
+
     """
     XPAD_DEF = 45.0 / PTS_PER_INCH
     AW_DEF = 45.0 / MM_PER_INCH
@@ -1239,11 +1277,11 @@ default :code:`"mm"`
         ypad = ypad / MM_PER_INCH if ypad else ypad
 
     try:
-        iter(margins)
+        iter(margins)  # type: ignore
     except TypeError:
-        margins_ = FigureMarginsFloat(*[margins] * 4)
+        margins_ = FigureMarginsFloat(*[margins] * 4)  # type: ignore
     else:
-        margins_ = FigureMarginsFloat(*margins)
+        margins_ = FigureMarginsFloat(*margins)  # type: ignore
 
     if margins_unit == "pts":
         margins_ = FigureMarginsFloat(*[m / PTS_PER_INCH for m in margins_])
@@ -1360,9 +1398,10 @@ default :code:`"mm"`
         axes.append([])
         for icol in range(grid[1]):
             axes[-1].append(
-                fig.add_axes([origins[irow, icol, 0],
+                fig.add_axes((origins[irow, icol, 0],
                               origins[irow, icol, 1],
-                              axes_width_rel, axes_height_rel],
+                              axes_width_rel,
+                              axes_height_rel),
                              projection=projections[irow * grid[1] + icol]))
             if axes_zorder is not None:
                 for _, spine in axes[-1][-1].spines.items():
@@ -1388,11 +1427,11 @@ def _update_colorbar_position(
                 pos_cb.width,
                 pos_ax.height])
         else:  # location == "top"
-            colorbar.colorbar.ax.set_position([
+            colorbar.colorbar.ax.set_position((
                 pos_ax.x0,
                 pos_ax.y1 + colorbar.pad_inch / fig_height_inches,
                 pos_ax.width,
-                pos_cb.height])
+                pos_cb.height))
 
     else:  # colorbar == ColorbarLarge
         bbox_ax_0 = colorbar.parent_axes[0].get_position()
@@ -1405,11 +1444,11 @@ def _update_colorbar_position(
                 pos_cb.width,
                 bbox_ax_0.y1 - bbox_ax_1.y0])
         else:  # location == "top"
-            colorbar.colorbar.ax.set_position([
+            colorbar.colorbar.ax.set_position((
                 bbox_ax_0.x0,
                 bbox_ax_0.y1 + colorbar.pad_inch / fig_height_inches,
                 bbox_ax_1.x1 - bbox_ax_0.x0,
-                pos_cb.height])
+                pos_cb.height))
 
 
 def _get_offsets(
@@ -1432,7 +1471,8 @@ def _get_offsets(
         np.array([(fh_px - b.y1) / fh_px * fh_inch for b in tight_bboxes.top]),
         np.array([b.y0 / fh_px * fh_inch for b in tight_bboxes.bottom]))
 
-    relevant_offsets = FigureMarginsFloat(*[np.min(o) for o in all_offsets])
+    relevant_offsets = FigureMarginsFloat(
+        *[np.min(o) for o in all_offsets])  # type: ignore
 
     # calculate current margins, in case their largest value is smaller
     # than the axes linewidth, adjust the corresponding offsets
@@ -1452,7 +1492,8 @@ def _get_offsets(
         current_margins.top - all_offsets.top,
         current_margins.bottom - all_offsets.bottom)
 
-    margins = FigureMarginsFloat(*[np.min(m) for m in all_margins])
+    margins = FigureMarginsFloat(
+        *[np.min(m) for m in all_margins])  # type: ignore
 
     lw = plt.rcParams["axes.linewidth"] / PTS_PER_INCH
     for i in range(4):
@@ -1549,11 +1590,11 @@ def _change_margins(
 
     for irow in range(layout_rel.nrows):
         for icol in range(layout_rel.ncols):
-            axes[irow][icol].set_position([
+            axes[irow][icol].set_position((
                 layout_rel.axes_x0s[irow, icol],
                 layout_rel.axes_y0s[irow, icol],
                 layout_rel.axes_widths[irow, icol],
-                layout_rel.axes_heights[irow, icol]])
+                layout_rel.axes_heights[irow, icol]))
 
     for cb in colorbars:
         _update_colorbar_position(
@@ -1623,22 +1664,29 @@ def make_margins_tight(
         edges of the figure
     """
 
+    if _change_ratio_has_been_called and fixed_figwidth:
+        print("WARNING: atompy.change_ratio() has been called and a fixed "
+              "figure width in atompy.make_margins_tight() is requested. "
+              "This may not work")
+
     if nruns <= 0 or not isinstance(nruns, int):
         raise ValueError(
             f"{nruns=}, but it needs to be of type int and larger than 0"
         )
 
     try:
-        iter(pad)
+        iter(pad)  # type: ignore
     except TypeError:
-        pad = FigureMarginsFloat(*[pad / PTS_PER_INCH] * 4)
+        pad = FigureMarginsFloat(
+            *[pad / PTS_PER_INCH] * 4)  # type: ignore
     else:
         if not isinstance(pad, FigureMarginsFloat):
-            pad = FigureMarginsFloat(*[p / PTS_PER_INCH for p in pad])
+            pad = FigureMarginsFloat(
+                *[p / PTS_PER_INCH for p in pad])  # type: ignore
 
     figure = figure or plt.gcf()
 
-    renderer = figure.canvas.get_renderer()
+    renderer = figure.canvas.get_renderer()  # type: ignore
 
     colorbars_ = [] if colorbars is None else return_as_list(colorbars)
 
@@ -1677,7 +1725,7 @@ def make_margins_tight(
     for _ in range(nruns):
         margins = _get_offsets(figure, edge_axes, renderer)
         _change_margins(
-            margins, axes, figure, fixed_figwidth, pad, colorbars_)
+            margins, axes, figure, fixed_figwidth, pad, colorbars_)  # type: ignore
 
     new_layout = get_figure_layout(figure, axes, "pts")
     if log:
@@ -1831,6 +1879,12 @@ def add_colorbar(
     be created on the fly, e.g.,
     >>> add_colorbar(fig, ax, matplotlib.cm.ScalarMappable())
 
+    Examples
+    --------
+
+    .. plot:: _examples/add_colorbar.py
+        :include-source:
+
     """
     ############################
     # process input parameters #
@@ -1890,14 +1944,14 @@ def add_colorbar(
             width = bbox_ax.width
             height = width_pts / PTS_PER_INCH / figsize[1]
 
-        cax = figure.add_axes([x0, y0, width, height])
+        cax = figure.add_axes((x0, y0, width, height))
         cb = plt.colorbar(image[i], cax=cax, orientation=orientation)
-        cb.solids.set_rasterized(rasterized)
+        cb.solids.set_rasterized(rasterized)  # type: ignore
 
         _format_colorbar(cb, where_[i], label[i], **text_kwargs)
 
         return_colorbars.append(
-            Colorbar(cb, axes[i], where_[i],
+            Colorbar(cb, axes[i], where_[i],  # type: ignore
                      pad_pts / PTS_PER_INCH, width_pts / PTS_PER_INCH))
 
     if original_shape:
@@ -1991,13 +2045,14 @@ def add_colorbar_large(
         width = bbox_ax_1.x1 - bbox_ax_0.x0
         height = width_pts / PTS_PER_INCH / figsize[1]
 
-    cax = figure.add_axes([x0, y0, width, height])
+    cax = figure.add_axes((x0, y0, width, height))
     cb = plt.colorbar(image, cax=cax, orientation=orientation)
-    cb.solids.set_rasterized(rasterized)
+    cb.solids.set_rasterized(rasterized)  # type: ignore
 
     _format_colorbar(cb, where, label, **text_kwargs)
 
-    return ColorbarLarge(cb, tuple(axes), where, pad_pts / PTS_PER_INCH, width)
+    return ColorbarLarge(
+        cb, tuple(axes), where, pad_pts / PTS_PER_INCH, width)  # type: ignore
 
 
 @overload
@@ -2080,7 +2135,7 @@ def square_polar_frame(
         zorder = ax.get_zorder()
         ax.axis("off")
 
-        ax_frame.append(figure.add_axes(pos))
+        ax_frame.append(figure.add_axes(pos))  # type: ignore
         ax_frame[-1].set_zorder(zorder - 1)
         ax_frame[-1].set_xlim(-1, 1)
         ax_frame[-1].set_ylim(-1, 1)
@@ -2163,6 +2218,9 @@ def change_ratio(
     If you plan to add a colorbar that spans multiple axes, do this
     afterwards, too.
     """
+    global _change_ratio_has_been_called
+    _change_ratio_has_been_called = True
+
     figure = figure or plt.gcf()
 
     valid_adjusts = ["height", "width"]
@@ -2232,8 +2290,8 @@ def change_ratio(
         elif anchor_split[1] == "center":
             new_pos.x0 = old_pos.x0 + (old_pos.width - new_pos.width) / 2.0
 
-        ax.set_position([new_pos.x0, new_pos.y0,
-                         new_pos.width, new_pos.height])
+        ax.set_position((new_pos.x0, new_pos.y0,
+                         new_pos.width, new_pos.height))
         for cb in colorbars:
             _update_colorbar_position(cb, *figure.get_size_inches())
 
@@ -2326,18 +2384,22 @@ def add_abc(
     layout_inch = get_figure_layout(figure, axes, "inch")
 
     try:
-        iter(xoffset)
+        iter(xoffset)  # type: ignore
     except TypeError:
-        xoffset = [[xoffset] * layout_inch.ncols] * layout_inch.nrows
+        xoffset = [[xoffset] * layout_inch.ncols] * \
+            layout_inch.nrows  # type: ignore
     try:
-        iter(yoffset)
+        iter(yoffset)  # type: ignore
     except TypeError:
-        yoffset = [[yoffset] * layout_inch.ncols] * layout_inch.nrows
+        yoffset = [[yoffset] * layout_inch.ncols] * \
+            layout_inch.nrows  # type: ignore
 
     if rowsfirst:
         axes_flat = flatten(axes)
-        xoffsets_flat: list[Union[float, None]] = flatten(xoffset)
-        yoffsets_flat: list[Union[float, None]] = flatten(yoffset)
+        xoffsets_flat: list[Union[float, None]
+                            ] = flatten(xoffset)  # type: ignore
+        yoffsets_flat: list[Union[float, None]
+                            ] = flatten(yoffset)  # type: ignore
     else:
         axes_transposed: list[list[mplax.Axes]] = list(map(list, zip(*axes)))
         xoffset_transposed = list(map(list, zip(*xoffset)))
@@ -2351,7 +2413,7 @@ def add_abc(
     if uppercase:
         abc = abc.upper()
 
-    renderer = figure.canvas.get_renderer()
+    renderer = figure.canvas.get_renderer()  # type: ignore
     prefix_sf = r"\sffamily" if sansserif else ""
     prefix_sc = r"\scshape" if smallcaps else ""
     text_kwargs["transform"] = figure.transFigure
@@ -2370,13 +2432,17 @@ def add_abc(
         bbox = ax.get_position()
         if xofs is None:
             tbbox = ax.get_tightbbox(renderer)
-            ofs_rel.dx = tbbox.x0 / figure.get_dpi() / layout_inch.fig_width - bbox.x0
+            ofs_rel.dx = (
+                tbbox.x0 / figure.get_dpi() / layout_inch.fig_width  # type: ignore
+                - bbox.x0)
         else:
             ofs_rel.dx = xofs / PTS_PER_INCH / layout_inch.fig_width
 
         if yofs is None:
             tbbox = ax.get_tightbbox(renderer)
-            ofs_rel.dy = tbbox.y1 / layout_inch.fig_height / figure.get_dpi() - bbox.y1
+            ofs_rel.dy = (
+                tbbox.y1 / layout_inch.fig_height / figure.get_dpi()  # type: ignore
+                - bbox.y1)
         else:
             ofs_rel.dy = yofs / PTS_PER_INCH / layout_inch.fig_height
 
@@ -2397,9 +2463,9 @@ def add_abc(
 
 
 def abcify_axes(
-    axes: Optional[Union[mplax.Axes,
-                         list[mplax.Axes],
-                         list[list[mplax.Axes]]]] = None,
+    axes: Union[mplax.Axes,
+                list[mplax.Axes],
+                list[list[mplax.Axes]]],
 ) -> dict[str, mplax.Axes]:
     """
     Return a dictionary with keys a, b, b, ... of the input axes. If a 2D
@@ -2426,7 +2492,7 @@ def abcify_axes(
         return {abc[0]: axes}
 
     try:
-        iter(axes)
+        iter(axes)  # type: ignore
     except TypeError:
         raise ValueError(
             "Invalid input for *axes*"

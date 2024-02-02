@@ -27,7 +27,7 @@ colorbar = ap.add_colorbar(axes_abc["f"], image)
 ap.change_ratio(1.618, axes_abc["d"])
 
 # trim the margins of the figure to be just big enough for all the elements
-ap.make_margins_tight(axes, colorbars=colorbar)
+ap.make_margins_tight(axes, colorbars=colorbar, pad=5)
 
 # add labels to the axes
 ap.add_abc(axes, xoffset=5, yoffset=-5, va="top", prefix="(", suffix=")")

@@ -27,4 +27,4 @@ colorbar.ax.set_xticks(
     labels=["0%", "50%", "100%"])
 
 # remove unnecessary margins, the colorbar has to be passed for it to work
-ap.make_margins_tight(ax, colorbars=colorbar)
+ap.make_margins_tight(ax, colorbars=colorbar, pad=5)

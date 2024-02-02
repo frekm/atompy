@@ -5,6 +5,7 @@ from numpy.typing import NDArray
 from dataclasses import dataclass
 import atompy._io as apio
 from atompy._miscellaneous import get_all_dividers
+from typing import Literal, Optional, Union, overload
 
 
 @dataclass
@@ -101,6 +102,74 @@ class Hist1d:
 
 
 @dataclass
+class _ImshowDataIter:
+    image: NDArray[np.float64]
+    extent: NDArray[np.float64]
+
+    def __post_init__(self):
+        self.index = 0
+
+    def __iter__(self) -> "_ImshowDataIter":
+        return self
+
+    def __next__(self) -> NDArray[np.float64]:
+        self.index += 1
+        if self.index == 1:
+            return self.image
+        elif self.index == 2:
+            return self.extent
+        raise StopIteration
+
+
+@dataclass
+class ImshowData:
+    """
+    Store an image with its extents, ready to be plotted with imshow.
+
+    Parameters
+    ----------
+    image : np.ndarray
+        Data. A 2D pixel map of values from bins.
+
+    extent : np.ndarray
+        Array (xmin, xmax, ymin, ymax)
+    """
+    image: NDArray[np.float64]
+    extent: NDArray[np.float64]
+
+    def __iter__(self) -> _ImshowDataIter:
+        return _ImshowDataIter(self.image, self.extent)
+
+    def __getitem__(
+        self,
+        index: Literal[0, 1]
+    ) -> NDArray[np.float64]:
+        if index == 0:
+            return self.image
+        elif index == 1:
+            return self.extent
+        else:
+            msg = f"{index=}, but it must be 0 (image) or 1 (extent)"
+            raise IndexError(msg)
+
+    @overload
+    def __call__(self, index: Literal[0, 1]) -> NDArray[np.float64]: ...
+
+    @overload
+    def __call__(self, index: None = None) -> dict: ...
+
+    def __call__(
+        self,
+        index: Optional[Literal[0, 1]] = None
+    ) -> Union[NDArray[np.float64], dict]:
+        """ My docstring """
+        if index is None:
+            return dict(X=self.image, extent=self.extent)
+        else:
+            return self[index]
+
+
+@dataclass
 class _Hist2dIterator:
     H: NDArray[np.float64]
     xedges: NDArray[np.float64]
@@ -126,14 +195,15 @@ class _Hist2dIterator:
 @dataclass
 class Hist2d:
     """
-    A numpy wrapper class for the return of `numpy.histogram2d
+    A numpy wrapper class for the return of `np.histogram2d
     <https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html>`_
 
     Parameters
     ----------
     H : ndarray, shape(nx, ny)
-        The bi-dimensional histogram as returned by `numpy.histogram2d
-        <https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html>`_
+        The bi-dimensional histogram as returned by
+        `np.histogram2d <https://numpy.org/doc/stable/reference/generated/
+        numpy.histogram2d.html>`_
 
     xedges : ndarray, shape(nx+1,)
         The bin edges along the first dimension of *H*
@@ -175,16 +245,32 @@ class Hist2d:
 
     @property
     def xcenters(self) -> NDArray[np.float64]:
-        """ Get center of bins along first dimension of *H* """
+        """
+        Get center of bins along first dimension of *H*
+
+        Returns
+        -------
+        xcenters : `np.ndarray <https://numpy.org/doc/stable/reference/ \
+        generated/numpy.ndarray.html>`_
+        """
         return self.xedges[:-1] + 0.5 * np.diff(self.xedges)
 
     @property
     def ycenters(self) -> NDArray[np.float64]:
-        """ Get center of bins along second dimension of *H* """
+        """
+        Get center of bins along second dimension of *H*
+
+        Returns
+        -------
+        xcenters : `np.ndarray <https://numpy.org/doc/stable/reference/ \
+        generated/numpy.ndarray.html>`_
+        """
         return self.yedges[:-1] + 0.5 * np.diff(self.yedges)
 
     def rebinned_x(self, factor: int) -> "Hist2d":
         """
+        Rebin x-dimension of histogram.
+
         Return a *Hist2d* where the first dimension was rebinned with a
         factor of *factor*
 
@@ -216,6 +302,8 @@ class Hist2d:
 
     def rebinned_y(self, factor: int) -> "Hist2d":
         """
+        Rebin y-dimension of histogram.
+
         Return a *Hist2d* where the second dimension was rebinned with a
         factor of *factor*
 
@@ -253,18 +341,21 @@ class Hist2d:
                npt.NDArray[np.float64]]:
         """
         Return such that it can be plotted using
-        `plt.pcolormesh
-        <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.pcolormesh.html>`_
+        `plt.pcolormesh <https://matplotlib.org/stable/api/_as_gen/
+        matplotlib.pyplot.pcolormesh.html>`_
 
         The input order for `pcolormesh` is xedges, yedges, H.T
 
         Returns
         -------
-        xedges: np.ndarray
+        xedges: `np.ndarray <https://numpy.org/doc/stable/reference/generated/\
+        numpy.ndarray.html>`_
 
-        yedges: np.ndarray
+        yedges: `np.ndarray <https://numpy.org/doc/stable/reference/generated/\
+        numpy.ndarray.html>`_
 
-        H.T: np.ndarray
+        H.T: `np.ndarray <https://numpy.org/doc/stable/reference/generated/\
+        numpy.ndarray.html>`_
             Transposed matrix of input *Hist2d.H*
 
         Examples
@@ -279,19 +370,21 @@ class Hist2d:
     @property
     def for_imshow(
         self,
-    ) -> tuple[npt.NDArray[np.float64], list[float]]:
+    ) -> ImshowData:
+        # ) -> tuple[npt.NDArray[np.float64], list[float]]:
         """
         Return an image and the extents of the image. 
+
         Assumes that the origin of the image is specified by 
         `matplotlib.rcParams["image.origin"]`
 
         Returns
         -------
-        image: `np.ndarray`
-            2d pixel map
+        imshow_data : :class:`.ImshowData`
+            A data type storing an image and the extent of the image.
 
-        extent: [float, float, float, float]
-            xmin, xmax, ymin, ymax
+            - :code:`imshow_data.image`: 2d pixel array
+            - :code:`imshow_data_extent`: the extents of the image
 
         Examples
         --------
@@ -300,6 +393,13 @@ class Hist2d:
             hist = Hist2d(*np.histogram2d(xsamples, ysamples))
             image, extent = hist.for_imshow
             plt.imshow(image, extent=extent)
+
+            # or (calling *imshow_data* returns a dictionary)
+            plt.imshow(**hist.for_imshow())
+
+            # or
+            imshow_data = hist.for_imshow
+            plt.imshow(imshow_data.image, extent=imshow_data.extent)
         """
         origin = plt.rcParams["image.origin"]
         if origin == "lower":
@@ -310,7 +410,7 @@ class Hist2d:
                  self.xedges.max(),
                  self.yedges.min(),
                  self.yedges.max()]
-        return H_, edges
+        return ImshowData(H_, np.array(edges))
 
     def within_xrange(
         self,
@@ -318,6 +418,8 @@ class Hist2d:
         keepdims: bool = False
     ) -> "Hist2d":
         """
+        Apply a gate along x.
+
         Return a histogram where *xrange[0]* <= xedges <= *xrange[1]*
 
         Parameters
@@ -354,6 +456,8 @@ class Hist2d:
         keepdims: bool = False
     ) -> "Hist2d":
         """
+        Apply a gate along y.
+
         Return a histogram where *yrange[0]* <= yedges <= *yrange[1]*
 
         Parameters
@@ -388,13 +492,19 @@ class Hist2d:
     def projected_onto_x(self) -> "Hist1d":
         """
         Project histogram onto its x-axis
+
+        Returns
+        -------
+        hist1d : :class:`.Hist1d`
+            A 1D histogram where the *bins* are the x-bins of the original
+            2D histogram, and the *bin-values* are the projection.
         """
         return Hist1d(np.sum(self.H, axis=1), self.xedges)
 
     @property
     def prox(self) -> "Hist1d":
         """
-        Alias for *projected_onto_x*
+        Alias for :meth:`.projected_onto_x`.
         """
         return self.projected_onto_x
 
@@ -402,91 +512,223 @@ class Hist2d:
     def projected_onto_y(self) -> "Hist1d":
         """
         Project histogram onto its y-axis
+
+        Returns
+        -------
+        hist1d : :class:`.Hist1d`
+            A 1D histogram where the *bins* are the x-bins of the original
+            2D histogram, and the *bin-values* are the projection.
         """
         return Hist1d(np.sum(self.H, axis=0), self.yedges)
 
     @property
     def proy(self) -> "Hist1d":
         """
-        Alias for *projected_onto_x*
+        Alias for :meth:`.projected_onto_y`.
         """
         return self.projected_onto_y
 
     def __get_profile(
         self,
         counts: NDArray,
-        bin_centers: NDArray
+        bin_centers: NDArray,
+        option: Literal["", "s", "i", "g"] = ""
     ):
-        """ See ROOT `TProfile` """
+        """
+        See `TProfile <https://root.cern.ch/doc/master/classTProfile.html>`_
+        of the ROOT Data Analysis Framework 
+        """
         H = np.sum(counts * bin_centers)
         E = np.sum(counts * bin_centers**2)
         W = np.sum(counts)
         h = H / W
         s = np.sqrt(E / W - h**2)
         e = s / np.sqrt(W)
-        return h, e
+        if option == "":
+            out = e
+        elif option == "s":
+            out = s
+        elif option == "i":
+            raise NotImplementedError
+        elif option == "g":
+            out = 1. / np.sqrt(W)
+        else:
+            msg = f"{option=}, but it needs to be '', 's', 'i', or 'g'"
+            raise ValueError(msg)
+        return h, out
+
+    def get_profile_along_x(
+        self,
+        option: Literal["", "s", "i", "g"] = ""
+    ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+        r"""
+        Get the x-profile.
+
+        Calculate the mean value and its error per column. Which type of error
+        is controled with *option*.
+
+        Parameters
+        ----------
+        option : :code:`""`, :code:`"s"`, :code:`"i"`, or :code:`"g"`, default :code:`""`
+            Control type of errors, see *Notes*.
+
+            - :code:`option == ""`:  Error of the mean of all Y values
+            - :code:`option == "s"`: Standard deviation of all Y
+            - :code:`option == "i"`: See *Notes*
+            - :code:`option == "g"`: Error of a weighted mean for combining
+              measurements with variances of :math:`w`.
+
+
+        Returns
+        -------
+        h : `np.ndarray <https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html>`_
+
+            Mean values of each Y (i.e., column)
+
+        errors : `np.ndarray <https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html>`_
+
+            Errors of the mean values. Depends on *option*.
+
+        Notes
+        -----
+        See `TProfile <https://root.cern.ch/doc/master/classTProfile.html>`_
+        of the ROOT Data Analysis Framework.
+
+        For a histogram :math:`X` vs :math:`Y`, the following is calculated for
+        each :math:`X` value.
+
+        .. math::
+
+            \begin{align}
+            H(j) &= \sum w Y \\
+            E(j) &= \sum w Y^2 \\
+            W(j) &= \sum w \\
+            h(j) &= H(j) / W(j) \\
+            s(j) &= \sqrt{E(j) / W(j) - h(j)^2} \\
+            e(j) &= s(j) / \sqrt{W(j)}
+            \end{align}
+
+        Here, :math:`w` are the counts of bin `j`.
+
+        Examples
+        --------
+
+        .. plot:: _examples/profile_x.py
+            :include-source:
+
+        """
+        means = np.zeros(self.H.shape[0])
+        errors = np.zeros(self.H.shape[0])
+        for idx_col in range(self.H.shape[0]):
+            col = self.H[idx_col]
+            mean, error = self.__get_profile(col, self.ycenters, option=option)
+            means[idx_col] = mean
+            errors[idx_col] = error
+        return means, errors
 
     @property
     def profile_along_x(
         self,
     ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
         """
-        Get the x-profile, that is, the mean value and its error per column
-
-        Returns
-        -------
-        mean : ndarray
-            mean values per column
-
-        error : ndarray
-            standard errors of the mean values
-
-        Notes
-        -----
-        See `TProfile` of the ROOT Data Analysis Framework 
+        Alias for :meth:`get_profile_along_x(option="")  \
+        <.Hist2d.get_profile_along_x>`
         """
-        means = np.zeros(self.H.shape[0])
-        errors = np.zeros(self.H.shape[0])
-        for idx_col in range(self.H.shape[0]):
-            col = self.H[:, idx_col]
-            mean, error = self.__get_profile(col, self.ycenters)
-            means[idx_col] = mean
-            errors[idx_col] = error
-        return means, errors
+        return self.get_profile_along_x(option="")
 
-    @property
-    def profile_along_y(
+    def get_profile_along_y(
         self,
+        option: Literal["", "s", "i", "g"] = ""
     ) -> tuple[NDArray[np.float_], NDArray[np.float_]]:
-        """
-        Get the y-profile, that is, the mean value and its error per row
+        r"""
+        Get the y-profile.
+
+        Calculate the mean value and its error per row. Which type of error
+        is controled with *option*.
+
+        Parameters
+        ----------
+        option : :code:`""`, :code:`"s"`, :code:`"i"`, or :code:`"g"`, default :code:`""`
+            Control type of errors, see *Notes*.
+
+            - :code:`option == ""`:  Error of the mean of all Y values
+            - :code:`option == "s"`: Standard deviation of all Y
+            - :code:`option == "i"`: See *Notes*
+            - :code:`option == "g"`: Error of a weighted mean for combining
+              measurements with variances of :math:`w`.
+
 
         Returns
         -------
-        mean : ndarray
-            mean values per column
+        h : `np.ndarray <https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html>`_
 
-        error : ndarray
-            standard errors of the mean values
+            Mean values of each X (i.e., row)
+
+        errors : `np.ndarray <https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html>`_
+
+            Errors of the mean values. Depends on *option*.
 
         Notes
         -----
-        See `TProfile` of the ROOT Data Analysis Framework 
+        See `TProfile <https://root.cern.ch/doc/master/classTProfile.html>`_
+        of the ROOT Data Analysis Framework.
+
+        For a histogram :math:`X` vs :math:`Y`, the following is calculated for
+        each :math:`Y` value.
+
+        .. math::
+
+            \begin{align}
+            H(j) &= \sum w X \\
+            E(j) &= \sum w X^2 \\
+            W(j) &= \sum w \\
+            h(j) &= H(j) / W(j) \\
+            s(j) &= \sqrt{E(j) / W(j) - h(j)^2} \\
+            e(j) &= s(j) / \sqrt{W(j)}
+            \end{align}
+
+        Here, :math:`w` are the counts of bin `j`.
+
+        Examples
+        --------
+
+        .. plot:: _examples/profile_y.py
+            :include-source:
+
         """
         means = np.zeros(self.H.shape[1])
         errors = np.zeros(self.H.shape[1])
         for idx_row in range(self.H.shape[1]):
-            row = self.H[idx_row]
-            mean, error = self.__get_profile(row, self.xcenters)
+            row = self.H[:, idx_row]
+            mean, error = self.__get_profile(row, self.xcenters, option=option)
             means[idx_row] = mean
             errors[idx_row] = error
         return means, errors
 
     @property
+    def profile_along_y(
+        self,
+    ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+        """
+        Alias for :meth:`get_profile_along_y(option="")  \
+        <.Hist2d.get_profile_along_y>`
+        """
+        return self.get_profile_along_y(option="")
+
+    @property
     def without_zeros(
         self
     ) -> "Hist2d":
-        """ Replace zeros with None, removing them from colorsmaps """
+        """
+        Replace zeros with None, removing them from colormaps
+
+        Examples
+        --------
+
+        .. plot:: _examples/without_zeros.py
+            :include-source:
+
+        """
         _H = self.H.copy()
         _H[_H == 0] = None
         return Hist2d(_H, self.xedges, self.yedges)
@@ -494,9 +736,11 @@ class Hist2d:
     def save_to_file(
         self,
         fname: str,
-        **savetxt_kwargs
+        **kwargs
     ) -> None:
         """
+        Save the histogram to a file.
+
         The first column in the file will be y, the second x, the third z.
         (this is chosen as such because the the standard hist2ascii-macro of 
         our group outputs this order)
@@ -506,14 +750,23 @@ class Hist2d:
         fname : str
             Filename, including filetype
 
-        **savetxt_kwargs : `numpy.savetxt` keyword args
+        Other Parameters
+        ----------------
+        **kwargs : `np.savetxt <https://numpy.org/doc/stable/reference/ \
+            generated/numpy.savetxt.html>` keyword arguments
         """
         apio.save_ascii_hist2d(
-            self.H, self.xedges, self.yedges, fname, **savetxt_kwargs)
+            self.H, self.xedges, self.yedges, fname, **kwargs)
 
     @property
     def column_normalized_to_sum(self) -> "Hist2d":
-        """ Normalize each column to their sum """
+        """ Normalize each column to their sum.
+
+        Returns
+        -------
+        new_hist2d : :class:`.Hist2d`
+            A new histogram where the columns are normalized.
+        """
         return Hist2d(
             self.H / self.H.sum(axis=1, keepdims=True),
             self.xedges,
@@ -521,7 +774,13 @@ class Hist2d:
 
     @property
     def column_normalized_to_max(self) -> "Hist2d":
-        """ Normalize each column to their maximum """
+        """ Normalize each column to their maximum.
+
+        Returns
+        -------
+        new_hist2d : :class:`.Hist2d`
+            A new histogram where the columns are normalized.
+        """
         return Hist2d(
             self.H / self.H.max(axis=1, keepdims=True),
             self.xedges,
@@ -529,7 +788,13 @@ class Hist2d:
 
     @property
     def row_normalized_to_sum(self) -> "Hist2d":
-        """ Normalize each row to their sum """
+        """ Normalize each row to their sum.
+
+        Returns
+        -------
+        new_hist2d : :class:`.Hist2d`
+            A new histogram where the rows are normalized.
+        """
         return Hist2d(
             self.H / self.H.sum(axis=0, keepdims=True),
             self.xedges,
@@ -537,7 +802,13 @@ class Hist2d:
 
     @property
     def row_normalized_to_max(self) -> "Hist2d":
-        """ Normalize each row to their maximum """
+        """ Normalize each row to their maximum.
+
+        Returns
+        -------
+        new_hist2d : :class:`.Hist2d`
+            A new histogram where the rows are normalized.
+        """
         return Hist2d(
             self.H / self.H.max(axis=0, keepdims=True),
             self.xedges,

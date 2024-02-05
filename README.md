@@ -43,6 +43,27 @@ They are listed in `pyproject.toml`.
 The documentaion is avaiable online at
 [readthedocs](https://atomicphysics-atompy.readthedocs.io/en/latest/).
 
+## Structure
+```
+.
+└─ atompy/
+   ├── src/
+   │ └── atompy/                      (atompy module)
+   │   ├── physics/                 (atompy.physics submodule)
+   │   │ ├── _physics.py            (general physics stuff)
+   │   │ └── comptons_scattering.py (physics related to Compton scattering)
+   │   ├── _histogram.py            (Hist1d and Hist2d classes)
+   │   ├── _io.py                   (loading/saving data)
+   │   ├── _miscellaneous.py        
+   │   ├── _plotting.py             (related to plotting)
+   │   └── _vector.py               (Vector class)
+   └── docs/
+     └── source/             (documentation source files)
+        └── _examples/       (python example scripts for docs)
+
+``` 
+
+
 ## License
 [atompy](https://github.com/crono-kircher/atompy) by
 [Max Kircher](https://github.com/crono-kircher) is licensed under

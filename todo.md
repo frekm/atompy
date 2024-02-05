@@ -1,3 +1,4 @@
-- Make a PcolormeshData Object
 - Update documentation
 - Expand examples
+    - Rebinning
+    - row/column normalization

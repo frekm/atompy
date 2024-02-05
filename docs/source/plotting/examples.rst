@@ -1,3 +1,4 @@
+========
 Examples
 ========
 
@@ -5,3 +6,4 @@ Examples
 -------
 
 .. plot:: _examples/2dplots.py
+    :include-source:

@@ -1,5 +1,6 @@
-Miscellaneous
-=============
+=================
+Data Manipulation
+=================
 
 .. autofunction:: atompy.get_all_dividers
 
@@ -16,9 +17,3 @@ Miscellaneous
 
 .. autofunction:: atompy.get_column
 .. autofunction:: atompy.return_as_list
-
-Datatypes
----------
-
-.. autoclass:: atompy.ImshowData
-    :members:

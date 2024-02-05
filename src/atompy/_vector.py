@@ -2,14 +2,6 @@ import numpy as np
 import numpy.typing as npt
 from typing import Any, Optional
 
-###############################################################################
-###############################################################################
-###############################################################################
-# Vector
-###############################################################################
-###############################################################################
-###############################################################################
-
 
 class _VectorIterator:
     def __init__(self, vectors: "Vector") -> None:
@@ -28,11 +20,11 @@ class _VectorIterator:
 
 class Vector:
     """
-    Wrapper class for numpy arrays that represent vectors
+    Wrapper class for numpy arrays that represent vectors.
 
     Parameters
     ----------
-    vectors: ArrayLike, shape (N, 3) or (3,)
+    vectors : ArrayLike, shape (N, 3) or (3,)
         a list of vectors [vec1, vec2, vec3, ...]
 
     Examples
@@ -58,10 +50,14 @@ class Vector:
             self._data = np.array(vectors).astype(np.float64)
 
         if self._data.ndim != 2:
-            raise ValueError("ndim")
+            msg = (f"dimension of input array is {vectors_.ndim}, but it "
+                   "needs to be 1 or 2")
+            raise ValueError(msg)
 
         if self._data.shape[1] != 3:
-            raise ValueError("shape")
+            msg = (f"Shape of input array is {vectors_.shape}, but it needs "
+                   " to be (N, 3) or (3,)")
+            raise ValueError(msg)
 
     def __getitem__(self, key) -> npt.NDArray[Any]:
         return self._data[key]
@@ -141,12 +137,20 @@ class Vector:
         return _VectorIterator(self)
 
     @property
-    def nparray(self) -> npt.NDArray[np.float64]:
-        """ Get the underlying numpy array """
+    def ndarray(self) -> npt.NDArray[np.float64]:
+        """ Get the underlying numpy array.
+
+        Examples
+        --------
+        >>> vec = Vector([[1, 2, 3], [4, 5, 6]])
+        >>> vec.ndarray
+        array([[1., 2., 3.],
+               [4., 5., 6.]])
+        """
         return self._data
 
-    @nparray.setter
-    def nparray(self, vectors: npt.NDArray[np.float64]) -> None:
+    @ndarray.setter
+    def ndarray(self, vectors: npt.NDArray[np.float64]) -> None:
         if self._data.shape != vectors.shape:
             raise ValueError(
                 f"Old ({self._data.shape}) and new ({vectors.shape})"
@@ -195,9 +199,14 @@ class Vector:
         self[:, 2] = value
 
     @property
-    def mag(self) -> npt.NDArray[np.float64]:
+    def magnitude(self) -> npt.NDArray[np.float64]:
         """ Return magnitude of vector """
         return np.sqrt(self.x**2 + self.y**2 + self.z**2)
+
+    @property
+    def mag(self) -> npt.NDArray[np.float64]:
+        """ Alias for :meth:`.Vector.magnitude` """
+        return self.magnitude
 
     @property
     def norm(self) -> "Vector":
@@ -346,7 +355,7 @@ class Vector:
 
         Parameters
         ----------
-        mask: `numpy.ndarray`, shape `(len(self),)` 
+        mask : `numpy.ndarray`, shape `(len(self),)` 
             Array of booleans.
 
         Returns
@@ -380,7 +389,7 @@ class Vector:
 
         Parameters
         ----------
-        mask: `numpy.ndarray`, shape `(len(self),)` 
+        mask : `numpy.ndarray`, shape `(len(self),)` 
             Array of booleans.
 
         Returns
@@ -446,7 +455,7 @@ class CoordinateSystem:
 
         Paramters
         ---------
-        mask: `numpy.ndarray`, shape `(len(self),)` 
+        mask : `numpy.ndarray`, shape `(len(self),)` 
             Array of booleans.
 
         Returns

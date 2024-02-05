@@ -1,0 +1,10 @@
+
+
+.. autofunction:: atompy.subplots
+
+
+
+
+
+
+

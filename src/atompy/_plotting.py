@@ -781,7 +781,7 @@ def dash_dotted(
     n_dashes : int, default: 3
         Number of dashes drawn
 
-    linewidth (or lw): float, optional, default: `rcParams["lines.linewidth"]`
+    linewidth (or lw) : float, optional, default: `rcParams["lines.linewidth"]`
 
     fontsize : float or str, Optional, default: `rcParams["legend.fontsize"]`
         The fontsize used in the legend
@@ -837,7 +837,7 @@ def dashed(
     n_dashes : int, default: 4
         Number of dashes drawn
 
-    linewidth (or lw): float, optional, default: rcParams["lines.linewidth"]
+    linewidth (or lw) : float, optional, default: rcParams["lines.linewidth"]
 
     fontsize : float or str, Optional, default: rcParams["legend.fontsize"]
         The fontsize used in the legend
@@ -847,7 +847,7 @@ def dashed(
           :code:`"medium"`, :code:`"large"`, :code:`"x-large"`, 
           :code:`"xx-large"`, :code:`"larger"`, or :code:`"smaller"`
 
-    legend_handlelength (or lh): float, default \
+    legend_handlelength (or lh) : float, default \
 :code:`rcParams["legend.handlelength"]`
         Length of the legend handles (the dotted line, in this case) in font
         units
@@ -1624,10 +1624,10 @@ def make_margins_tight(
         A 2D matrix of axes of the figure, where the first index specifies
         the row, the second the column
 
-    figure: `matplotlib.figure.Figure`, optional
+    figure : `matplotlib.figure.Figure`, optional
         if not provided, get current figure with plt.gcf()
 
-    fix_figwidth: bool, default `False`
+    fix_figwidth : bool, default `False`
         Specify what width to keep constant
         - `True`: Change "axes_width" and horizontal padding between
         axes. May result in buggy behaviour if the aspect ratio of the axes
@@ -1636,15 +1636,15 @@ def make_margins_tight(
         - `False`: Change the width of the figure to accomodate for the new
         margins. Should also work if axes have different aspect ratios
 
-    colorbars: `atompy.plotting.Colorbar` or `list[atompy.plotting.Colorbar]`
+    colorbars : `atompy.plotting.Colorbar` or `list[atompy.plotting.Colorbar]`
     or `list[list[atompy.plotting.Colorbar]` or `atompy.plotting.ColorbarLarge`
         Also consider and update colorbars of the figure.
 
-    pad: float or (float, float, float, float), default 0pts
+    pad : float or (float, float, float, float), default 0pts
         Add padding in pts around the figure. If passed as a Sequecne, order
         is (left, right, top, bottom)
 
-    nruns: int, default 1
+    nruns : int, default 1
         If the width of the axes changes dramatically, the routine may need
         to run multiple times to accommodate possibly updated ticklabels
 
@@ -1654,12 +1654,12 @@ def make_margins_tight(
         the passed Sequence of Axes is used to determine the
         (left, right, top, bottom)-margins.
 
-    log: bool, default `False`
+    log : bool, default `False`
         Print margins that were determined
 
     Returns
     -------
-    margins: `FigureMargins`
+    margins : :class:`.FigureMargins`
         The (left, right, top, bottom) margins of each axes located at the
         edges of the figure
     """
@@ -1981,7 +1981,7 @@ def add_colorbar_large(
         The left-/top-most and right-/bottom-most axes that the colorbar
         should span
 
-    figure: `matplotlib.figure.Figure`, optional
+    figure : `matplotlib.figure.Figure`, optional
         if not provided, get current figure with plt.gcf()
 
     image : `AxesImage`
@@ -2101,15 +2101,15 @@ def square_polar_frame(
 
     Parameters
     ----------
-    axes: list of list of `matplotlib.axes.Axes`
+    axes : list of list of `matplotlib.axes.Axes`
 
-    figure: `matplotlib.figure.Figure`, optional
+    figure : `matplotlib.figure.Figure`, optional
         if not provided, get current figure with plt.gcf()
 
-    n_gridlines: int
+    n_gridlines : int
         Draw this many (outspreading) gridlines
 
-    mark_zero: bool,
+    mark_zero : bool,
         Draw a crosshair at 0, 0
 
     **plot_kwargs
@@ -2191,22 +2191,22 @@ def change_ratio(
 
     Parameters
     ----------
-    new_ratio: float
+    new_ratio : float
         The new ratio width/height
 
-    axes: `matplotlib.axes.Axes` or list thereof
+    axes : `matplotlib.axes.Axes` or list thereof
 
-    figure: `matplotlib.figure.Figure`, optional
+    figure : `matplotlib.figure.Figure`, optional
         If not provided, get current figure using plt.gcf()
 
-    adjust: "height", "width"
+    adjust : "height", "width"
 
-    anchor: "center", "left", "right", "upper", "lower",
+    anchor : "center", "left", "right", "upper", "lower",
         "upper left", "upper right", "upper center",
         "center left", "center right", "center center",
         "lower left", "lower right", "lower center"
 
-    colorbar: `atompy.Colorbar` or list thereof, optional
+    colorbar : `atompy.Colorbar` or list thereof, optional
         If colorbars exist, they need to be passed to also be updated. This
         can be passed as a list, even if *axes* is a single axes. (It'll
         pick the correct one)
@@ -2322,18 +2322,18 @@ def add_abc(
 
     Parameters
     ----------
-    axes: list[list[`matplotlib.axes.Axes`]
+    axes : list[list[`matplotlib.axes.Axes`]
 
-    figure: `matplotlib.figure.Figure`
+    figure : `matplotlib.figure.Figure`
         If not provided, get current figure using plt.gcf()
 
-    xoffset: float | None | list[list[float | None]], default None
+    xoffset : float | None | list[list[float | None]], default None
         Horizontal shift from *anchor* in pts. Positive moves right.
         If provided as a 2D list, entries correspond to each *axes*,
         otherwise global.
         If xoffset is None, use the width of ylabel of each axes
 
-    yoffset: float | None | list[list[float | None]], default 0pts.
+    yoffset : float | None | list[list[float | None]], default 0pts.
         Vertical shift from *anchor* in pts. Positive moves up. If provided
         as a 2D list, entries correspond to each *axes*, otherwise global.
         If yoffset is None, use the extent of all axes elements into the upper
@@ -2474,7 +2474,7 @@ def abcify_axes(
 
     Parameters
     ----------
-    axes: `matplotlib.axes.Axes` or list or list of lists thereof
+    axes : `matplotlib.axes.Axes` or list or list of lists thereof
 
     Returns
     -------

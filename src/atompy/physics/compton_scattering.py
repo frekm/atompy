@@ -2,7 +2,7 @@ from typing import overload, Union
 import numpy as np
 import numpy.typing as npt
 import time
-from ._vector import Vector
+from atompy._vector import Vector
 
 
 @overload
@@ -36,8 +36,9 @@ def thomson_cross_section(
 
     Returns
     -------
-    float or `numpy.ndarray`
-        The cross section in cm**2 or normalized to 1
+    cross_section : float or `numpy.ndarray`
+        The cross section in cm**2 or normalized to 1 (depending on
+        *normalize*)
     """
     cross_section = 1.0 / 137.0**4 * (1.0 + np.cos(thetas)**2) / 2.0
     return (cross_section / np.amax(cross_section) if normalize
@@ -73,7 +74,7 @@ def compton_photon_energy_out(
 
     Returns
     -------
-    float or `np.ndarray`
+    energy : float or `np.ndarray`
         The energy of the scattered photon in a.u.
     """
     return Ein / (1.0 + Ein / 137.0**2 * (1.0 - cos_theta))
@@ -107,7 +108,7 @@ def klein_nishina_cross_section(
 
     Returns
     -------
-    float or `np.ndarray`
+    cross_section : float or `np.ndarray`
         The differential cross section $d\sigma/d\Omega$ in cm^2 or,
         if *normalize* is True, normalized to its maximum
     """
@@ -135,7 +136,7 @@ def scattering_angle_distr(
 
     Returns
     -------
-    `numpy.ndarray`
+    angles : `numpy.ndarray`
         The scattering angles in rad
     """
     E1 = 137.0 * k1_mag_au
@@ -182,16 +183,12 @@ def mom_final_distr_photon(
     k1_mag : float
         Incoming photon vector interpreted as (k1_mag, 0, 0) in a.u.
 
-    write_ascii : {None, string}, optional
-        save momenta in an ascii file with filename <write_ascii>
-        if None, do not write ascii (default None)
-
-    theta_min: float, default = 0.0
+    theta_min : float, default = 0.0
         minimum scattering angle in rad
 
     Returns
     -------
-    `atompy.vector.Vector`
+    vectors : :class:`.Vector`
         Photon momentum vectors
     """
     E1 = 137.0 * k1_mag
@@ -262,18 +259,19 @@ def mom_transfer_approx(
     kin_au: float,
     scattering_angles_rad: Union[float, npt.NDArray[np.float_]],
 ) -> Union[float, npt.NDArray[np.float_]]:
-    """
+    r"""
     Calculate momentum transfer assuming in and outgoing photon momentum
     is unchanged.
 
-    Calculates `sqrt(2*kin_au**2 - 2*kin_au**2 * cos(scattering_angles_rad))`
+    Calculates :math:`\sqrt{2\times\texttt{kin_au}^2 - 2\times
+    \texttt{kin_au}^2  \times \cos(\texttt{scattering_angles_rad})}`.
 
     Parameters
     ----------
     kin_au : float
         Incoming photon momentum in a.u.
 
-    scattering_angles_rad: float or `numpy.ndarray`
+    scattering_angles_rad : float or `numpy.ndarray`
         Scattering angle(s) in rad
 
     Returns
@@ -318,183 +316,6 @@ def mom_final_distr_elec(
     return Q + kinit
 
 
-@overload
-def rho_p_microcanonical(
-    pmag: float,
-    E_bind: float,
-    normalize: bool = True
-) -> float: ...
-
-
-@overload
-def rho_p_microcanonical(
-    pmag: npt.NDArray[np.float_],
-    E_bind: float,
-    normalize: bool = True
-) -> npt.NDArray[np.float_]: ...
-
-
-def rho_p_microcanonical(
-    pmag: Union[float, npt.NDArray[np.float_]],
-    E_bind: float,
-    normalize: bool = True
-) -> Union[float, npt.NDArray[np.float_]]:
-    """
-    Momentum distribution of one component in hydrogen-like system
-    from Abrines Proc Phys. Soc 88 861 (1966)
-
-    Parameters
-    ----------
-    pmag : float or `np.narray`
-        momentum magnitude in a.u.
-
-    E_bind : float
-        binding energy in a.u.
-
-    normalize: bool, default True
-        if True, normalize resulting distribution to maximum
-
-    Returns
-    -------
-    float or `np.ndarray`
-    """
-    p0 = np.sqrt(2.0 * E_bind)
-    out = 8.0 * p0**5 / np.pi**2 / (pmag**2 + p0**2)**4
-    return out / np.amax(out) if normalize else out
-
-
-def mom_init_distr_elec(
-    size: int,
-    E_bind_au: float,
-    scale: float = 3.0
-) -> Vector:
-    """
-    Dice-throw three momentum components following a microcanonical
-    distribution
-
-    Parameters
-    ----------
-    size : int
-        Number of throws
-
-    E_bind : float
-        Binding energy in a.u.
-
-    scale: float
-        scale factor for maximum momentum magnitude (max_mom = p0 * scale)
-
-    Returns
-    -------
-    `atompy.vector.Vector`
-        Momentum vectors of the distribution
-    """
-    t0 = time.time()
-    line0 = ("Generating random microcanonical momentum distribution "
-             f"(size {size}). ")
-
-    succesful_throws = 0
-    p = np.zeros((size, 3))
-    while succesful_throws < size:
-        line = (
-            "\r" + line0
-            + "%.0lf percent done." % (100.0 * succesful_throws / size)
-        )
-        print(line, end="")
-
-        buffer = size - succesful_throws
-
-        p0 = np.sqrt(2.0 * E_bind_au)
-
-        pmag = np.random.uniform(0, p0 * scale, buffer)
-
-        density = 8.0 * p0**5 / np.pi**2 / (pmag**2 + p0**2)**4 * pmag**2
-        density /= np.max(density)
-
-        second = np.random.random(buffer)
-
-        pmag = np.ma.compressed(
-            np.ma.masked_array(pmag, mask=second >= density))
-
-        theta = np.arccos(2.0 * np.random.random(pmag.size) - 1.0)
-        phi = 2.0 * np.pi * np.random.random(pmag.size)
-
-        p[succesful_throws:succesful_throws + pmag.size, 0] = \
-            pmag * np.sin(theta) * np.cos(phi)
-        p[succesful_throws:succesful_throws + pmag.size, 1] = \
-            pmag * np.sin(theta) * np.sin(phi)
-        p[succesful_throws:succesful_throws + pmag.size, 2] = \
-            pmag * np.cos(theta)
-
-        succesful_throws += pmag.size
-
-    t1 = time.time()
-
-    print(f"\r{line0}Total runtime: {t1-t0:.2f}s")
-
-    return Vector(p)
-
-
-def mom_init_distr_elec_mol(
-    distr_atomic: Vector,
-    stretch_factor: float
-) -> tuple[Vector, Vector]:
-    """
-    Create molecular momentum distribution
-
-    Parameters
-    ----------
-    distr_atomic : `atompy.vector.Vector`
-        The (atomic) distribution
-
-    stretch_factor : float
-        The factor how much the distribution will be stretched along that axis
-
-    Returns
-    -------
-    `atompy.vector.Vector`
-        The new momentum distribution
-
-    `atompy.vector.Vector`
-        The distribution of directions perpendicular to the directions along
-        which the stretch factor was applied
-
-    Notes
-    -----
-    Creates a isotropic distribution of molecular orientations
-    Takes the atomic distribution and stretches y and z component of it. This
-    would mean that all molecules are aligned along x
-    Rotate stretched atomic distribution and rotates it such that it
-    corresponds to the isotropic distribution of molecules
-    """
-    N = distr_atomic.nparray.shape[0]
-
-    print("Creating molecular orbitals... ")
-    t0 = time.time()
-
-    # stretch along x and y, i.e., molecule is aligned along z
-    distr_molecular = distr_atomic.nparray.copy()
-    distr_molecular[:, :2] = distr_molecular[:, :2] * stretch_factor
-    distr_molecular = Vector(distr_molecular)
-
-    # rotate them randomly
-    theta = np.arccos(2.0 * np.random.random(N) - 1)
-    phi = 2.0 * np.pi * np.random.random(N)
-
-    molecular_orientation = np.zeros(distr_molecular.nparray.shape)
-    molecular_orientation[:, 0] = np.sin(theta) * np.cos(phi)
-    molecular_orientation[:, 1] = np.sin(theta) * np.sin(phi)
-    molecular_orientation[:, 2] = np.cos(theta)
-
-    distr_molecular = \
-        distr_molecular.rotated_around_y(theta).rotated_around_z(phi)
-
-    t1 = time.time()
-
-    print(f"Done. Total runtime: {t1-t0:.2f}s")
-
-    return distr_molecular, Vector(molecular_orientation)
-
-
 def stretch_Compton_electron_onto_sphere(
     pe_shifted: Vector,
     kout: Vector,
@@ -507,19 +328,19 @@ def stretch_Compton_electron_onto_sphere(
 
     Parameters
     ----------
-    pe: `atompy.vector.Vector`
+    pe : :class:`.Vector`
         shape (N, 3), the electron momenta after the scattering process
 
-    kout: `atompy.vector.Vector`
+    kout : :class:`.Vector`
         shape (N, 3), the corresponding distribution of photon momenta
 
-    kin_mag_au: float
+    kin_mag_au : float
         momentum of the incoming photon. The incoming photon is assumed to be
         along x
 
     Returns
     -------
-    `atompy.vector.Vector`
+    vectors : :class:`.Vector`
         The new electron momentum distribution
 
     Notes
@@ -541,14 +362,14 @@ def subtract_binding_energy(
 
     Parameters
     ----------
-    pin : `atompy.VectorCollection`
+    pin : :class:`.Vector`
         ingoing momenta
     Ebind : float
         binding energy in a.u.
 
     Returns
     -------
-    `atompy.VectorCollection`
+    vectors : :class:`.Vector`
         shortened momentum vector
     """
 
@@ -578,19 +399,19 @@ def calculate_Q_neglecting_mom_init(
 
     Parameters
     ----------
-    incoming_photon_momentum: `vector.Vector`
+    incoming_photon_momentum : :class:`.Vector`
         momentum of incoming photon in a.u., incoming photon is assumed to be
         along x-axis
 
-    final_elec_momentum: `vector.Vector`
+    final_elec_momentum : :class:`.Vector`
         final electron momenta in a.u.
 
-    momentum_transfer: `vector.Vector`
+    momentum_transfer : :class:`.Vector`
         momentum transfer
 
     Returns
     -------
-    `vector.Vector`
+    vectors : :class:`.Vector`
         shape (N, 3), the momentum transfers
     """
     alpha = np.arccos(final_elec_momentum.x / final_elec_momentum.mag)

@@ -1,5 +1,6 @@
-Vectors
-=======
+======
+Vector
+======
 
 .. autoclass:: atompy.Vector
     :members:

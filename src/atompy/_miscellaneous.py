@@ -1,8 +1,10 @@
 import numpy as np
 import numpy.typing as npt
-from typing import Any
+from typing import Any, Literal, overload, Optional, Union
 import matplotlib.pyplot as plt
 import time
+from dataclasses import dataclass
+from atompy._histogram import *
 
 
 def get_all_dividers(
@@ -13,12 +15,12 @@ def get_all_dividers(
 
     Parameters
     ----------
-    n: int
+    n : int
         A number
 
     Returns
     -------
-    all_dividers: tuple
+    all_dividers : tuple
         A tuple of all dividers of *n*
     """
     all_dividers = []
@@ -39,11 +41,14 @@ def crop(
 
     Parameters
     ----------
-    x, y: ArrayLike
+    x, y : ArrayLike
         The x and y data
 
-    lower, upper: float
-        The limits inclusive
+    lower : float
+        lower limit, inclusive
+
+    upper : float
+        upper limit, inclusive
 
     Returns
     -------
@@ -96,13 +101,13 @@ def smooth(
     n : int
         Size of the output data
 
-    lower, upper: int
+    lower, upper : int
         The upper/lower bound in which to smooth the data, including edges
 
-    fit_degree: int, default: 5
+    fit_degree: int, default : 5
         The degree of the polynomial fit
 
-    show_fit: bool, default `False`
+    show_fit : bool, default `False`
         show the fit (for checks)
 
     Returns
@@ -149,13 +154,13 @@ def convert_cosine_to_angles(
 
     Parameters
     ----------
-    cos_angles: ArrayLike
+    cos_angles : ArrayLike
         cosines of angles, within [-1, 1]
 
-    y_data: ArrayLike
+    y_data : ArrayLike
         the corresponding y-data
 
-    full_range: bool
+    full_range : bool
         The range of the output data
         - `True`: 0 .. 2*pi
         - `False`: 0 .. pi
@@ -205,14 +210,14 @@ def integral_sum(
 
     Parameters
     ----------
-    bincenters: ArrayLike
+    bincenters : ArrayLike
         center of bins. All bins should have equal size, otherwise return
         doesn't make sense
 
-    y_data: ArrayLike
+    y_data : ArrayLike
         corresponding data
 
-    lower, upper: float
+    lower, upper : float
         only calculate integral within these bounds, including edges
 
     Returns
@@ -249,10 +254,10 @@ def integral_polyfit(
 
     Parameters
     ----------
-    x, y: ArrayLike
+    x, y : ArrayLike
         x, y data
 
-    lower/upper: float, default -/+ np.inf
+    lower/upper : float, default -/+ np.inf
         if specified, only calculate integral within the given range
 
     fit_degree : int, default 5
@@ -310,14 +315,14 @@ def sample_distribution(
 
     Parameters
     ----------
-    edges: `np.ndarray` `shape(n,)`
+    edges : `np.ndarray` `shape(n,)`
         The eft edges of the bins from the input distribution. Monotnoically
         increasing.
 
-    values: `np.ndarray` `shape(n,)`
+    values : `np.ndarray` `shape(n,)`
         The correpsonding values. Must be >=0 everywhere
 
-    sample_size: int
+    sample_size : int
         size of the output sample distribution
 
     Returns
@@ -352,3 +357,213 @@ def sample_distribution(
     print(f"\r{line0}. Total runtime: {t1-t0:.2f}s                           ")
 
     return output
+
+
+@dataclass
+class _ImshowDataIter:
+    image: NDArray[np.float64]
+    extent: NDArray[np.float64]
+
+    def __post_init__(self):
+        self.index = 0
+
+    def __iter__(self) -> "_ImshowDataIter":
+        return self
+
+    def __next__(self) -> NDArray[np.float64]:
+        self.index += 1
+        if self.index == 1:
+            return self.image
+        elif self.index == 2:
+            return self.extent
+        raise StopIteration
+
+
+@dataclass
+class ImshowData:
+    """
+    Store an image with its extents, ready to be plotted with imshow.
+
+    Parameters
+    ----------
+    image : np.ndarray
+        Data. A 2D pixel map of values from bins.
+
+    extent : np.ndarray
+        Array (xmin, xmax, ymin, ymax)
+
+    Examples
+    --------
+    ::
+
+        # "image_data" is an ImshowData object
+        image, extent = image_data
+        plt.imshow(image, extent=extent)
+        plt.imshow(imdata.image, extent=imdata.extent)
+        plt.imshow(imdata(0), extent=imdata(1))
+        plt.imshow(imdata[0], extent=imdata[1])
+        plt.imshow(**imdata())
+    """
+    image: NDArray[np.float64]
+    extent: NDArray[np.float64]
+
+    def __iter__(self) -> _ImshowDataIter:
+        return _ImshowDataIter(self.image, self.extent)
+
+    def __getitem__(
+        self,
+        index: Literal[0, 1]
+    ) -> NDArray[np.float64]:
+        if index == 0:
+            return self.image
+        elif index == 1:
+            return self.extent
+        else:
+            msg = f"{index=}, but it must be 0 (image) or 1 (extent)"
+            raise IndexError(msg)
+
+    @overload
+    def __call__(self, index: Literal[0, 1]) -> NDArray[np.float64]: ...
+
+    @overload
+    def __call__(self, index: None = None) -> dict: ...
+
+    def __call__(
+        self,
+        index: Optional[Literal[0, 1]] = None
+    ) -> Union[NDArray[np.float64], dict]:
+        """ Get image, extent, or a dictionary of both.
+
+        The dictionary can be unpacked to conveniently call `plt.imshow 
+        <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.
+        imshow.html>`_.
+
+        Parameters
+        ----------
+        index : 0 or 1, optional
+            Specify what to return
+
+            - 0: image
+            - 1: extent
+            - `None`: A dictionary :code:`{"X": image, "extent":extent}`
+
+        Returns
+        -------
+        output : `np.ndarray <https://numpy.org/doc/stable/reference/ \
+        generated/numpy.ndarray.html>`_ or dict
+            See *index*
+        """
+        if index is None:
+            return dict(X=self.image, extent=self.extent)
+        else:
+            return self[index]
+
+
+@dataclass
+class _PcolormeshDataIter:
+    x: NDArray[np.float64]
+    y: NDArray[np.float64]
+    c: NDArray[np.float64]
+
+    def __post_init__(self):
+        self.index = 0
+
+    def __iter__(self) -> "_PcolormeshDataIter":
+        return self
+
+    def __next__(self) -> NDArray[np.float64]:
+        self.index += 1
+        if self.index == 1:
+            return self.x
+        if self.index == 2:
+            return self.y
+        if self.index == 3:
+            return self.c
+        raise StopIteration
+
+
+@dataclass
+class PcolormeshData:
+    """
+    Store 2D data such that it can be plotted with pcolormesh
+
+    See `plt.pcolormesh <https://matplotlib.org/stable/api/_as_gen/matplotlib.
+    pyplot.pcolormesh.html>`_
+
+    Parameters
+    ----------
+    x : `np.ndarray <https://numpy.org/doc/stable/reference/generated/ \
+    numpy.ndarray.html>`_
+
+    y : `np.ndarray <https://numpy.org/doc/stable/reference/generated/ \
+    numpy.ndarray.html>`_
+
+    c : `np.ndarray <https://numpy.org/doc/stable/reference/generated/ \
+    numpy.ndarray.html>`_
+
+    Examples
+    --------
+    ::
+
+        # 'pcolormesh_data' is a PcolormeshData object
+        # following are examples on how to use it to plot things
+        X, Y, C = pcolormesh_data
+        plt.pcolormesh(X, Y, C)
+        plt.pcolormesh(pcolormesh_data.x,
+                       pcolormesh_data.y,
+                       pcolormesh_data.z)
+        plt.pcolormesh(pcolormesh_data[0],
+                       pcolormesh_data[1],
+                       pcolormesh_data[2])
+        plt.pcolormesh(pcolormesh_data(0),
+                       pcolormesh_data(1),
+                       pcolormesh_data(2))
+        plt.pcolormesh(*pcolormesh_data)
+        plt.pcolormesh(**pcolormesh_data())
+    """
+    x: NDArray[np.float64]
+    y: NDArray[np.float64]
+    c: NDArray[np.float64]
+
+    def __getitem__(
+        self,
+        index
+    ) -> NDArray[np.float64]:
+        if index == 0:
+            return self.x
+        if index == 1:
+            return self.y
+        if index == 2:
+            return self.c
+        raise IndexError
+
+    def __call__(
+        self,
+        index: Optional[Literal[0, 1, 2]] = None
+    ) -> Union[NDArray[np.float64], dict]:
+        """ Return x, y, c or a dictionary of all three.
+
+        The dictionary can be unpacked to conveniently call `plt.pcolormesh 
+        <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.
+        pcolormesh.html>`_.
+
+        Parameters
+        ----------
+        index : 0, 1, or 2, optional
+            Specify what to return
+
+            - 0: x
+            - 1: y
+            - 2: c
+            - `None`: A dictionary :code:`{"X": x, "Y": y, "C", c}`
+
+        Returns
+        -------
+        output : `np.ndarray <https://numpy.org/doc/stable/reference/ \
+        generated/numpy.ndarray.html>`_ or dict
+            See *index*
+        """
+        if index is None:
+            return dict(X=self.x, Y=self.y, C=self.c)
+        else:
+            return self[index]

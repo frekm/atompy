@@ -1,6 +1,4 @@
-- Make a PcolormeshData Object
 - Update documentation
 - Expand examples
-    - Examples for projections in Hist2d
     - Rebinning
     - row/column normalization

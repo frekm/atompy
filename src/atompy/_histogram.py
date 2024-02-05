@@ -4,7 +4,7 @@ import numpy.typing as npt
 from numpy.typing import NDArray
 from dataclasses import dataclass
 import atompy._io as apio
-from atompy._miscellaneous import get_all_dividers
+from atompy._miscellaneous import get_all_dividers, ImshowData
 from typing import Literal, Optional, Union, overload
 
 
@@ -100,73 +100,61 @@ class Hist1d:
         """
         apio.save_ascii_hist1d(self.histogram, self.edges, fname, **kwargs)
 
+    @property
+    def for_step(self) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+        """ Returns right edges and bin-values
 
-@dataclass
-class _ImshowDataIter:
-    image: NDArray[np.float64]
-    extent: NDArray[np.float64]
+        By default, `plt.step <https://matplotlib.org/stable/api/_as_gen/
+        matplotlib.pyplot.step.html>`_ needs the right edges of a bin
+        and the corresponding bin value. See the *where* keyword argument.
 
-    def __post_init__(self):
-        self.index = 0
+        Returns
+        -------
+        right_edges : `np.ndarray <https://numpy.org/doc/stable/reference/ \
+        generated/numpy.ndarray.html>`_
+            right edges, that is, :code:`Hist1d.edges[1:]`
 
-    def __iter__(self) -> "_ImshowDataIter":
-        return self
+        bin_values : `np.ndarray <https://numpy.org/doc/stable/reference/ \
+        generated/numpy.ndarray.html>`_
+            bin values, that is, :code:`Hist1d.histogram`
 
-    def __next__(self) -> NDArray[np.float64]:
-        self.index += 1
-        if self.index == 1:
-            return self.image
-        elif self.index == 2:
-            return self.extent
-        raise StopIteration
+        Examples
+        --------
+        ::
 
+            # 'hist' is a Hist1d object
+            plt.step(*hist.for_step)
 
-@dataclass
-class ImshowData:
-    """
-    Store an image with its extents, ready to be plotted with imshow.
+            # doesn't work if you specify anything else but 'pre' as a
+            # plt.step keyword
+            plt.step(*hist.for_step, where="mid") # this will have shifted bins
+        """
+        return self.edges, np.append(self.histogram[0], self.histogram)
 
-    Parameters
-    ----------
-    image : np.ndarray
-        Data. A 2D pixel map of values from bins.
+    @property
+    def for_plot(self):
+        """ Returns bin-centers and bin-values
 
-    extent : np.ndarray
-        Array (xmin, xmax, ymin, ymax)
-    """
-    image: NDArray[np.float64]
-    extent: NDArray[np.float64]
+        Returns
+        -------
+        centers : `np.ndarray <https://numpy.org/doc/stable/reference/ \
+        generated/numpy.ndarray.html>`_
 
-    def __iter__(self) -> _ImshowDataIter:
-        return _ImshowDataIter(self.image, self.extent)
+        bin_values : `np.ndarray <https://numpy.org/doc/stable/reference/ \
+        generated/numpy.ndarray.html>`_
 
-    def __getitem__(
-        self,
-        index: Literal[0, 1]
-    ) -> NDArray[np.float64]:
-        if index == 0:
-            return self.image
-        elif index == 1:
-            return self.extent
-        else:
-            msg = f"{index=}, but it must be 0 (image) or 1 (extent)"
-            raise IndexError(msg)
+        Examples
+        --------
+        ::
 
-    @overload
-    def __call__(self, index: Literal[0, 1]) -> NDArray[np.float64]: ...
+            # 'hist' is a Hist1d object
+            plt.step(*hist.for_step)
 
-    @overload
-    def __call__(self, index: None = None) -> dict: ...
-
-    def __call__(
-        self,
-        index: Optional[Literal[0, 1]] = None
-    ) -> Union[NDArray[np.float64], dict]:
-        """ My docstring """
-        if index is None:
-            return dict(X=self.image, extent=self.extent)
-        else:
-            return self[index]
+            # doesn't work if you specify anything else but 'pre' as a
+            # plt.step keyword
+            plt.step(*hist.for_step, where="mid") # this will have shifted bins
+        """
+        return self.centers, self.histogram
 
 
 @dataclass
@@ -340,21 +328,21 @@ class Hist2d:
                npt.NDArray[np.float64],
                npt.NDArray[np.float64]]:
         """
-        Return such that it can be plotted using
-        `plt.pcolormesh <https://matplotlib.org/stable/api/_as_gen/
+        Return such that it can be plotted using \
+        `plt.pcolormesh <https://matplotlib.org/stable/api/_as_gen/ \
         matplotlib.pyplot.pcolormesh.html>`_
 
         The input order for `pcolormesh` is xedges, yedges, H.T
 
         Returns
         -------
-        xedges: `np.ndarray <https://numpy.org/doc/stable/reference/generated/\
+        xedges : `np.ndarray <https://numpy.org/doc/stable/reference/generated/\
         numpy.ndarray.html>`_
 
-        yedges: `np.ndarray <https://numpy.org/doc/stable/reference/generated/\
+        yedges : `np.ndarray <https://numpy.org/doc/stable/reference/generated/\
         numpy.ndarray.html>`_
 
-        H.T: `np.ndarray <https://numpy.org/doc/stable/reference/generated/\
+        H.T : `np.ndarray <https://numpy.org/doc/stable/reference/generated/\
         numpy.ndarray.html>`_
             Transposed matrix of input *Hist2d.H*
 
@@ -371,9 +359,8 @@ class Hist2d:
     def for_imshow(
         self,
     ) -> ImshowData:
-        # ) -> tuple[npt.NDArray[np.float64], list[float]]:
         """
-        Return an image and the extents of the image. 
+        Return corresponding :class:`.ImshowData` object.
 
         Assumes that the origin of the image is specified by 
         `matplotlib.rcParams["image.origin"]`
@@ -498,6 +485,12 @@ class Hist2d:
         hist1d : :class:`.Hist1d`
             A 1D histogram where the *bins* are the x-bins of the original
             2D histogram, and the *bin-values* are the projection.
+
+        Examples
+        --------
+
+        .. plot:: _examples/projection_x.py
+            :include-source:
         """
         return Hist1d(np.sum(self.H, axis=1), self.xedges)
 
@@ -720,7 +713,7 @@ class Hist2d:
         self
     ) -> "Hist2d":
         """
-        Replace zeros with None, removing them from colormaps
+        Replace zeros with :code:`None`, removing them from colormaps
 
         Examples
         --------

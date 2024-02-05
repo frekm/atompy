@@ -1,3 +1,13 @@
+# v3.0.0
+- Updated documentation
+  - Expanded documentation
+  - Restructured page layout
+- Added `Hist1d.for_step` and `Hist1d.for_plot` methods
+- Moved physics related stuff into separate submodules `atompy.physics` and
+  `atompy.physics.compton_scattering`
+- Added `PcolormeshData` class
+- renamed `atompy.Vector.nparray` to `atompy.Vector.ndarray`.
+
 # v2.1.0
 - Updated documentation
 - Added warning when `make_margins_tight` with `fixed_figwidth=True` is called

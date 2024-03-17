@@ -1,3 +1,6 @@
+# v3.0.1
+- Fixed internal imports
+
 # v3.0.0
 - Updated documentation
   - Expanded documentation

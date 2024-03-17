@@ -1,6 +1,6 @@
 .vscode/
 .venv/
-docs/build/
+build/
 */__pycache__/
 */*/__pycache__/
 src/atompy.egg-info/

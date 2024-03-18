@@ -1,3 +1,9 @@
+# v3.0.3
+- Added `unroll` keyword for `atompy.subplots`
+
+# v3.0.2
+- Fixed internal import in _io.py
+
 # v3.0.1
 - Fixed internal imports
 

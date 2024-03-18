@@ -4,7 +4,7 @@ from typing import Any, Literal, overload, Optional, Union
 import matplotlib.pyplot as plt
 import time
 from dataclasses import dataclass
-from atompy._histogram import *
+from ._histogram import *
 
 
 def get_all_dividers(

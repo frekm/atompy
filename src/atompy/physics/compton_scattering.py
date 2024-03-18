@@ -2,7 +2,7 @@ from typing import overload, Union
 import numpy as np
 import numpy.typing as npt
 import time
-from atompy._vector import Vector
+from .._vector import Vector
 
 
 @overload

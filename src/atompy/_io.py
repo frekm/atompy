@@ -4,7 +4,7 @@ from numpy.typing import NDArray
 import uproot
 from typing import Literal, Sequence, Union, overload
 import matplotlib.pyplot as plt
-import atompy._histogram as aph
+from . import _histogram as aph
 
 
 class NonconstantBinsizeError(Exception):

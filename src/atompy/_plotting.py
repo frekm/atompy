@@ -1,4 +1,3 @@
-from __future__ import annotations
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from dataclasses import dataclass
@@ -1151,6 +1150,7 @@ def _determine_lr_margins(
                               margins.top, margins.bottom)
 
 
+@overload
 def subplots(
     nrows: int = 1,
     ncols: int = 1,
@@ -1165,9 +1165,72 @@ def subplots(
     margins_unit: str = "pts",
     pads_unit: str = "pts",
     fig_width_unit: str = "mm",
-    axes_zorder: Optional[float] = 10000.0
-) -> tuple[mplfig.Figure,
-           list[list[mplax.Axes]]]:
+    axes_zorder: Optional[float] = 10000.0,
+    unroll: Literal[False] = False,
+) -> tuple[mplfig.Figure, list[list[mplax.Axes]]]: ...
+
+
+@overload
+def subplots(
+    nrows: int = 1,
+    ncols: int = 1,
+    axes_width: Optional[float] = None,
+    margins: ArrayLike = (35.0, 15.0, 5.0, 35.0),
+    xpad: Optional[float] = 45.0,
+    ypad: Optional[float] = 35.0,
+    fig_width: Optional[float] = None,
+    ratio: float = 1.618,
+    projections: Optional[Union[str, list[Union[str, None]]]] = None,
+    axes_width_unit: str = "mm",
+    margins_unit: str = "pts",
+    pads_unit: str = "pts",
+    fig_width_unit: str = "mm",
+    axes_zorder: Optional[float] = 10000.0,
+    *,
+    unroll: Literal[True],
+) -> tuple[mplfig.Figure, Any]: ...
+
+
+@overload
+def subplots(
+    nrows: int = 1,
+    ncols: int = 1,
+    axes_width: Optional[float] = None,
+    margins: ArrayLike = (35.0, 15.0, 5.0, 35.0),
+    xpad: Optional[float] = 45.0,
+    ypad: Optional[float] = 35.0,
+    fig_width: Optional[float] = None,
+    ratio: float = 1.618,
+    projections: Optional[Union[str, list[Union[str, None]]]] = None,
+    axes_width_unit: str = "mm",
+    margins_unit: str = "pts",
+    pads_unit: str = "pts",
+    fig_width_unit: str = "mm",
+    axes_zorder: Optional[float] = 10000.0,
+    unroll: Literal[True] = True,
+) -> tuple[mplfig.Figure, Any]: ...
+
+
+def subplots(
+    nrows: int = 1,
+    ncols: int = 1,
+    axes_width: Optional[float] = None,
+    margins: ArrayLike = (35.0, 15.0, 5.0, 35.0),
+    xpad: Optional[float] = 45.0,
+    ypad: Optional[float] = 35.0,
+    fig_width: Optional[float] = None,
+    ratio: float = 1.618,
+    projections: Optional[Union[str, list[Union[str, None]]]] = None,
+    axes_width_unit: str = "mm",
+    margins_unit: str = "pts",
+    pads_unit: str = "pts",
+    fig_width_unit: str = "mm",
+    axes_zorder: Optional[float] = 10000.0,
+    unroll: bool = False,
+) -> Union[tuple[mplfig.Figure,
+                 list[list[mplax.Axes]]],
+           tuple[mplfig.Figure,
+                 Any]]:
     """
     Create a :code:`matplotlib.figure.Figure` with *nrows* times *ncols*
     subaxes and fixed margins, ratios, and pads.
@@ -1232,6 +1295,13 @@ default :code:`"mm"`
     axis_zorder : float, optional, default :code:`10000.0` (because why not)
         Set zorder of the axes spines to this value
 
+    unroll : bool, default :code:`False`
+        Unroll 2D list of axes if possible.
+
+        - if *nrows* and *ncols* are both 1, return an axes 
+        - if either only *nrows* or *ncols* are 1, return a 1D list of
+          axes.
+
     Returns
     -------
     `matplotlib.figure.Figure <https://matplotlib.org/3.3.4/api/_as_gen/matplotlib.figure.Figure.html>`_
@@ -1239,7 +1309,10 @@ default :code:`"mm"`
 
     list[list[`matplotlib.axes.Axes <https://matplotlib.org/stable/api/axes_api.html>`_]]
         A two-dimensional list, where the first index refers to columns, the
-        second index to rows
+        second index to rows.
+
+        If *unroll* is :code:`True`, output may change depending on 
+        *ncols* and *nrows*.
 
     Examples
     --------
@@ -1407,7 +1480,14 @@ default :code:`"mm"`
                 for _, spine in axes[-1][-1].spines.items():
                     spine.set_zorder(axes_zorder)
 
-    return fig, axes
+    if unroll and ncols == 1 and nrows == 1:
+        return fig, axes[0][0]
+    elif unroll and ncols == 1 and nrows != 1:
+        return fig, transpose(axes)[0]
+    elif unroll and ncols != 1 and nrows == 1:
+        return fig, axes[0]
+    else:
+        return fig, axes
 
 
 def _update_colorbar_position(
@@ -1602,7 +1682,9 @@ def _change_margins(
 
 
 def make_margins_tight(
-    axes: list[list[mplax.Axes]],
+    axes: Union[mplax.Axes,
+                list[mplax.Axes],
+                list[list[mplax.Axes]]],
     figure: Optional[mplfig.Figure] = None,
     fixed_figwidth: bool = False,
     colorbars: Union[Colorbar,
@@ -1613,16 +1695,23 @@ def make_margins_tight(
     pad: Union[float, Sequence[float]] = 0.0,
     nruns: int = 1,
     relevant_axes: Optional[Sequence[mplax.Axes]] = None,
-    log: bool = False
+    log: bool = False,
+    axes_are_rows: bool = False,
+    axes_are_cols: bool = False,
 ) -> FigureMargins:
     """
     Change figure margins such that all elements of the axes fit neatly.
 
     Parameters
     ----------
-    axes : list[list[`~matplotlib.axes.Axes`]
+    axes : :code:`~matplotlib.axes.Axes` or list or list[list] thereof
         A 2D matrix of axes of the figure, where the first index specifies
-        the row, the second the column
+        the row, the second the column.
+        If no 2D matrix is provided (but a 1D list or no list), the input
+        will be interpreted as a 2D matrix.
+
+        If *axes* is a 1D list, one has to specify if *axes* are aligned in 
+        rows or columns using *axes_are_rows* or *axes_are_cols*.
 
     figure : `matplotlib.figure.Figure`, optional
         if not provided, get current figure with plt.gcf()
@@ -1657,12 +1746,44 @@ def make_margins_tight(
     log : bool, default `False`
         Print margins that were determined
 
+    axes_are_rows : bool, default :code:`False`
+        Only relevant if axes is a 1D list.
+
+        Set to :code:`True` if *axes* are aligned in rows.
+
+    axes_are_cols : bool, default :code:`False`
+        Only relevant if *axes* is a 1D list.
+
+        Set to :code:`True` if *axes* are aligned in columns.
+
     Returns
     -------
     margins : :class:`.FigureMargins`
         The (left, right, top, bottom) margins of each axes located at the
         edges of the figure
     """
+
+    axes_: list[list[mplax.Axes]]
+    if isinstance(axes, mplax.Axes):
+        axes_ = [[axes]]
+    elif isinstance(axes[0], mplax.Axes):
+        if axes_are_cols and axes_are_rows:
+            msg = (
+                "axes_are_rows and axes_are_cols cannot both be true at the"
+                "same time."
+            )
+            raise ValueError(msg)
+        if axes_are_rows:
+            axes_ = [axes]  # type: ignore
+        elif axes_are_cols:
+            axes_ = transpose([axes])  # type: ignore
+        else:
+            msg = (
+                "either axes_are_rows or axes_are_cols must be true"
+            )
+            raise ValueError(msg)
+    else:
+        axes_ = axes  # type: ignore
 
     if _change_ratio_has_been_called and fixed_figwidth:
         print("WARNING: atompy.change_ratio() has been called and a fixed "
@@ -1694,10 +1815,10 @@ def make_margins_tight(
         edge_axes = _Regions(*[[ax] for ax in relevant_axes])
     else:
         edge_axes = _Regions(
-            get_column(0, axes).copy(),
-            get_column(-1, axes).copy(),
-            axes[0].copy(),
-            axes[-1].copy())
+            get_column(0, axes_).copy(),
+            get_column(-1, axes_).copy(),
+            axes_[0].copy(),
+            axes_[-1].copy())
         # append colorbars to relevant axes if they exist
         for cb in colorbars_:
             if isinstance(cb, Colorbar):
@@ -1725,9 +1846,9 @@ def make_margins_tight(
     for _ in range(nruns):
         margins = _get_offsets(figure, edge_axes, renderer)
         _change_margins(
-            margins, axes, figure, fixed_figwidth, pad, colorbars_)  # type: ignore
+            margins, axes_, figure, fixed_figwidth, pad, colorbars_)  # type: ignore
 
-    new_layout = get_figure_layout(figure, axes, "pts")
+    new_layout = get_figure_layout(figure, axes_, "pts")
     if log:
         print("I have changed the margins to the follwoing:")
         for l, m in zip("left right top bottom".split(), new_layout.margins):

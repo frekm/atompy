@@ -1,3 +1,6 @@
+# v3.0.4
+- Changed HTML theme to Furo
+
 # v3.0.3
 - Added `unroll` keyword for `atompy.subplots`
 

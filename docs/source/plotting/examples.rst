@@ -1,6 +1,5 @@
-========
-Examples
-========
+Examples & Templates
+====================
 
 2D plot
 -------

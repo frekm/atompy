@@ -1,7 +1,4 @@
-.. atompy documentation master file, created by
-   sphinx-quickstart on Fri Oct 20 13:58:02 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+:hide-toc:
 
 ======================
 atompy's documentation
@@ -25,36 +22,33 @@ Some theoretical modelling for atomic physics are provided by the submodules
 :code:`atompy.physics` (genereal stuff) and
 :code:`atompy.physics.compton_scattering`.
 
----
+Overview of provided functionality
+----------------------------------
 
-Information on how to use :code:`atompy` for plotting.
+- How to use :code:`atompy` for plotting is documented under
+  :doc:`plotting/index`. Some examples are shown 
+  :doc:`here<plotting/examples>`.
+
+- An overview of the provided :class:`.Vector` class is given under.
+  :doc:`vector`
+
+- An overview of the provided classes :class:`.Hist1d` and :class:`.Hist2d`
+  is given under :doc:`histograms/index`.
+
+- How to use :code:`atompy` data stored in ASCII or ROOT files is documented
+  under :doc:`io/index`.
+
+- The physics submodule is documented under :doc:`physics/index`.
+
+- The documentation of miscellaneous functions is under :doc:`misc/index`.
+
 
 .. toctree::
-   :maxdepth: 2
+   :hidden:
 
    plotting/index
-
-.. toctree::
-   :maxdepth: 2
-
-   vectors/index
-
-.. toctree::
-   :maxdepth: 2
-
+   vector
    histograms/index
-
-.. toctree::
-   :maxdepth: 2
-
    io/index
-
-.. toctree::
-   :maxdepth: 2
-
    physics/index
-
-.. toctree::
-   :maxdepth: 2
-
    misc/index

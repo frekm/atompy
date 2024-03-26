@@ -13,7 +13,7 @@ sys.path.append(os.path.abspath('../../src/'))
 project = 'atompy'
 copyright = 'Max Kircher, CC BY-NC 4.0'
 author = 'Max Kircher'
-release = '3.0.3'
+release = '3.0.4'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -36,12 +36,12 @@ exclude_patterns = []
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'pydata_sphinx_theme'
+html_theme = 'furo'
 html_static_path = ['_static']
 
-html_theme_options = {
-    "show_toc_level": 4,
-    "collapse_navigation": False,
-    "navigation_with_keys": False,
-    "show_nav_level": 4,
-}
+# html_theme_options = {
+#     "show_toc_level": 4,
+#     "collapse_navigation": False,
+#     "navigation_with_keys": False,
+#     "show_nav_level": 4,
+# }

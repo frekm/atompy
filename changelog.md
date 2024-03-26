@@ -1,3 +1,6 @@
+# v3.0.5
+- Updated documentation
+
 # v3.0.4
 - Changed HTML theme to Furo
 

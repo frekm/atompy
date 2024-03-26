@@ -745,8 +745,8 @@ class Hist2d:
 
         Other Parameters
         ----------------
-        **kwargs : `np.savetxt <https://numpy.org/doc/stable/reference/ \
-            generated/numpy.savetxt.html>` keyword arguments
+        **kwargs : `np.savetxt <https://numpy.org/doc/stable/reference/\
+            generated/numpy.savetxt.html>`_ keyword arguments
         """
         apio.save_ascii_hist2d(
             self.H, self.xedges, self.yedges, fname, **kwargs)

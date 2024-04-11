@@ -148,11 +148,9 @@ class Hist1d:
         ::
 
             # 'hist' is a Hist1d object
-            plt.step(*hist.for_step)
-
-            # doesn't work if you specify anything else but 'pre' as a
-            # plt.step keyword
-            plt.step(*hist.for_step, where="mid") # this will have shifted bins
+            plt.plot(*hist.for_plot)
+            # ... which is equivalent to 
+            plt.plot(hist.centers, hist.histogram)
         """
         return self.centers, self.histogram
 
@@ -745,8 +743,8 @@ class Hist2d:
 
         Other Parameters
         ----------------
-        **kwargs : `np.savetxt <https://numpy.org/doc/stable/reference/ \
-            generated/numpy.savetxt.html>` keyword arguments
+        **kwargs : `np.savetxt <https://numpy.org/doc/stable/reference/\
+            generated/numpy.savetxt.html>`_ keyword arguments
         """
         apio.save_ascii_hist2d(
             self.H, self.xedges, self.yedges, fname, **kwargs)

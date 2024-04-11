@@ -148,11 +148,9 @@ class Hist1d:
         ::
 
             # 'hist' is a Hist1d object
-            plt.step(*hist.for_step)
-
-            # doesn't work if you specify anything else but 'pre' as a
-            # plt.step keyword
-            plt.step(*hist.for_step, where="mid") # this will have shifted bins
+            plt.plot(*hist.for_plot)
+            # ... which is equivalent to 
+            plt.plot(hist.centers, hist.histogram)
         """
         return self.centers, self.histogram
 

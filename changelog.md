@@ -1,3 +1,6 @@
+# v3.0.6
+- Added more examples to documentation
+
 # v3.0.5
 - Updated documentation
 

@@ -13,7 +13,7 @@ sys.path.append(os.path.abspath('../../src/'))
 project = 'atompy'
 copyright = 'Max Kircher, CC BY-NC 4.0'
 author = 'Max Kircher'
-release = '3.0.5'
+release = '3.0.6'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -23,6 +23,7 @@ extensions = [
     "numpydoc",
     "sphinx.ext.viewcode",
     'matplotlib.sphinxext.plot_directive',
+    "nbsphinx",
 ]
 autodoc_type_aliases = {
     'ArrayLike': 'ArrayLike',

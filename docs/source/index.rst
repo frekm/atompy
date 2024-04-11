@@ -9,7 +9,7 @@ analysis and to create plots. Plotting is done using `matplotlib
 <https://matplotlib.org/>`_, data analysis is mostly done by `numpy
 <https://numpy.org/>`_.
 
-The source code can be found on `GitHub <https://github.com/crono-kircher/
+The source code can be found on `github <https://github.com/crono-kircher/
 atompy/>`_.
 
 Some commonly used histogram operations (like projections, etc) are implemented
@@ -42,10 +42,6 @@ Overview of provided functionality
 
 - The documentation of miscellaneous functions is under :doc:`misc/index`.
 
-Examples
---------
-See :doc:`examples/index`.
-
 
 .. toctree::
    :hidden:
@@ -56,4 +52,3 @@ See :doc:`examples/index`.
    io/index
    physics/index
    misc/index
-   examples/index

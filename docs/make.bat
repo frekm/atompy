@@ -27,6 +27,7 @@ if "%1" == "" goto help
 
 if "%1" == "clean" (
 	rmdir /s /q "./source/plotting/_autogen/"
+	rmdir /s /q "./source/physics/_autogen/"
 	echo Delete _autogen output
 )
 

@@ -71,8 +71,8 @@ A selection of constants provided by :code:`atompy` can be found
 
 .. currentmodule:: atompy
 
-Creating and manipulating :code:`Figure`s and :code:`Axes`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Creating and manipulating Figures and Axes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autosummary::
   :toctree: _autogen

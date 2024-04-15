@@ -22,6 +22,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "numpydoc",
     "sphinx.ext.viewcode",
+    "sphinx.ext.autosummary",
     'matplotlib.sphinxext.plot_directive',
 ]
 autodoc_type_aliases = {

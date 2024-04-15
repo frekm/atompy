@@ -25,6 +25,12 @@ if errorlevel 9009 (
 
 if "%1" == "" goto help
 
+if "%1" == "clean" (
+	rmdir /s /q "./source/plotting/_autogen/"
+	echo Delete _autogen output
+)
+
+
 %SPHINXBUILD% -M %1 %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% %O% -a -E
 goto end
 

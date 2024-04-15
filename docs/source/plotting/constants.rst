@@ -4,6 +4,7 @@
 Constants
 =========
 
+.. _constants conversions:
 
 Conversions
 -----------
@@ -14,10 +15,12 @@ Conversions
 .. data:: atompy.MM_PER_INCH
     :annotation: = 25.4
 
+.. _constants colors:
+
 Colors
 ------
 
-The colors listed below are also wrapped in a class :code:`colors`. One can
+The colors listed below are also wrapped in a tuple :code:`colors`. One can
 access these, e.g., like :code:`colors.RED`.
 
 .. data:: atompy.RED

@@ -46,7 +46,6 @@ Overview of provided functionality
 .. toctree::
    :hidden:
 
-   test_index
    plotting/index
    vector
    histograms/index

@@ -57,21 +57,78 @@ When not to use :code:`atompy` for plotting?
   :code:`atompy` is currently not on PyPI (and won't be anytime soon), it is
   harder to share code with people that don't have :code:`atompy` installed.
 
-Contents
---------
+Navigation
+----------
+
+A selection of constants provided by :code:`atompy` can be found
+:doc:`here <constants>`.
 
 .. toctree::
-    :maxdepth: 2
+  :maxdepth: 2
+  :hidden:
 
-    subplots
-    constants
+  constants
+
+.. currentmodule:: atompy
+
+Creating and manipulating :code:`Figure`s and :code:`Axes`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autosummary::
+  :toctree: _autogen
+
+  subplots
+  abcify_axes
+  make_margins_tight
+  change_ratio
+  square_polar_frame
+  get_equal_tick_distance
+  equalize_xtick_distance
+  equalize_ytick_distance
+  add_abc
+
+
+Colorbars
+^^^^^^^^^
+
+.. autosummary::
+  :toctree: _autogen
+
+  add_colorbar
+  add_colorbar_large
+  Colorbar
+  ColorbarLarge
+  create_colormap
+  create_colormap_from_hex
+
+
+Line and markerstyles
+^^^^^^^^^^^^^^^^^^^^^
+
+.. autosummary::
+  :toctree: _autogen
+
+  dotted
+  dash_dotted
+  dashed
+  emarker
+
+Miscellaneous
+^^^^^^^^^^^^^
+
+.. autosummary::
+  :toctree: _autogen
+
+  textwithbox
+  get_figure_layout
+  convert_figure_layout_to_relative
+  FigureLayout
+  FigureMargins
+  FigureMarginsFloat
+
+Examples
+^^^^^^^^
 
 .. toctree::
-    :maxdepth: 3
 
-    colorbars
-    colormaps
-    formatting
-    line_marker_styles
-    plot_misc
-    examples
+  examples

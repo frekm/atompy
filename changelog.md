@@ -1,6 +1,8 @@
+# v3.0.6
+- New layout implemented with `sphinx.ext.autosummary`
+
 # v3.0.5
 - Updated documentation
-  - New layout implemented with `sphinx.ext.autosummary`
 
 # v3.0.4
 - Changed HTML theme to Furo

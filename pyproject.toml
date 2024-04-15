@@ -1,6 +1,6 @@
 [project]
 name = "atompy"
-version = "3.0.5"
+version = "3.0.6"
 authors = [
     {name="Max Kircher", email="kircher@atom.uni-frankfurt.de"},
 ]

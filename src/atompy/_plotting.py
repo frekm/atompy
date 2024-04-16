@@ -917,7 +917,7 @@ def get_equal_tick_distance(
     n: int = 3
 ) -> NDArray[np.float_]:
     """
-    Calculate ticks for *n_ticks* number of ticks from *limits[0]* to
+    Calculate ticks for *n* number of ticks from *limits[0]* to
     *limits[1]*
 
     Parameters
@@ -930,7 +930,7 @@ def get_equal_tick_distance(
 
     Returns
     -------
-    `numpy.ndarray`
+    `np.ndarray <https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html>`_
         The values where the ticks need to be placed
     """
     spacing = (limits[1] - limits[0]) / (n - 1)

@@ -205,7 +205,7 @@ class Vector:
 
     @property
     def mag(self) -> npt.NDArray[np.float64]:
-        """ Alias for :meth:`.Vector.magnitude` """
+        """ Alias for :attr:`.Vector.magnitude` """
         return self.magnitude
 
     @property

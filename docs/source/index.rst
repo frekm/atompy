@@ -29,8 +29,8 @@ Overview of provided functionality
   :doc:`plotting/index`. Some examples are shown 
   :doc:`here<plotting/examples>`.
 
-- An overview of the provided :class:`.Vector` class is given under.
-  :doc:`vector`
+- An overview of the provided :class:`.Vector` class is given under
+  :doc:`vector/index`
 
 - An overview of the provided classes :class:`.Hist1d` and :class:`.Hist2d`
   is given under :doc:`histograms/index`.
@@ -47,7 +47,7 @@ Overview of provided functionality
    :hidden:
 
    plotting/index
-   vector
+   vector/index
    histograms/index
    io/index
    physics/index

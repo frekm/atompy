@@ -1,4 +1,4 @@
 sphinx>=7.2.6
+pydata-sphinx-theme
 numpydoc
-furo
 -e .

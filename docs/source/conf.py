@@ -28,7 +28,7 @@ extensions = [
 autodoc_type_aliases = {
     'ArrayLike': 'ArrayLike',
 }
-autodoc_typehints = "none"
+# autodoc_typehints = "none"
 numpydoc_class_members_toctree = False
 
 templates_path = ['_templates']

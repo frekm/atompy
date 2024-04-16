@@ -1,5 +1,7 @@
 # v3.0.6
 - New layout implemented with `sphinx.ext.autosummary`
+- Change HTML theme back to `pydata-sphinx-theme` (it works better with 
+  `autosummary`)
 
 # v3.0.5
 - Updated documentation

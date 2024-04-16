@@ -29,6 +29,7 @@ if "%1" == "clean" (
 	rmdir /s /q "./source/plotting/_autogen/"
 	rmdir /s /q "./source/io/_autogen/"
 	rmdir /s /q "./source/physics/_autogen/"
+	rmdir /s /q "./source/physics/compton_scattering/_autogen/"
 	echo Delete _autogen output
 )
 

@@ -15,6 +15,7 @@ Navigation
 .. autosummary::
     :toctree: _autogen
 
-    rho_p_microcanonical
     mom_init_distr_elec
     mom_init_distr_elec_mol
+    rho_p_microcanonical
+    subtract_binding_energy

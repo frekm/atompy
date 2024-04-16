@@ -24,5 +24,4 @@ Navigation
     mom_final_distr_elec
     mom_transfer_approx
     stretch_Compton_electron_onto_sphere
-    subtract_binding_energy
     calculate_Q_neglecting_mom_init

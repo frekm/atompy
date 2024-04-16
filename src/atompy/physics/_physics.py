@@ -5,6 +5,46 @@ from typing import overload, Union
 from .._vector import Vector
 
 
+def subtract_binding_energy(
+    pin: Vector,
+    Ebind: Union[float, npt.NDArray[np.float64]]
+) -> Vector:
+    """ Substracts binding energy from p, conserves direction of p
+
+    Parameters
+    ----------
+    pin : :class:`.Vector`
+        ingoing momenta
+    Ebind : float or `np.ndarray <https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html>`_
+        binding energy in a.u.
+
+    Returns
+    -------
+    vectors : :class:`.Vector`
+        shortened momentum vector
+    """
+    if isinstance(Ebind, np.ndarray) and len(Ebind) != len(pin):
+        m = (
+            f"Length mismatch of Ebind ({len(Ebind)}) and pin ({len(pin)})"
+        )
+        raise ValueError(m)
+
+    radicands = 2 * (pin.mag**2 / 2.0 - Ebind)
+    pmag_new = np.array([
+        np.sqrt(radicand) if radicand > 0 else -1.0 for radicand in radicands])
+
+    thetas = pin.theta
+    phis = pin.phi
+    pout = np.array([
+        [p * np.sin(theta) * np.cos(phi),
+         p * np.sin(theta) * np.sin(phi),
+         p * np.cos(theta)]
+        for p, theta, phi in zip(pmag_new, thetas, phis)
+        if p > 0.0])
+
+    return Vector(pout)
+
+
 @overload
 def rho_p_microcanonical(
     pmag: float,

@@ -3,6 +3,7 @@ import numpy as np
 import numpy.typing as npt
 import time
 from .._vector import Vector
+from ._physics import subtract_binding_energy # for backward compability
 
 
 @overload
@@ -353,40 +354,6 @@ def stretch_Compton_electron_onto_sphere(
     out *= stretch_factors
     return out
 
-
-def subtract_binding_energy(
-    pin: Vector,
-    Ebind: float
-) -> Vector:
-    """ Substracts binding energy from p, conserves direction of p
-
-    Parameters
-    ----------
-    pin : :class:`.Vector`
-        ingoing momenta
-    Ebind : float
-        binding energy in a.u.
-
-    Returns
-    -------
-    vectors : :class:`.Vector`
-        shortened momentum vector
-    """
-
-    radicands = 2 * (pin.mag**2 / 2.0 - Ebind)
-    pmag_new = np.array([
-        np.sqrt(radicand) if radicand > 0 else -1.0 for radicand in radicands])
-
-    thetas = pin.theta
-    phis = pin.phi
-    pout = np.array([
-        [p * np.sin(theta) * np.cos(phi),
-         p * np.sin(theta) * np.sin(phi),
-         p * np.cos(theta)]
-        for p, theta, phi in zip(pmag_new, thetas, phis)
-        if p > 0.0])
-
-    return Vector(pout)
 
 
 def calculate_Q_neglecting_mom_init(

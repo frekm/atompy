@@ -27,7 +27,7 @@ Overview of provided functionality
 
 - How to use :code:`atompy` for plotting is documented under
   :doc:`plotting/index`. Some examples are shown 
-  :doc:`here<plotting/examples>`.
+  :doc:`here<plotting/examples/index>`.
 
 - An overview of the provided :class:`.Vector` class is given under
   :doc:`vector/index`

@@ -131,4 +131,4 @@ Examples
 
 .. toctree::
 
-  examples
+  examples/index

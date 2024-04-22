@@ -1,8 +1,8 @@
 Examples & Templates
 ====================
 
-2D plot
--------
+2D plots
+--------
 
-.. plot:: _examples/2dplots.py
+.. plot:: _examples/single_plot_2d.py
     :include-source:

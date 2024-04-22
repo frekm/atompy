@@ -2,53 +2,55 @@
 
 A collection of utility functions to create plots and do analysis.
 
+## Usage
+
+If you don't want to install the package, you can simply download 
+`atompy.zip` from the latest
+release (see [Release Page](https://github.com/crono-kircher/atompy/releases))
+and unpack it into your working directory.
+
+Then you can import just as you import any other python module.
+
+If you use this method, you'll need to install the dependencies manually,
+most notably `numpy`, `matplotlib` and `uproot`.
+
 ## Installation
+Installation is not absolutely necessary, but you do you.
 
 Optionally, create and activate a virtual environment in which to install
 the module
 ```shell
 python -m venv .venv
 ```
-Activate it by running the activate script in .venv\Scripts\
 
-There are multiple ways to install/use atompy:
+Make sure to activate the virtual environment in your terminal.
 
-### Using git
+If you have git installed, You can install `atompy` using git
 
-If you have Git installed, you can install the atompy module by running
 ```shell
 pip install git+https://github.com/crono-kircher/atompy
 ```
 
-### Install from local tree
+Alternatively, you can install from the source code.
 
 Go to the [Release](https://github.com/crono-kircher/atompy/releases)
-page and download the latest release. Unpack the release to `<path>`,
-then run
+page and download the latest release Source Code (`zip` or `tar.gz`, not the
+`atompy.zip`). Unpack the release to `<path>`, then run
 
 ```shell
 pip install <path>/atompy-<version>/src
 ```
 
-### Copy atompy-folder to working directory
-
-The quick and dirty way is to simply drop the atompy folder in your 
-working directory. You can download `atompy.zip` from the
-[Release](https://github.com/crono-kircher/atompy/releases) page.
-
-This does not install the dependencies. You have to install those manually.
-They are listed in `pyproject.toml`.
-
 ## Documentation
 The documentaion is avaiable online at
-[readthedocs](https://atomicphysics-atompy.readthedocs.io/en/latest/).
+[ReadTheDocs](https://atomicphysics-atompy.readthedocs.io/en/latest/).
 
 ## Structure
 ```
 .
 └─ atompy/
    ├── src/
-   │ └── atompy/                      (atompy module)
+   │ └── atompy/                    (atompy module)
    │   ├── physics/                 (atompy.physics submodule)
    │   │ ├── _physics.py            (general physics stuff)
    │   │ └── comptons_scattering.py (physics related to Compton scattering)
@@ -59,8 +61,6 @@ The documentaion is avaiable online at
    │   └── _vector.py               (Vector class)
    └── docs/
      └── source/             (documentation source files)
-        └── _examples/       (python example scripts for docs)
-
 ``` 
 
 

@@ -10,8 +10,9 @@ def ion_tof_linear_fit(
         tof_vs_m_over_q_pairs: ArrayLike,
         show_plot: bool = True,
         names: Optional[Sequence[str]] = None,
-        tof_unit="ns",
-        m_over_q_unit="amu/a.u."
+        tof_unit: str = "ns",
+        m_over_q_unit: str = "amu/a.u.",
+        savefig_filename: Optional[str] = None
 ) -> tuple[float, float, float, float]:
     """
     Perform a linear fit of TOF vs m/Q pairs
@@ -28,17 +29,15 @@ def ion_tof_linear_fit(
         Optionally, provide a list of names/chemical formulas for m/Q 
         ``len(names)`` must match ``len(tof_vs_m_over_q_pairs)``
 
-        Only relevant if ``show_plot = True`` 
-
     tof_unit : str, default 'ns'
         Units of provided TOFs
-
-        Only relevant if ``show_plot = True`` 
 
     m_over_q_unit : str, default "amu/a.u."
         Units of provided m/Q
 
-        Only relevant if ``show_plot = True`` 
+    savefig_filename : str, optional
+        Optionally, provide a filename to save the figure shown with
+        ``show_plot = True``.
 
     Returns
     -------
@@ -60,60 +59,63 @@ def ion_tof_linear_fit(
     lin_regr = scipy.stats.linregress(np.sqrt(tof_vs_m_over_q_pairs[:, 1]),
                                       tof_vs_m_over_q_pairs[:, 0])
 
-    if show_plot:
-        if (names is not None and (len(tof_vs_m_over_q_pairs) != len(names))):
-            msg = (
-                "If names is provided, its length must match "
-                "tof_vs_m_over_q_pairs, but"
-                f"{len(names)=} and {len(tof_vs_m_over_q_pairs)}"
+    if (names is not None and (len(tof_vs_m_over_q_pairs) != len(names))):
+        msg = (
+            "If names is provided, its length must match "
+            "tof_vs_m_over_q_pairs, but"
+            f"{len(names)=} and {len(tof_vs_m_over_q_pairs)}"
+        )
+        raise ValueError(msg)
+
+    fig, ax = plt.subplots(layout="constrained")
+    ax: Axes
+
+    ax.plot(np.sqrt(tof_vs_m_over_q_pairs[:, 1]),
+            tof_vs_m_over_q_pairs[:, 0],
+            "o",
+            data=names
             )
-            raise ValueError(msg)
 
-        _, ax = plt.subplots(layout="constrained")
-        ax: Axes
+    m, b = lin_regr.slope, lin_regr.intercept  # type: ignore
+    dm, db = lin_regr.stderr, lin_regr.intercept_stderr  # type: ignore
 
-        ax.plot(np.sqrt(tof_vs_m_over_q_pairs[:, 1]),
-                tof_vs_m_over_q_pairs[:, 0],
-                "o",
-                data=names
-                )
+    xintercept = -b/m
+    xlow = 0 if b < 0 else xintercept
+    x = np.linspace(xlow, ax.get_xlim()[1], 2)
+    ax.plot(x, m*x + b)
 
-        m, b = lin_regr.slope, lin_regr.intercept  # type: ignore
-        dm, db = lin_regr.stderr, lin_regr.intercept_stderr # type: ignore
+    if names is not None:
+        for i, name in enumerate(names):
+            ax.annotate(name,
+                        (np.sqrt(tof_vs_m_over_q_pairs[i, 1]),
+                            tof_vs_m_over_q_pairs[i, 0]),
+                        textcoords="offset points",
+                        xytext=(0, 5),
+                        ha="right")
 
-        xintercept = -b/m
-        xlow = 0 if b < 0 else xintercept
-        x = np.linspace(xlow, ax.get_xlim()[1], 2)
-        ax.plot(x, m*x + b)
+    ax.set_ylabel(f"time of flight ({tof_unit})")
+    ax.set_xlabel(r"$\sqrt{\text{m/Q}}$ ($\sqrt{\text{"
+                  f"{m_over_q_unit}"
+                  r"}}$)")
 
-        if names is not None:
-            for i, name in enumerate(names):
-                ax.annotate(name,
-                            (np.sqrt(tof_vs_m_over_q_pairs[i, 1]),
-                             tof_vs_m_over_q_pairs[i, 0]),
-                            textcoords="offset points",
-                            xytext=(0, 5),
-                            ha="right")
+    ax.axhline(b, lw=0.5, color="k")
+    ax.axvline(0, lw=0.5, color="k")
 
-        ax.set_ylabel(f"time of flight ({tof_unit})")
-        ax.set_xlabel(r"$\sqrt{\text{m/Q}}$ ($\sqrt{\text{" 
-                      f"{m_over_q_unit}" 
-                      r"}}$)")
+    annotation = (
+        f"$({m:.2f}" r"\pm" f"{dm:.2f})" r"x"
+        f"{b:+.2f}" r"\pm" f"{db:.2f}$ {tof_unit}")
+    ax.annotate(annotation,
+                (ax.get_xlim()[1], 0),
+                textcoords="offset points",
+                xytext=(-5, 5),
+                va="bottom",
+                ha="right")
 
-        ax.axhline(b, lw=0.5, color="k")
-        ax.axvline(0, lw=0.5, color="k")
-
-        annotation = (
-            f"$({m:.2f}" r"\pm" f"{dm:.2f})" r"x"
-            f"{b:+.2f}" r"\pm" f"{db:.2f}$ {tof_unit}" )
-        ax.annotate(annotation,
-                    (ax.get_xlim()[1], 0),
-                    textcoords="offset points",
-                    xytext=(-5, 5),
-                    va="bottom",
-                    ha="right")
-
+    if show_plot:
         plt.show()
+
+    if savefig_filename is not None:
+        fig.savefig(savefig_filename)
 
     return (m, b, dm, db)
 

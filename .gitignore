@@ -1,8 +1,7 @@
 .vscode/
 .venv/
 build/
-*/__pycache__/
-*/*/__pycache__/
+__pycache__/
 src/atompy.egg-info/
 
 _autogen/

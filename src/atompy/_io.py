@@ -259,10 +259,10 @@ def load_ascii_hist2d(
         y = np.unique(data[:, idx_y])
 
         xbinsize = x[1] - x[0]
-        if not np.all(np.diff(x) - xbinsize < 1e-5):
+        if not np.all(np.diff(x) - xbinsize < xbinsize * 0.001):
             raise NonconstantBinsizeError(fname, "x")
         ybinsize = y[1] - y[0]
-        if not np.all(np.diff(y) - ybinsize < 1e-5):
+        if not np.all(np.diff(y) - ybinsize < ybinsize * 0.001):
             raise NonconstantBinsizeError(fname, "y")
 
         xedges = np.empty(x.size + 1)

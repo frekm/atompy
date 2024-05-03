@@ -18,7 +18,8 @@ classifiers = [
 dependencies = [
     "numpy",
     "matplotlib",
-    "uproot"
+    "uproot",
+    "scipy"
 ]
 
 [project.urls]

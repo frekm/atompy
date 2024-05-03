@@ -1,5 +1,6 @@
 # v3.0.7
 - Add scipy to requirements list
+- Add atompy.physics.coltrims.ion_tof_calibration
 
 # v3.0.6
 - New layout implemented with `sphinx.ext.autosummary`

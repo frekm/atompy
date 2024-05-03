@@ -1,3 +1,6 @@
+# v3.0.7
+- Add scipy to requirements list
+
 # v3.0.6
 - New layout implemented with `sphinx.ext.autosummary`
 - Change HTML theme back to `pydata-sphinx-theme` (it works better with 

@@ -5,6 +5,7 @@ import uproot
 from typing import Literal, Sequence, Union, overload, Optional
 import matplotlib.pyplot as plt
 from . import _histogram as aph
+from . import _miscellaneous as apm
 
 
 class NonconstantBinsizeError(Exception):
@@ -414,10 +415,11 @@ def import_ascii_for_imshow(
     fnames: str,
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
-    origin: Literal["upper", "lower", "auto"] = "auto",
+    xlim: Sequence[Optional[float]] = (None, None),
+    ylim: Sequence[Optional[float]] = (None, None),
+    origin: Literal["auto"] = "auto",
     **kwargs
-) -> tuple[npt.NDArray[np.float64],
-           npt.NDArray[np.float64]]: ...
+) -> apm.ImshowData: ...
 
 
 @overload
@@ -425,22 +427,23 @@ def import_ascii_for_imshow(
     fnames: Sequence[str],
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
-    origin: Literal["upper", "lower", "auto"] = "auto",
+    xlim: Sequence[Optional[float]] = (None, None),
+    ylim: Sequence[Optional[float]] = (None, None),
+    origin: Literal["auto"] = "auto",
     **kwargs
-) -> tuple[tuple[npt.NDArray[np.float64], ...],
-           tuple[npt.NDArray[np.float64], ...]]: ...
+) -> tuple[apm.ImshowData, ...]: ...
 
 
 def import_ascii_for_imshow(
     fnames: Union[str, Sequence[str]],
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
-    origin: Literal["upper", "lower", "auto"] = "auto",
+    xlim: Sequence[Optional[float]] = (None, None),
+    ylim: Sequence[Optional[float]] = (None, None),
+    origin: Literal["auto"] = "auto",
     **kwargs
-) -> Union[tuple[npt.NDArray[np.float64],
-                 npt.NDArray[np.float64]],
-           tuple[tuple[npt.NDArray[np.float64], ...],
-                 tuple[npt.NDArray[np.float64], ...]]]:
+) -> Union[apm.ImshowData,
+           tuple[apm.ImshowData, ...]]:
     """
     Import 2d-histogram data and return an image and the extents of the image.
     If you want to work with the histogram, consider using
@@ -452,7 +455,7 @@ def import_ascii_for_imshow(
         The filename(s) of the data. If a list is passed, return a list
         of images and extents
 
-    xyz_indiceds : (int, int, int), default (1, 0, 2)
+    xyz_indices : (int, int, int), default (1, 0, 2)
         Specify columns of x, y, and z, starting at 0
 
     permuting : `"x"` or `"y"`
@@ -460,17 +463,6 @@ def import_ascii_for_imshow(
 
         - `"x"`: first permutate through x-values before changing y-values
         - `"y"`: first permutate through y-values before changing x-values
-
-    origin : `"upper"`, `"lower"`, or `"auto"`, default (`"auto"`)
-        Origin of the image plotted by `plt.imshow
-        <https://matplotlib.org/stable/api/
-        _as_gen/matplotlib.pyplot.imshow.html>`_
-
-        - `"upper"`: origin is the upper left corner
-        - `"lower"`: origin is the lower left corner
-        - `"auto"`: *origin* is `rcParams["image.origin"] <https://
-          matplotlib.org/stable/users/explain/customizing.html
-          #the-default-matplotlibrc-file>`_
 
     **kwargs :
         `np.loadtxt <https://numpy.org/doc/stable/reference/generated/
@@ -486,6 +478,15 @@ def import_ascii_for_imshow(
         The extent of the image, e.g., [-1, 1, -2, 2]
         If *fnames* is a Sequence, *extent* is a tuple of arrays
 
+    Other Parameters
+    ----------------
+    origin : ``"auto"``
+        Origin of the image plotted by `plt.imshow
+        <https://matplotlib.org/stable/api/
+        _as_gen/matplotlib.pyplot.imshow.html>`_
+
+        Here for backward compatibility. Leave at ``"auto"``.
+
     Examples
     --------
     ::
@@ -500,57 +501,23 @@ def import_ascii_for_imshow(
         plt.imshow(data[0], extent=extent[0])
         plt.imshow(data[1], extent=extent[1])
     """
-    if isinstance(fnames, str):
-        fnames = [fnames]
-
-    if origin not in ["upper", "lower", "auto"]:
-        raise ValueError(
-            f"{origin=}, but it needs to be 'upper' or 'lower'"
+    if origin == "lower" or origin == "upper":
+        msg = (
+            f"{origin=} is no longer supported. If you want to force "
+            f"{origin=}, set rcParams['image.origin'] to '{origin}'"
         )
+        raise ValueError(msg)
+    elif origin != "auto":
+        msg = (f"{origin=}, but it must be 'auto'")
+        raise ValueError(msg)
 
-    if origin == "auto":
-        origin = plt.rcParams["image.origin"]
+    hist2d = load_ascii_hist2d(
+        fnames, xyz_indices, permuting, xlim, ylim, **kwargs)
 
-    idx_x, idx_y, idx_z = xyz_indices
-
-    output_data, output_extent = [], []
-    for fname in fnames:
-        data = np.loadtxt(fname, **kwargs)
-
-        x = np.unique(data[:, idx_x])
-        y = np.unique(data[:, idx_y])
-
-        if permuting == "x":
-            if origin == "upper":
-                z = np.flip(data[:, 2].reshape(y.shape[0], x.shape[0]),
-                            axis=0)
-            else:
-                z = data[:, 2].reshape(y.shape[0], x.shape[0])
-        elif permuting == "y":
-            if origin == "upper":
-                z = np.flip(data[:, idx_z].reshape(x.shape[0], y.shape[0]),
-                            axis=1).T
-            else:
-                z = data[:, idx_z].reshape(x.shape[1], y.shape[0]).T
-        else:
-            raise ValueError(
-                f"{permuting=}, but it needs to be 'x' or 'y'"
-            )
-
-        binsize_x = x[1] - x[0]
-        binsize_y = y[1] - y[0]
-        extent = np.array(
-            [np.min(x) - binsize_x / 2.0, np.max(x) + binsize_x / 2.0,
-             np.min(y) - binsize_y / 2.0, np.max(y) + binsize_y / 2.0]
-        )
-
-        output_data.append(z)
-        output_extent.append(extent)
-
-    if len(fnames) > 1:
-        return tuple(output_data), tuple(output_extent)
+    if isinstance(hist2d, aph.Hist2d):
+        return hist2d.for_imshow
     else:
-        return output_data[0], output_extent[0]
+        return tuple([x.for_imshow for x in hist2d])
 
 
 @overload

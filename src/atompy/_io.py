@@ -8,23 +8,6 @@ from . import _histogram as aph
 from . import _miscellaneous as apm
 
 
-class NonconstantBinsizeError(Exception):
-    def __init__(
-        self,
-        fname: str,
-        which: Literal["x", "y", ""]
-    ) -> None:
-        self.fname = fname
-        self.which = which
-
-    def __str__(self):
-        return (
-            f"{self.which}binsizes from {self.fname} are not constant and "
-            f"no {self.which}-limits are provided. Provide either "
-            f"{self.which}lim[0] or {self.which}lim[1]"
-        )
-
-
 def save_ascii_hist1d(
     histogram: npt.NDArray[np.float_],
     edges: npt.NDArray[np.float_],
@@ -182,7 +165,7 @@ def load_ascii_hist1d(
         binsize = data[1, 0] - data[0, 0]
 
         if not np.all(np.abs(np.diff(data[:, 0]) - binsize) < 1e-2):
-            raise NonconstantBinsizeError(fname, "")
+            raise apm.NonconstantBinsizeError(fname, "")
 
         edges = np.empty(data.shape[0] + 1)
         edges[: -1] = data[:, 0] - 0.5 * binsize
@@ -326,11 +309,11 @@ def load_ascii_hist2d(
         try:
             xedges = __work_out_bin_edges(x, xlim)
         except ValueError:
-            raise NonconstantBinsizeError(fname, "x")
+            raise apm.NonconstantBinsizeError(fname, "x")
         try:
             yedges = __work_out_bin_edges(y, ylim)
         except ValueError:
-            raise NonconstantBinsizeError(fname, "y")
+            raise apm.NonconstantBinsizeError(fname, "y")
 
         if permuting == "x":
             z = data[:, idx_z].reshape(y.size, x.size).T
@@ -604,106 +587,6 @@ def load_root_data1d(
 
 
 @overload
-def import_root_for_imshow(
-    root_filename: str,
-    histogram_names: str,
-    origin: Literal["auto", "upper", "lower"] = "auto"
-) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]: ...
-
-
-@overload
-def import_root_for_imshow(
-    root_filename: str,
-    histogram_names: Sequence[str],
-    origin: Literal["auto", "upper", "lower"] = "auto"
-) -> tuple[tuple[npt.NDArray[np.float64], ...],
-           tuple[npt.NDArray[np.float64], ...]]: ...
-
-
-def import_root_for_imshow(
-    root_filename: str,
-    histogram_names: Union[str, Sequence[str]],
-    origin: Literal["auto", "upper", "lower"] = "auto"
-) -> Union[tuple[npt.NDArray[np.float64],
-                 npt.NDArray[np.float64]],
-           tuple[tuple[npt.NDArray[np.float64], ...],
-                 tuple[npt.NDArray[np.float64], ...]]]:
-    """
-    Import a 2d histogram from a root file to be plottable by
-    `plt.imshow <https://matplotlib.org/stable/api/_as_gen/
-    matplotlib.pyplot.imshow.html>`_.
-
-    Parameters
-    ----------
-    root_filename : str
-        The filename of the root file,
-        e.g., 'important_data.root'
-
-    histogram_names : str or Sequence[str]
-        The name of the histogram within the root file,
-        e.g., 'path/to/histogram2d'.
-        If a list of strings is passed, get multiple 2d histograms from the
-        root file
-
-    Returns
-    -------
-    image : `np.ndarray` or tuple[`np.ndarray`, ...]
-        A 2d-array of pixel values.
-        If *fnames* is a Sequence, *image* is a tuple of arrays
-
-    extent : `np.ndarray`, shape((4,)) or tuple[`np.ndarray`, ...]
-        The extent of the image, e.g., [-1, 1, -2, 2]
-        If *fnames* is a Sequence, *extent* is a tuple of arrays
-
-    Examples
-    --------
-    ::
-
-        import matplotlib.pyplot as plt
-
-        # Import one histogram
-        data, extent = import_root_for_imshow("rootfile.root", "path/to/hist")
-        plt.imshow(data, extent=extent)
-
-        # Import multiple histograms
-        data, extents = import_root_for_imshow(
-            "rootfile.root", ["path/to/histo1", "path/to/histo2"])
-        for date, extent in zip(data, extents):
-            plt.imshow(date, extent=extent),
-
-    """
-    if isinstance(histogram_names, str):
-        histogram_names = [histogram_names]
-
-    if origin == "auto":
-        origin = plt.rcParams["image.origin"]
-    elif origin != "upper" and origin != "lower":
-        raise ValueError(
-            f"{origin=}, but it needs to be 'upper', 'lower', or 'auto'"
-        )
-
-    with uproot.open(root_filename) as file:  # type: ignore
-        output_data: list[npt.NDArray] = []
-        output_extent: list[npt.NDArray] = []
-        for h in histogram_names:
-            image, xedges, yedges = file[h].to_numpy()  # type: ignore
-            if origin == "upper":
-                image = np.flip(image.T, axis=0)
-            else:
-                image = image.T
-            extent = np.array((np.min(xedges), np.max(xedges),
-                               np.min(yedges), np.max(yedges)))
-
-            output_data.append(image)
-            output_extent.append(extent)
-
-        if len(histogram_names) > 1:
-            return tuple(output_data), tuple(output_extent)
-        else:
-            return output_data[0], output_extent[0]
-
-
-@overload
 def load_root_hist1d(
     root_filename: str,
     histogram_names: str
@@ -846,6 +729,98 @@ def import_ascii_for_pcolormesh(
 ) -> tuple[npt.NDArray[np.float64],
            npt.NDArray[np.float64],
            npt.NDArray[np.float64]]: ...
+
+
+@overload
+def import_root_for_imshow(
+    root_filename: str,
+    histogram_names: str,
+    origin: Literal["auto"] = "auto"
+) -> apm.ImshowData: ...
+
+
+@overload
+def import_root_for_imshow(
+    root_filename: str,
+    histogram_names: Sequence[str],
+    origin: Literal["auto"] = "auto"
+) -> tuple[apm.ImshowData, ...]: ...
+
+
+def import_root_for_imshow(
+    root_filename: str,
+    histogram_names: Union[str, Sequence[str]],
+    origin: Literal["auto"] = "auto"
+) -> Union[apm.ImshowData,
+           tuple[apm.ImshowData, ...]]:
+    """
+    Import a 2d histogram from a root file to be plottable by
+    `plt.imshow <https://matplotlib.org/stable/api/_as_gen/
+    matplotlib.pyplot.imshow.html>`_.
+
+    Parameters
+    ----------
+    root_filename : str
+        The filename of the root file,
+        e.g., 'important_data.root'
+
+    histogram_names : str or Sequence[str]
+        The name of the histogram within the root file,
+        e.g., 'path/to/histogram2d'.
+        If a list of strings is passed, get multiple 2d histograms from the
+        root file
+
+    Other Parameters
+    ----------------
+    origin : ``"auto"``
+        Origin of the image plotted by `plt.imshow
+        <https://matplotlib.org/stable/api/
+        _as_gen/matplotlib.pyplot.imshow.html>`_
+
+        Here for backward compatibility. Leave at ``"auto"``.
+
+    Returns
+    -------
+    image : `np.ndarray` or tuple[`np.ndarray`, ...]
+        A 2d-array of pixel values.
+        If *fnames* is a Sequence, *image* is a tuple of arrays
+
+    extent : `np.ndarray`, shape((4,)) or tuple[`np.ndarray`, ...]
+        The extent of the image, e.g., [-1, 1, -2, 2]
+        If *fnames* is a Sequence, *extent* is a tuple of arrays
+
+    Examples
+    --------
+    ::
+
+        import matplotlib.pyplot as plt
+
+        # Import one histogram
+        data, extent = import_root_for_imshow("rootfile.root", "path/to/hist")
+        plt.imshow(data, extent=extent)
+
+        # Import multiple histograms
+        data, extents = import_root_for_imshow(
+            "rootfile.root", ["path/to/histo1", "path/to/histo2"])
+        for date, extent in zip(data, extents):
+            plt.imshow(date, extent=extent),
+
+    """
+    if origin == "lower" or origin == "upper":
+        msg = (
+            f"{origin=} is no longer supported. If you want to force "
+            f"{origin=}, set rcParams['image.origin'] to '{origin}'"
+        )
+        raise ValueError(msg)
+    elif origin != "auto":
+        msg = (f"{origin=}, but it must be 'auto'")
+        raise ValueError(msg)
+
+    hist2d = load_root_hist2d(root_filename, histogram_names)
+    if isinstance(hist2d, aph.Hist2d):
+        return hist2d.for_imshow
+    else:
+        return tuple([x.for_imshow for x in hist2d])
 
 
 @overload

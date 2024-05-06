@@ -7,6 +7,23 @@ from dataclasses import dataclass
 from ._histogram import *
 
 
+class NonconstantBinsizeError(Exception):
+    def __init__(
+        self,
+        fname: str,
+        which: Literal["x", "y", ""]
+    ) -> None:
+        self.fname = fname
+        self.which = which
+
+    def __str__(self):
+        return (
+            f"{self.which}binsizes from {self.fname} are not constant and "
+            f"no {self.which}-limits are provided. Provide either "
+            f"{self.which}lim[0] or {self.which}lim[1]"
+        )
+
+
 def get_all_dividers(
     n: int
 ) -> tuple[int, ...]:

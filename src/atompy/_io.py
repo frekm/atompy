@@ -2,7 +2,7 @@ import numpy as np
 import numpy.typing as npt
 from numpy.typing import NDArray
 import uproot
-from typing import Literal, Sequence, Union, overload
+from typing import Literal, Sequence, Union, overload, Optional
 import matplotlib.pyplot as plt
 from . import _histogram as aph
 
@@ -18,10 +18,9 @@ class NonconstantBinsizeError(Exception):
 
     def __str__(self):
         return (
-            f"{self.which}binsizes from {self.fname} are not constant. "
-            f"Therefore, I cannot accurately reconstruct {self.which}edges. "
-            "Use a different type of data import instead "
-            "(e.g., numpy.loadtxt)"
+            f"{self.which}binsizes from {self.fname} are not constant and "
+            f"no {self.which}-limits are provided. Provide either "
+            f"{self.which}lim[0] or {self.which}lim[1]"
         )
 
 
@@ -193,11 +192,65 @@ def load_ascii_hist1d(
     return tuple(output) if len(fnames) > 1 else output[0]
 
 
+def __work_out_bin_edges(
+    centers: NDArray,
+    limits: Sequence[Optional[float]]
+) -> NDArray:
+    """
+    Work out bin edges from bin centers.
+
+    If the bins don't have constant size, at least one limit has to be
+    provided, from which the edges can be determined
+
+    Parameters
+    ----------
+    centers : np.ndarray, shape(n)
+        centers of the bins
+
+    limits : (float, float), optional
+        Lower and upper limits of the bins
+
+        At least on limit must be provided if bins don't have a constant 
+        size. If both lower and upper limits are provided, the lower one
+        will be prioritized
+
+    Returns
+    -------
+    edges : np.ndarray, shape(n+1)
+        Edges of the bins
+    """
+    # if bins don't have a constant size, determine xbinedges differently
+    edges = np.empty(centers.size + 1)
+    binsize = centers[1] - centers[0]
+    if not np.all(np.diff(centers) - binsize < binsize * 0.001):
+        if limits[0] is not None:
+            # take lower edge and work out binsize forward
+            edges[0] = limits[0]
+            for i in range(len(centers)):
+                edges[i+1] = 2.0 * centers[i] - edges[i]
+
+        elif limits[1] is not None:
+            # take upper edge and work out binsize backward
+            edges[-1] = limits[1]
+            for i in reversed(range(len(centers))):
+                edges[i] = 2.0 * centers[i] - edges[i+1]
+        else:
+            # cannot determine binsize, throw exception
+            raise ValueError
+    else:  # bins have equal size
+        edges[:-1] = centers - 0.5 * binsize
+        edges[-1] = centers[-1] + 0.5 * binsize
+
+    return edges
+
+
 @overload
 def load_ascii_hist2d(
     fnames: str,
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
+    xlim: Sequence[Optional[float]] = (None, None),
+    ylim: Sequence[Optional[float]] = (None, None),
     **loadtxt_kwargs
 ) -> aph.Hist2d: ...
 
@@ -207,6 +260,8 @@ def load_ascii_hist2d(
     fnames: Sequence[str],
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
+    xlim: Sequence[Optional[float]] = (None, None),
+    ylim: Sequence[Optional[float]] = (None, None),
     **loadtxt_kwargs
 ) -> tuple[aph.Hist2d, ...]: ...
 
@@ -215,6 +270,8 @@ def load_ascii_hist2d(
     fnames: Union[str, Sequence[str]],
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
+    xlim: Sequence[Optional[float]] = (None, None),
+    ylim: Sequence[Optional[float]] = (None, None),
     **loadtxt_kwargs
 ) -> Union[aph.Hist2d,
            tuple[aph.Hist2d, ...]]:
@@ -235,6 +292,13 @@ def load_ascii_hist2d(
         Order of permutation of x and y in ascii file
         - "x": first permute through x-values before changing y-values
         - "y": first permute through y-values before changing x-values
+
+    xlim, ylim : ({None, float}, {None, float}), default (None, None)
+        Lower and/or upper limits of x/y range (NOT the center of the bin,
+        but the lower/upper edge of the histogram)
+
+        If the binsize of the histogram is not constant, provide at least one
+        of them, otherwise a NonconstantBinsizeError exception is thrown.
 
     **loadtxt_kwargs
         Keyword arguments for `np.loadtxt <https://numpy.org/doc/stable/
@@ -258,19 +322,14 @@ def load_ascii_hist2d(
         x = np.unique(data[:, idx_x])
         y = np.unique(data[:, idx_y])
 
-        xbinsize = x[1] - x[0]
-        if not np.all(np.diff(x) - xbinsize < xbinsize * 0.001):
+        try:
+            xedges = __work_out_bin_edges(x, xlim)
+        except ValueError:
             raise NonconstantBinsizeError(fname, "x")
-        ybinsize = y[1] - y[0]
-        if not np.all(np.diff(y) - ybinsize < ybinsize * 0.001):
+        try:
+            yedges = __work_out_bin_edges(y, ylim)
+        except ValueError:
             raise NonconstantBinsizeError(fname, "y")
-
-        xedges = np.empty(x.size + 1)
-        xedges[:-1] = x - 0.5 * xbinsize
-        xedges[-1] = x[-1] + 0.5 * xbinsize
-        yedges = np.empty(y.size + 1)
-        yedges[:-1] = y + 0.5 * ybinsize
-        yedges[-1] = y[-1] + 0.5 * ybinsize
 
         if permuting == "x":
             z = data[:, idx_z].reshape(y.size, x.size).T

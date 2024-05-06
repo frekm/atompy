@@ -107,6 +107,58 @@ def save_ascii_hist2d(
     np.savetxt(fname, out, **savetxt_kwargs)
 
 
+def __work_out_bin_edges(
+    centers: NDArray,
+    limits: Sequence[Optional[float]]
+) -> NDArray:
+    """
+    Work out bin edges from bin centers.
+
+    If the bins don't have constant size, at least one limit has to be
+    provided, from which the edges can be determined
+
+    Parameters
+    ----------
+    centers : np.ndarray, shape(n)
+        centers of the bins
+
+    limits : (float, float), optional
+        Lower and upper limits of the bins
+
+        At least on limit must be provided if bins don't have a constant 
+        size. If both lower and upper limits are provided, the lower one
+        will be prioritized
+
+    Returns
+    -------
+    edges : np.ndarray, shape(n+1)
+        Edges of the bins
+    """
+    # if bins don't have a constant size, determine xbinedges differently
+    edges = np.empty(centers.size + 1)
+    binsize = centers[1] - centers[0]
+    if not np.all(np.diff(centers) - binsize < binsize * 0.001):
+        if limits[0] is not None:
+            # take lower edge and work out binsize forward
+            edges[0] = limits[0]
+            for i in range(len(centers)):
+                edges[i+1] = 2.0 * centers[i] - edges[i]
+
+        elif limits[1] is not None:
+            # take upper edge and work out binsize backward
+            edges[-1] = limits[1]
+            for i in reversed(range(len(centers))):
+                edges[i] = 2.0 * centers[i] - edges[i+1]
+        else:
+            # cannot determine binsize, throw exception
+            raise ValueError
+    else:  # bins have equal size
+        edges[:-1] = centers - 0.5 * binsize
+        edges[-1] = centers[-1] + 0.5 * binsize
+
+    return edges
+
+
 @overload
 def load_ascii_hist1d(
     fnames: str,
@@ -174,58 +226,6 @@ def load_ascii_hist1d(
         output.append(aph.Hist1d(data[:, 1], edges))
 
     return tuple(output) if len(fnames) > 1 else output[0]
-
-
-def __work_out_bin_edges(
-    centers: NDArray,
-    limits: Sequence[Optional[float]]
-) -> NDArray:
-    """
-    Work out bin edges from bin centers.
-
-    If the bins don't have constant size, at least one limit has to be
-    provided, from which the edges can be determined
-
-    Parameters
-    ----------
-    centers : np.ndarray, shape(n)
-        centers of the bins
-
-    limits : (float, float), optional
-        Lower and upper limits of the bins
-
-        At least on limit must be provided if bins don't have a constant 
-        size. If both lower and upper limits are provided, the lower one
-        will be prioritized
-
-    Returns
-    -------
-    edges : np.ndarray, shape(n+1)
-        Edges of the bins
-    """
-    # if bins don't have a constant size, determine xbinedges differently
-    edges = np.empty(centers.size + 1)
-    binsize = centers[1] - centers[0]
-    if not np.all(np.diff(centers) - binsize < binsize * 0.001):
-        if limits[0] is not None:
-            # take lower edge and work out binsize forward
-            edges[0] = limits[0]
-            for i in range(len(centers)):
-                edges[i+1] = 2.0 * centers[i] - edges[i]
-
-        elif limits[1] is not None:
-            # take upper edge and work out binsize backward
-            edges[-1] = limits[1]
-            for i in reversed(range(len(centers))):
-                edges[i] = 2.0 * centers[i] - edges[i+1]
-        else:
-            # cannot determine binsize, throw exception
-            raise ValueError
-    else:  # bins have equal size
-        edges[:-1] = centers - 0.5 * binsize
-        edges[-1] = centers[-1] + 0.5 * binsize
-
-    return edges
 
 
 @overload

@@ -1,6 +1,8 @@
 # v4.0.0
 - Dropped support for `origin` keyword in imshow imports. These functions
   now always use `plt.rcParams["image.origin"]` as the image's origin.
+- 2D histograms with non-constant bin sizes can now be imported and plotted
+  with pcolormesh
 
 # v3.0.7
 - Add scipy to requirements list

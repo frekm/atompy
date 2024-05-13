@@ -394,88 +394,6 @@ def load_ascii_data1d(
 
 
 @overload
-def import_ascii_for_imshow(
-    fnames: str,
-    xyz_indices: tuple[int, int, int] = (1, 0, 2),
-    permuting: Literal["x", "y"] = "x",
-    xlim: Sequence[Optional[float]] = (None, None),
-    ylim: Sequence[Optional[float]] = (None, None),
-    **kwargs
-) -> apm.ImshowData: ...
-
-
-@overload
-def import_ascii_for_imshow(
-    fnames: Sequence[str],
-    xyz_indices: tuple[int, int, int] = (1, 0, 2),
-    permuting: Literal["x", "y"] = "x",
-    xlim: Sequence[Optional[float]] = (None, None),
-    ylim: Sequence[Optional[float]] = (None, None),
-    **kwargs
-) -> tuple[apm.ImshowData, ...]: ...
-
-
-def import_ascii_for_imshow(
-    fnames: Union[str, Sequence[str]],
-    xyz_indices: tuple[int, int, int] = (1, 0, 2),
-    permuting: Literal["x", "y"] = "x",
-    xlim: Sequence[Optional[float]] = (None, None),
-    ylim: Sequence[Optional[float]] = (None, None),
-    **kwargs
-) -> Union[apm.ImshowData,
-           tuple[apm.ImshowData, ...]]:
-    """
-    Import 2d-histogram data and return an image and the extents of the image.
-    If you want to work with the histogram, consider using
-    :func:`.load_ascii_hist2d` instead.
-
-    Parameters
-    ----------
-    fnames : str or Sequence[str]
-        The filename(s) of the data. If a list is passed, return a list
-        of images and extents
-
-    xyz_indices : (int, int, int), default (1, 0, 2)
-        Specify columns of x, y, and z, starting at 0
-
-    permuting : `"x"` or `"y"`
-        Order of permutation of x and y in ascii file
-
-        - `"x"`: first permutate through x-values before changing y-values
-        - `"y"`: first permutate through y-values before changing x-values
-
-    **kwargs :
-        `np.loadtxt <https://numpy.org/doc/stable/reference/generated/
-        numpy.loadtxt.html>`_ keyword arguments
-
-    Returns
-    -------
-    output : :class:`.ImshowData` or tuple[:class:`.ImshowData`]
-
-    Examples
-    --------
-    ::
-
-        # 1 file
-        data, extent = import_ascii_for_imshow("filename.txt")
-        plt.imshow(data, extent=extent)
-
-        # 2 files
-        filenames = ["filename1.txt", "filename2.txt"]
-        data, extents = import_ascii_for_imshow(filenames)
-        plt.imshow(data[0], extent=extent[0])
-        plt.imshow(data[1], extent=extent[1])
-    """
-    hist2d = load_ascii_hist2d(
-        fnames, xyz_indices, permuting, xlim, ylim, **kwargs)
-
-    if isinstance(hist2d, aph.Hist2d):
-        return hist2d.for_imshow
-    else:
-        return tuple([x.for_imshow for x in hist2d])
-
-
-@overload
 def load_root_data1d(
     root_filename: str,
     histogram_names: str
@@ -690,6 +608,88 @@ def load_root_hist2d(
         for h in histogram_names:
             output.append(aph.Hist2d(*file[h].to_numpy()))  # type: ignore
     return tuple(output) if len(histogram_names) > 1 else output[0]
+
+
+@overload
+def import_ascii_for_imshow(
+    fnames: str,
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
+    permuting: Literal["x", "y"] = "x",
+    xlim: Sequence[Optional[float]] = (None, None),
+    ylim: Sequence[Optional[float]] = (None, None),
+    **kwargs
+) -> apm.ImshowData: ...
+
+
+@overload
+def import_ascii_for_imshow(
+    fnames: Sequence[str],
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
+    permuting: Literal["x", "y"] = "x",
+    xlim: Sequence[Optional[float]] = (None, None),
+    ylim: Sequence[Optional[float]] = (None, None),
+    **kwargs
+) -> tuple[apm.ImshowData, ...]: ...
+
+
+def import_ascii_for_imshow(
+    fnames: Union[str, Sequence[str]],
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
+    permuting: Literal["x", "y"] = "x",
+    xlim: Sequence[Optional[float]] = (None, None),
+    ylim: Sequence[Optional[float]] = (None, None),
+    **kwargs
+) -> Union[apm.ImshowData,
+           tuple[apm.ImshowData, ...]]:
+    """
+    Import 2d-histogram data and return an image and the extents of the image.
+    If you want to work with the histogram, consider using
+    :func:`.load_ascii_hist2d` instead.
+
+    Parameters
+    ----------
+    fnames : str or Sequence[str]
+        The filename(s) of the data. If a list is passed, return a list
+        of images and extents
+
+    xyz_indices : (int, int, int), default (1, 0, 2)
+        Specify columns of x, y, and z, starting at 0
+
+    permuting : `"x"` or `"y"`
+        Order of permutation of x and y in ascii file
+
+        - `"x"`: first permutate through x-values before changing y-values
+        - `"y"`: first permutate through y-values before changing x-values
+
+    **kwargs :
+        `np.loadtxt <https://numpy.org/doc/stable/reference/generated/
+        numpy.loadtxt.html>`_ keyword arguments
+
+    Returns
+    -------
+    output : :class:`.ImshowData` or tuple[:class:`.ImshowData`]
+
+    Examples
+    --------
+    ::
+
+        # 1 file
+        data, extent = import_ascii_for_imshow("filename.txt")
+        plt.imshow(data, extent=extent)
+
+        # 2 files
+        filenames = ["filename1.txt", "filename2.txt"]
+        data, extents = import_ascii_for_imshow(filenames)
+        plt.imshow(data[0], extent=extent[0])
+        plt.imshow(data[1], extent=extent[1])
+    """
+    hist2d = load_ascii_hist2d(
+        fnames, xyz_indices, permuting, xlim, ylim, **kwargs)
+
+    if isinstance(hist2d, aph.Hist2d):
+        return hist2d.for_imshow
+    else:
+        return tuple([x.for_imshow for x in hist2d])
 
 
 @overload

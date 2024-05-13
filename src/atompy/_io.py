@@ -450,7 +450,7 @@ def import_ascii_for_imshow(
 
     Returns
     -------
-    :class:`.ImshowData` or tuple[:class:`.ImshowData`]
+    output : :class:`.ImshowData` or tuple[:class:`.ImshowData`]
 
     Examples
     --------
@@ -730,7 +730,7 @@ def import_root_for_imshow(
 
     Returns
     -------
-    :class:`.ImshowData` or tuple[:class:`.ImshowData`]
+    output : :class:`.ImshowData` or tuple[:class:`.ImshowData`]
 
     Examples
     --------
@@ -807,7 +807,7 @@ def import_ascii_for_pcolormesh(
 
     Returns
     -------
-    :class:`.PcolormeshData`
+    output : :class:`.PcolormeshData` or tuple[:class:`.PcolormeshData`]
 
     Examples
     --------
@@ -871,7 +871,7 @@ def import_root_for_pcolormesh(
 
     Returns
     -------
-    :class:`.PcolormeshData`
+    output : :class:`.PcolormeshData` or tuple[:class:`.PcolormeshData`]
 
     Examples
     --------

@@ -400,7 +400,6 @@ def import_ascii_for_imshow(
     permuting: Literal["x", "y"] = "x",
     xlim: Sequence[Optional[float]] = (None, None),
     ylim: Sequence[Optional[float]] = (None, None),
-    origin: Literal["auto"] = "auto",
     **kwargs
 ) -> apm.ImshowData: ...
 
@@ -412,7 +411,6 @@ def import_ascii_for_imshow(
     permuting: Literal["x", "y"] = "x",
     xlim: Sequence[Optional[float]] = (None, None),
     ylim: Sequence[Optional[float]] = (None, None),
-    origin: Literal["auto"] = "auto",
     **kwargs
 ) -> tuple[apm.ImshowData, ...]: ...
 
@@ -423,7 +421,6 @@ def import_ascii_for_imshow(
     permuting: Literal["x", "y"] = "x",
     xlim: Sequence[Optional[float]] = (None, None),
     ylim: Sequence[Optional[float]] = (None, None),
-    origin: Literal["auto"] = "auto",
     **kwargs
 ) -> Union[apm.ImshowData,
            tuple[apm.ImshowData, ...]]:
@@ -461,15 +458,6 @@ def import_ascii_for_imshow(
         The extent of the image, e.g., [-1, 1, -2, 2]
         If *fnames* is a Sequence, *extent* is a tuple of arrays
 
-    Other Parameters
-    ----------------
-    origin : ``"auto"``
-        Origin of the image plotted by `plt.imshow
-        <https://matplotlib.org/stable/api/
-        _as_gen/matplotlib.pyplot.imshow.html>`_
-
-        Here for backward compatibility. Leave at ``"auto"``.
-
     Examples
     --------
     ::
@@ -484,16 +472,6 @@ def import_ascii_for_imshow(
         plt.imshow(data[0], extent=extent[0])
         plt.imshow(data[1], extent=extent[1])
     """
-    if origin == "lower" or origin == "upper":
-        msg = (
-            f"{origin=} is no longer supported. If you want to force "
-            f"{origin=}, set rcParams['image.origin'] to '{origin}'"
-        )
-        raise ValueError(msg)
-    elif origin != "auto":
-        msg = (f"{origin=}, but it must be 'auto'")
-        raise ValueError(msg)
-
     hist2d = load_ascii_hist2d(
         fnames, xyz_indices, permuting, xlim, ylim, **kwargs)
 
@@ -735,7 +713,6 @@ def import_ascii_for_pcolormesh(
 def import_root_for_imshow(
     root_filename: str,
     histogram_names: str,
-    origin: Literal["auto"] = "auto"
 ) -> apm.ImshowData: ...
 
 
@@ -743,14 +720,12 @@ def import_root_for_imshow(
 def import_root_for_imshow(
     root_filename: str,
     histogram_names: Sequence[str],
-    origin: Literal["auto"] = "auto"
 ) -> tuple[apm.ImshowData, ...]: ...
 
 
 def import_root_for_imshow(
     root_filename: str,
     histogram_names: Union[str, Sequence[str]],
-    origin: Literal["auto"] = "auto"
 ) -> Union[apm.ImshowData,
            tuple[apm.ImshowData, ...]]:
     """
@@ -769,15 +744,6 @@ def import_root_for_imshow(
         e.g., 'path/to/histogram2d'.
         If a list of strings is passed, get multiple 2d histograms from the
         root file
-
-    Other Parameters
-    ----------------
-    origin : ``"auto"``
-        Origin of the image plotted by `plt.imshow
-        <https://matplotlib.org/stable/api/
-        _as_gen/matplotlib.pyplot.imshow.html>`_
-
-        Here for backward compatibility. Leave at ``"auto"``.
 
     Returns
     -------
@@ -806,16 +772,6 @@ def import_root_for_imshow(
             plt.imshow(date, extent=extent),
 
     """
-    if origin == "lower" or origin == "upper":
-        msg = (
-            f"{origin=} is no longer supported. If you want to force "
-            f"{origin=}, set rcParams['image.origin'] to '{origin}'"
-        )
-        raise ValueError(msg)
-    elif origin != "auto":
-        msg = (f"{origin=}, but it must be 'auto'")
-        raise ValueError(msg)
-
     hist2d = load_root_hist2d(root_filename, histogram_names)
     if isinstance(hist2d, aph.Hist2d):
         return hist2d.for_imshow

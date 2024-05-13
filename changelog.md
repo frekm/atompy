@@ -1,3 +1,7 @@
+# v4.0.0
+- Dropped support for `origin` keyword in imshow imports. These functions
+  now always use `plt.rcParams["image.origin"]` as the image's origin.
+
 # v3.0.7
 - Add scipy to requirements list
 - Add atompy.physics.coltrims.ion_tof_calibration

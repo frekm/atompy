@@ -5,7 +5,7 @@ from numpy.typing import NDArray
 from dataclasses import dataclass
 from . import _io as apio
 from ._miscellaneous import get_all_dividers, ImshowData
-from typing import Literal, Optional, Union, overload
+from typing import Literal
 
 
 @dataclass

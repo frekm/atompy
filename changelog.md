@@ -3,6 +3,8 @@
   now always use `plt.rcParams["image.origin"]` as the image's origin.
 - 2D histograms with non-constant bin sizes can now be imported and plotted
   with pcolormesh
+- `import_ascii_for_imshow` and `import_root_for_imshow` now return
+  `ImshowData` (or a tuple thereof)
 
 # v3.0.7
 - Add scipy to requirements list

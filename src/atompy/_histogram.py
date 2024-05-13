@@ -4,7 +4,7 @@ import numpy.typing as npt
 from numpy.typing import NDArray
 from dataclasses import dataclass
 from . import _io as apio
-from ._miscellaneous import get_all_dividers, ImshowData
+from ._miscellaneous import get_all_dividers, ImshowData, PcolormeshData
 from typing import Literal
 
 
@@ -322,9 +322,7 @@ class Hist2d:
     @property
     def for_pcolormesh(
         self
-    ) -> tuple[npt.NDArray[np.float64],
-               npt.NDArray[np.float64],
-               npt.NDArray[np.float64]]:
+    ) -> PcolormeshData:
         """
         Return such that it can be plotted using \
         `plt.pcolormesh <https://matplotlib.org/stable/api/_as_gen/ \
@@ -351,7 +349,7 @@ class Hist2d:
             hist = Hist2d(*np.histogram2d(xsamples, ysamples))
             plt.pcolormesh(*hist.for_pcolormesh)
         """
-        return self.xedges, self.yedges, self.H.T
+        return PcolormeshData(self.xedges, self.yedges, self.H.T)
 
     @property
     def for_imshow(

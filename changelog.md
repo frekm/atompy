@@ -5,6 +5,8 @@
   with pcolormesh
 - `import_ascii_for_imshow` and `import_root_for_imshow` now return
   `ImshowData` (or a tuple thereof)
+- `import_ascii_for_pcolormesh` and `import_root_for_pcolormesh` now return
+  `PcolormeshData` (or a tuple thereof)
 
 # v3.0.7
 - Add scipy to requirements list

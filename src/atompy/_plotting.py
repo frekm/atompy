@@ -22,6 +22,8 @@ MM_PER_INCH = 25.4
 T = TypeVar('T')
 DType = TypeVar("DType")
 
+_change_ratio_has_been_called = False
+
 RED = "#AE1117"
 TEAL = "#008081"
 BLUE = "#2768F5"
@@ -37,7 +39,6 @@ DARK_PURPLE = "#9300FF"
 FOREST_GREEN = "#0B6623"
 BRIGHT_GREEN = "#3BB143"
 
-_change_ratio_has_been_called = False
 
 
 class _Colors(NamedTuple):

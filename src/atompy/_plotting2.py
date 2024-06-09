@@ -127,7 +127,9 @@ class Edges:
         for item in [self.right, self.left, self.top, self.bottom]:
             yield item
 
-    def __getitem__(self, key) -> NDArray[np.float64]:
+    def __getitem__(self, key: Union[int, str]) -> NDArray[np.float64]:
+        if isinstance(key, str):
+            key = ["left", "right", "top", "bottom"].index(key)
         return [self.left, self.right, self.top, self.bottom][key]
 
     def __len__(self) -> int: return 4
@@ -580,7 +582,6 @@ def dashed(
     return 0.0, (dashwidth, spacewidth)
 
 
-
 def add_colorbar(
         mappable: ScalarMappable,
         ax: Optional[Axes] = None,
@@ -689,20 +690,169 @@ def add_colorbar(
     return colorbar
 
 
+def assign_colorbar_to_ax(
+        colorbar: matplotlib.colorbar.Colorbar,
+        ax: Axes,
+        ax1: Optional[Axes] = None,
+        location: Literal["auto", "left", "right", "top", "bottom"] = "auto"
+) -> None:
+    if ax1 is not None:
+        raise NotImplementedError
+    raise NotImplementedError
+
+
 def add_abc(
-        fig: Optional[Figure],
-        xoffset_pts: Union[float, Literal["auto"]],
-        yoffset_pts: Union[float, Literal["auto"]],
-        anchor: Literal["upper left", "upper right",
-                        "lower left", "lower right"] = "upper left",
-        prefix: str = "(",
-        suffix: str = ")",
-        start_at: Literal["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
-                        "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v",
-                        "w", "x", "y", "z"] = "a",
+        fig: Optional[Figure] = None,
+        xoffset_pts: float = 2.0,
+        yoffset_pts: float = -12.0,
+        anchor: Literal["top left", "top right",
+                        "bottom left", "bottom right"] = "top left",
+        labels: Optional[str] = "a b c d e f g h i j k l m n o p q r s t u v w x y z",
+        pre: str = "(",
+        post: str = ")",
+        start_at: int = 0,
         rowsfirst: bool = True,
+        **text_kwargs
 ) -> dict[Axes, Text]:
-    ...
+    """
+    Add labels to all suplots in `fig`.
+
+    By default, adds '(a)', '(b)', ... to each subplot in the upper-right
+    corner.
+
+    Parameters
+    ----------
+    fig : ``matplotlib.figure.Figure``, optional
+        If ``None``, use last active figure.
+
+    xoffset_pts : float, default 2.0
+        Offset in pts from `anchor`. Positive moves right.
+
+    yoffset_pts : float, default -12.0
+        Offset in pts from `anchor`. Positive moves up.
+
+    anchor : {``"top left"``,``"top right"``, ``"bottom left"``, ``"bottom right"``}
+        Specify anchor point of the labels (offsets are relative to this).
+        Refers to the corner of the graph-area of the axes.
+
+    labels : str, optional
+        A string of labels, where each label is seperated by a space.
+
+        If ``None``, use label of the respective axes.
+
+    pre : str, default ``"("``
+        String in front of `labels`. Applies only if `labels` is not ``None``.
+
+    post : str, default ``")"``
+        String after `labels`. Applies only if `labels` is not ``None``.
+
+    start_at : int, default 0
+        Skip `start_at` entries in `labels`. Only applies if `labels` is not
+        ``None``.
+
+    rowsfirst: bool, default ``True``
+        Label rows first, e.g., 'a b c / d e f' instead of 'a c e / b d f'.
+        Only applies if `labels`is not ``None``.
+
+    text_kwargs
+        Additional keyword arguments of ``matplotlib.text.Text``.
+
+    Returns
+    -------
+    text_dict : dict[``matplotlib.axes.Axes``, ``matplotlib.text.Text``]
+        A dictionary with the axes of `fig` as keys and the corresponding
+        text instances added by ``add_abc`` as values.
+
+        Can be used to manipulate the text later (to, e.g., change the color
+        of the text only for certain subplots).
+
+    Notes
+    -----
+    - Cannot handle fancy GridSpecs, e.g., where one
+      subplot spans multiple other subplots.
+      If you need one of those, you're on your own.
+
+    - :func:`make_me_nice` does not see the added labels. If your labels extent
+      further than the current axes dimensions, they will be cut of when calling
+      :func:`make_me_nice`. To alleviate the problem, apply additional margins
+      in :func:`make_me_nice`.
+    """
+    fig = fig or plt.gcf()
+    axs = get_sorted_axes_grid(fig)
+    nrows, ncols = axs.shape
+
+    bboxes_inch = np.empty((nrows, ncols), dtype=Bbox)
+
+    valid_anchors = ["top left", "top right", "bottom left", "bottom right"]
+    if anchor not in valid_anchors:
+        err_msg = (f"{anchor=}, but it needs to be one of {valid_anchors}")
+        raise ValueError(err_msg)
+    topbottom = anchor.split(" ")[0]
+    leftright = anchor.split(" ")[1]
+    refs_hori_inch = np.empty((nrows, ncols), dtype=Bbox)
+    refs_vert_inch = np.empty((nrows, ncols), dtype=Bbox)
+
+    if labels is not None:
+        labels_ = labels.split(" ")
+    text: list[list[str]] = []
+
+    for row in range(nrows):
+        text.append([])
+        for col in range(ncols):
+            bboxes_inch[row, col] = ax_get_position_inch(axs[row, col])
+
+            if leftright == "left":
+                refs_hori_inch[row, col] = bboxes_inch[row, col].x0
+            else:  # right
+                refs_hori_inch[row, col] = bboxes_inch[row, col].x1
+            if topbottom == "top":
+                refs_vert_inch[row, col] = bboxes_inch[row, col].y1
+            else:  # bottom
+                refs_vert_inch[row, col] = bboxes_inch[row, col].y0
+
+            if labels is None:
+                text[row].append(str(axs[row, col].get_label()))
+            else:
+                if rowsfirst:
+                    text[row].append(
+                        pre + labels_[start_at + ncols*row + col] + post)
+                else:
+                    text[row].append(
+                        pre + labels_[start_at + nrows*col + row] + post)
+
+    xoffset_inch = xoffset_pts / PTS_PER_INCH
+    yoffset_inch = yoffset_pts / PTS_PER_INCH
+    x_positions_inch = np.empty((nrows, ncols))
+    y_positions_inch = np.empty((nrows, ncols))
+
+    for row in range(nrows):
+        for col in range(ncols):
+            if leftright == "left":
+                x_positions_inch[row, col] = \
+                    xoffset_inch / bboxes_inch[row, col].width
+            else:
+                x_positions_inch[row, col] = \
+                    1.0 + xoffset_inch / bboxes_inch[row, col].width
+            if topbottom == "top":
+                y_positions_inch[row, col] = \
+                    1.0 + yoffset_inch / bboxes_inch[row, col].height
+            else:
+                y_positions_inch[row, col] = \
+                    yoffset_inch / bboxes_inch[row, col].height
+
+    text_kwargs.setdefault("clip_on", False)
+
+    out: dict[Axes, Text] = {}
+    for row in range(nrows):
+        for col in range(ncols):
+            out[axs[row, col]] = axs[row, col].text(
+                x_positions_inch[row, col],
+                y_positions_inch[row, col],
+                text[row][col],
+                transform=axs[row, col].transAxes,
+                **text_kwargs)
+
+    return out
 
 
 def update_colorbars(fig: Optional[Figure] = None) -> None:
@@ -1304,7 +1454,7 @@ def make_me_nice(
                                     Literal["current"],
                                     Literal["auto"]] = "auto",
     nruns: int = 2,
-    renderer: Optional[RendererBase] = None
+    renderer: Optional[RendererBase] = None,
 ) -> None:
     """
     Optimize space in the figure.
@@ -1626,37 +1776,28 @@ if __name__ == "__main__":
     image = np.arange(9).reshape(3, 3)
 
     fig = plt.figure(figsize=(7, 5))
+    fig, axs = plt.subplot_mosaic(
+        [["a", "b", "c"],
+         ["d", "e", "f"]], figsize=(7, 7))
+    axs: dict[str, Axes]
 
-    axs: list[Axes] = []
-    axs.append(plt.subplot(*grid, 1))
-    axs.append(plt.subplot(*grid, 2))
-    axs.append(plt.subplot(*grid, 3))
-    axs.append(plt.subplot(*grid, 4))
-    axs.append(plt.subplot(*grid, 5))
-    axs.append(plt.subplot(*grid, 6))
+    cm = axs["b"].imshow(image)
 
-
-    cm = axs[1].imshow(image)
-
-    set_axes_size(0.7, 1.2, axs[0], anchor="center")
-    set_axes_size(2.0, 1.5, axs[1], anchor="center")
-    set_axes_size(1.5, 2.0, axs[2], anchor="center")
-    set_axes_size(1.5, 2.0, axs[3], anchor="center")
-    set_axes_size(1.8, 1.8, axs[4], anchor="center")
-    set_axes_size(1.2, 1.2, axs[5], anchor="center")
+    set_axes_size(0.7, 1.2, axs["a"], anchor="center")
+    set_axes_size(2.0, 1.5, axs["b"], anchor="center")
+    set_axes_size(1.5, 2.0, axs["c"], anchor="center")
+    set_axes_size(1.5, 2.0, axs["d"], anchor="center")
+    set_axes_size(1.8, 1.8, axs["e"], anchor="center")
+    set_axes_size(1.2, 1.2, axs["f"], anchor="center")
 
     labels = "00 01 02 10 11 12".split(" ")
-    for i, ax in enumerate(axs):
-        ax.set_label(labels[i])
-        ax.text(0.5, 0.5, labels[i], transform=ax.transAxes)
-#        ax.set_xticks([])
-#        ax.set_yticks([])
 
-    add_colorbar(cm, axs[0], location="top")
-    add_colorbar(cm, axs[1], location="right")
+    add_colorbar(cm, axs["a"], location="top")
+    add_colorbar(cm, axs["b"], location="right")
 
-    make_me_nice(row_pad_pts=0)
+    make_me_nice(margin_pad_pts=(5, 5, 18, 5))
+
+    add_abc(anchor="bottom left")
 
     fig.savefig("../../test/fig.pdf")
     plt.close()
-

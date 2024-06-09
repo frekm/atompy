@@ -1,17 +1,21 @@
-import numpy as np
-from numpy.typing import ArrayLike, NDArray
-from dataclasses import dataclass
-from typing import (Sequence, Union, Any, TypeVar, overload,
-                    Literal, Optional, NamedTuple)
+import io
 import math
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.colors as mplcolor
-import matplotlib.cm as mplcm
-import matplotlib.figure as mplfig
-import matplotlib.axes as mplax
-import matplotlib.text as mpltxt
-import matplotlib.colorbar as mplcb
+from matplotlib.axes import Axes
+from matplotlib.backend_bases import RendererBase
+import matplotlib.colorbar
+from matplotlib.text import Text
+from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.figure import Figure
+from matplotlib.gridspec import SubplotSpec, GridSpec
+from matplotlib.transforms import Bbox
+from matplotlib.cm import ScalarMappable
+import numpy as np
+from numpy.typing import ArrayLike, NDArray
+from typing import Optional, Literal, Union, Any, NamedTuple, Sequence
+from dataclasses import dataclass
+
 
 PTS_PER_INCH = 72.0
 """float: 72 pts = 1 inch"""
@@ -19,10 +23,7 @@ PTS_PER_INCH = 72.0
 MM_PER_INCH = 25.4
 """float: 25.4 mm = 1 inch"""
 
-T = TypeVar('T')
-DType = TypeVar("DType")
-
-_change_ratio_has_been_called = False
+_COLORBAR_LABEL = "atompy colorbar axes"
 
 RED = "#AE1117"
 TEAL = "#008081"
@@ -38,7 +39,6 @@ PURPLE = "#CA8DFD"
 DARK_PURPLE = "#9300FF"
 FOREST_GREEN = "#0B6623"
 BRIGHT_GREEN = "#3BB143"
-
 
 
 class _Colors(NamedTuple):
@@ -58,69 +58,11 @@ class _Colors(NamedTuple):
     bright_green: Literal["#3BB143"]
 
 
-colors = _Colors(
-    RED,
-    BLUE,
-    ORANGE,
-    PINK,
-    GREEN,
-    TEAL,
-    GREY,
-    YELLOW,
-    LEMON,
-    CORN,
-    PURPLE,
-    DARK_PURPLE,
-    FOREST_GREEN,
-    BRIGHT_GREEN
-)
+COLORS = _Colors(
+    RED, BLUE, ORANGE, PINK, GREEN, TEAL, GREY,
+    YELLOW, LEMON, CORN, PURPLE,
+    DARK_PURPLE, FOREST_GREEN, BRIGHT_GREEN)
 
-_cm_whitered_dict = {
-    'red': ((0.0, 1.0, 1.0),
-            (1.0, 0.0, 0.0)),
-    'green': ((0.0, 1.0, 1.0),
-              (1.0, 128. / 255., 128. / 255.)),
-    'blue': ((0.0, 1.0, 1.0),
-             (1.0, 129. / 255., 129. / 255.))}
-cm_whitered = mplcolor.LinearSegmentedColormap(
-    'whitered', _cm_whitered_dict)  # type: ignore
-
-_cm_lmf2root_dict = {
-    'red': [[0.0, 0.0, 0.5],
-            [0.3, 0.0, 0.0],
-            [0.7, 1.0, 1.0],
-            [1.0, 1.0, 1.0]],
-    'green': [[0.0, 0.0, 1.0],
-              [0.3, 0.0, 0.0],
-              [0.7, 0.0, 0.0],
-              [1.0, 1.0, 1.0]],
-    'blue': [[0.0, 0.0, 1.0],
-             [0.3, 1.0, 1.0],
-             [0.7, 0.0, 0.0],
-             [1.0, 0.0, 0.0]]}
-cm_lmf2root = mplcolor.LinearSegmentedColormap(
-    'lmf2root', _cm_lmf2root_dict)  # type: ignore
-mpl.colormaps.register(cm_lmf2root, force=True)
-
-_cm_lmf2root_from_white_dict = {
-    'red': ((0.0, 0.0, 1.0),
-            (0.065, 0.5, 0.5),
-            (0.3, 0.0, 0.0),
-            (0.7, 1.0, 1.0),
-            (1.0, 1.0, 1.0)),
-    'green': ((0.0, 0.0, 1.0),
-              (0.065, 1.0, 1.0),
-              (0.3, 0.5, 0.5),
-              (0.7, 0.0, 0.0),
-              (1.0, 1.0, 1.0)),
-    'blue': ((0.0, 0.0, 1.0),
-             (0.065, 1.0, 1.0),
-             (0.3, 1.0, 1.0),
-             (0.7, 0.0, 0.0),
-             (1.0, 0.0, 0.0))}
-cm_lmf2root_from_white = mplcolor.LinearSegmentedColormap(
-    'lmf2root_from_white', _cm_lmf2root_from_white_dict)  # type: ignore
-mpl.colormaps.register(cm_lmf2root_from_white, force=True)
 
 _font_scalings = {
     'xx-small': 0.579,
@@ -134,449 +76,101 @@ _font_scalings = {
     'smaller': 0.833}
 
 
-@dataclass
-class FigureMargins:
-    left: NDArray[np.float64]
-    right: NDArray[np.float64]
-    top: NDArray[np.float64]
-    bottom: NDArray[np.float64]
+class AliasError(Exception):
+    def __init__(self,
+                 keyword_arg: str,
+                 alias: str):
+        self.keyword_arg = keyword_arg
+        self.alias = alias
 
-    def __iter__(self):
-        return [self.left, self.right, self.top, self.bottom].__iter__()
-
-    def __getitem__(self, index: int) -> NDArray[np.float64]:
-        return [self.left, self.right, self.top, self.bottom][index]
+    def __str__(self):
+        return (f"Both '{self.keyword_arg}' and '{self.alias}' have been "
+                "provided, but they are aliases")
 
 
-@dataclass
-class FigureMarginsFloat:
-    left: float
-    right: float
-    top: float
-    bottom: float
-
-    def __iter__(self):
-        return [self.left, self.right, self.top, self.bottom].__iter__()
-
-    def __getitem__(self, index: int) -> float:
-        return [self.left, self.right, self.top, self.bottom][index]
-
-    def __setitem__(self, index: int, value: float) -> None:
-        if index == 0:
-            self.left = value
-        elif index == 1:
-            self.right = value
-        elif index == 2:
-            self.top = value
-        elif index == 3:
-            self.bottom = value
-        else:
-            raise IndexError
+class FigureWidthTooLargeError(Exception):
+    def __str__(self):
+        return (
+            "New figure width exceeds maximum allowed figure width"
+        )
 
 
 @dataclass
-class FigureLayout:
-    fig_width: float
-    fig_height: float
-    nrows: int
-    ncols: int
-    axes_x0s: NDArray[np.float64]
-    axes_y0s: NDArray[np.float64]
-    axes_x1s: NDArray[np.float64]
-    axes_y1s: NDArray[np.float64]
-    axes_widths: NDArray[np.float64]
-    axes_heights: NDArray[np.float64]
-    ratios: NDArray[np.float64]
-    xpads: NDArray[np.float64]
-    ypads: NDArray[np.float64]
-    margins: FigureMargins
-
-
-@dataclass
-class Colorbar:
-    """
-    atompy's Colorbar class that stores additional information
-
-    Parameters
-    ----------
-    colorbar : `matplotlib.colorbar.Colorbar`
-        A colorbar
-
-    parent_axes : `matplotlib.axes.Axes`
-        The axes to which the colorbar belongs.
-
-    location : `"left"` or `"top"`
-        The location of the colorbar.
-
-    pad_inch : float
-        The padding between `parent_axes` and `colorbar.ax`
-
-    width_inch : float
-        Width of the colorbar.
-    """
-    colorbar: mplcb.Colorbar
-    parent_axes: mplax.Axes
-    location: Literal["left", "top"]
+class _Colorbar:
+    colorbar: matplotlib.colorbar.Colorbar
+    parent_ax: Axes
+    location: Literal["left", "right", "top", "bottom"]
+    thickness_inch: float
     pad_inch: float
-    width_inch: float
 
     @property
-    def ax(self) -> mplax.Axes:
-        """
-        Shortcut for `Colorbar.colorbar.ax`
-
-        Returns
-        -------
-        axes : `matplotlib.axes.Axes`
-            The axes in which the colorbar is placed.
-        """
+    def ax(self) -> Axes:
         return self.colorbar.ax
 
 
+class _ColorbarManager:
+    def __init__(self) -> None:
+        self.colorbars: list[_Colorbar] = []
+
+
+_colorbar_manager = _ColorbarManager()
+
+
 @dataclass
-class ColorbarLarge:
+class Edges:
     """
-    atompy's Colorbar class for colorbars that span multiple axes
+    Wrapper for things that are at the left, right, top, bottom edge of
+    something (e.g., the margins of a ``matplotlib.axes.Axes``.
 
     Parameters
     ----------
-    colorbar : `matplotlib.colorbar.Colorbar`
-        A colorbar
-
-    parent_axes : (`matplotlib.axes.Axes`, `matplot.axes.Axes`)
-        The leftmost/rightmost (topmost/bottommost) axes that the colorbar
-        spans. The *colorbar*-instance belongs to the leftmost (topmost)
-        axes.
-
-    location : `"left"` or `"top"`
-        The location of the colorbar.
-
-    pad_inch : float
-        The padding between `parent_axes` and `colorbar.ax`
-
-    width_inch : float
-        Width of the colorbar.
+    left, right, top, bottom : Any
     """
-    colorbar: mplcb.Colorbar
-    parent_axes: tuple[mplax.Axes, mplax.Axes]
-    location: Literal["left", "top"]
-    pad_inch: float
-    width_inch: float
-
-    @property
-    def ax(self) -> mplax.Axes:
-        """
-        Shortcut for `Colorbar.colorbar.ax`
-        """
-        return self.colorbar.ax
-
-
-@dataclass
-class _Regions:
-    left: list
-    right: list
-    top: list
-    bottom: list
+    left: Any
+    right: Any
+    top: Any
+    bottom: Any
 
     def __iter__(self):
-        return [self.left, self.right, self.top, self.bottom].__iter__()
+        for item in [self.right, self.left, self.top, self.bottom]:
+            yield item
+
+    def __getitem__(self, key: Union[int, str]) -> NDArray[np.float64]:
+        if isinstance(key, str):
+            key = ["left", "right", "top", "bottom"].index(key)
+        return [self.left, self.right, self.top, self.bottom][key]
+
+    def __len__(self) -> int: return 4
 
 
-def flatten(
-    input: Union[Sequence[T],
-                 Sequence[Sequence[T]]]
-) -> list[T]:
+def clear_colorbars() -> None:
     """
-    Flatten a Sequence of Sequences
-
-    Parameters
-    ----------
-    input : Sequence[T] or Sequence of Seqence[T]
-
-    Returns
-    -------
-    output : list[T]
-        The flattened Sequence as a list
-
-    Examples
-    --------
-
-    >>> flatten([[1, 2, 3], [4, 5, 6]])
-    [1, 2, 3, 4, 5, 6]
+    Clear reference to all Colorbars.
     """
-    output: list[T] = []
-    for input_ in input:
-        if isinstance(input_, str):
-            output.append(input_)  # type: ignore
-            continue
-        try:
-            iter(input_)  # type: ignore
-        except TypeError:
-            output.append(input_)  # type: ignore
-        else:
-            output += flatten(input_)  # type: ignore
-    return output
+    del _colorbar_manager.colorbars[:]
 
 
-def return_as_list(
-    input: Union[T,
-                 Sequence[T],
-                 Sequence[Sequence[T]]],
-    desired_length: int = 1
-) -> list[T]:
-    """
-    Check if input is given as a Sequence. If not, return it as a list
-    of length *desired_length*, otherwise return original list
-    """
-    if isinstance(input, str):
-        return [input] * desired_length  # type: ignore
-    try:
-        iter(input)  # type: ignore
-    except TypeError:
-        return [input] * desired_length  # type: ignore
-    return flatten(input)  # type: ignore
-
-
-def get_column(n: int, lst: Sequence[Sequence[T]]) -> list[T]:
-    """
-    Get column *n* of a list of lists
-
-    Parameters
-    ----------
-    n : int
-        the column to get
-
-    lst : list of lists
-        each sublist should have the same length
-
-    Returns
-    -------
-    list
-        A list of the n-th element of each sublist
-
-    Examples
-    --------
-
-    >>> get_column(0, [[1, 2, 3], [4, 5, 6]])
-    [1, 4]
-    >>> get_column(-1, [[1, 2, 3], [4, 5, 6]])
-    [3, 6]
-    """
-    return [sublst[n] for sublst in lst]
-
-
-def reshape(
-    input: Sequence[T],
-    rowscols: Sequence[int]
-) -> list[list[T]]:
-    """
-    Reshape a Sequence to have rowscols[0] rows and rowscols[1] columns
-
-    Parameters
-    ----------
-    input : Sequence
-
-    rowscols : (number of rows, number of columns)
-
-    Returns
-    -------
-    output : list of lists
-
-    Examples
-    --------
-
-    >>> reshape([1, 2, 3, 4, 5, 6], (2, 3))
-    [[1, 2, 3], [4, 5, 6]]
-    """
-    if rowscols[0] * rowscols[1] != len(input):
-        raise ValueError(
-            "reshaping with this *shape* won't work"
-        )
-
-    out: list[list[T]] = []
-    for irow in range(0, len(input), rowscols[1]):
-        out.append([elem for elem in input[irow:irow + rowscols[1]]])
-    return out
-
-
-def transpose(
-    input: Sequence[Sequence[T]]
-) -> Sequence[Sequence[T]]:
-    """
-    Transpose a 2D Sequence
-
-    Parameters
-    ----------
-    input : Sequence[Sequence[T]]
-
-    Returns
-    -------
-    output : list[list[T]]
-        Transposed input
-    """
-    return list(map(list, zip(*input)))
-
-
-def create_colormap(
-    steps: Sequence[float],
-    reds: Sequence[float],
-    greens: Sequence[float],
-    blues: Sequence[float],
-    lut_size: int = 256,
-    cmap_name: str = "MyCmap",
-    register_cmap: bool = False
-) -> mplcolor.LinearSegmentedColormap:
-    """
-    Create a colormap from a specified color Sequence
-
-    Parameters
-    ----------
-    steps : Sequence floats
-        the steps of the colorbar ranging from :code:`0.0` to :code:`1.0`
-
-    reds/greens/blues : Sequence floats
-        The corresponding value of the colors ranging from :code:`0.0` to
-        :code:`1.0`
-
-    n_colors : int, default :code:`256`
-        number of different colors in the colormap
-
-    cmap_name : str, default :code:`"MyCmap"`
-        The name of the colormap instance
-
-    Returns
-    -------
-    :code:`matplotlib.colors.LinearSegmentedColormap`
-
-    Notes
-    -----
-    The colormap can be registered using
-
-    >>> import matplotlib
-    >>> cmap_name = "MyCmap"
-    >>> cmap = create_colormap(*args, cmap_name=cmap_name)
-    >>> matplotlib.colormaps.register(cmap)
-
-    It can then be set as default via rcParams
-
-    >>> matplotlib.rcParams["image.cmap"] = cmap_name
-
-    Examples
-    --------
-    .. code-block:: python
-
-        from atompy import create_colormap
-        import matplotlib.pyplot as plt
-        import numpy as np
-
-        # create colormap starting white going through to red
-        cmap = create_colormap([0.0, 1.0],
-                               [1.0, 1.0],
-                               [1.0, 0.0],
-                               [1.0, 0.0])
-
-        # create colormap starting blue going through white to red
-        cmap = create_colormap([0.0, 0.5, 1.0],
-                               [0.0, 1.0, 1.0],
-                               [0.0, 1.0, 0.0],
-                               [1.0, 1.0, 0.0])
-
-        # plottable with something like this
-        image = np.arange(9).reshape((3, 3))
-        plt.imshow(image, cmap=cmap)
-
-    """
-    if not all(len(steps) == len(l) for l in [reds, greens, blues]):
-        raise ValueError(
-            "lengths of 'steps', 'reds', 'greens', 'blues' need to be equal"
-        )
-    reds_ = [(0.0, 0.0, reds[0])]
-    greens_ = [(0.0, 0.0, greens[0])]
-    blues_ = [(0.0, 0.0, blues[0])]
-    for step, r, g, b in zip(steps, reds, greens, blues):
-        reds_.append((step, r, r))
-        greens_.append((step, g, g))
-        blues_.append((step, b, b))
-
-    cm_dict = {"red": reds_, "green": greens_, "blue": blues_}
-    cmap = mplcolor.LinearSegmentedColormap(
-        cmap_name, cm_dict, N=lut_size)  # type: ignore
-    if register_cmap:
-        mpl.colormaps.register(cmap)
-    return cmap
-
-
-def create_colormap_from_hex(
-    steps: Sequence[float],
-    colors: Sequence[str],
-    lut_size: int = 256,
-    cmap_name: str = "MyCmap"
-) -> mplcolor.LinearSegmentedColormap:
-    """
-    Create a colormap from a color Sequence
-
-    Parameters
-    ----------
-    steps : Sequence floats
-        the steps of the colorbar ranging from :code:`0.0` to :code:`1.0`
-
-    colors : Sequence str
-        The corresponding colors given as hex codes, e.g., :code:`"#FF00FF"`
-
-    n_colors : int, default :code:`256`
-        number of different colors in the colormap
-
-    cmap_name : str, default :code:`"MyCmap"`
-        The name of the colormap instance
-
-    Returns
-    -------
-    :code:`matplotlib.colors.LinearSegmentedColormap`
-
-    Notes
-    -----
-    The colormap can be registered using
-
-    >>> import matplotlib
-    >>> cmap_name = "MyCmap"
-    >>> cmap = create_colormap(*args, cmap_name=cmap_name)
-    >>> matplotlib.colormaps.register(cmap)
-
-    It can then be set as default via rcParams
-
-    >>> matplotlib.rcParams["image.cmap"] = cmap_name
-
-    Examples
-    --------
-    .. code-block:: python
-
-        from atompy import create_colormap_from_hex
-        import matplotlib.pyplot as plt
-        import numpy as np
-
-        # create colormap starting white going through to red
-        cmap = create_colormap_from_hex([0.0, 1.0], ["#FFFFFF", "#FF0000"])
-
-        # create colormap starting blue going through white to red
-        cmap = create_colormap_from_hex([0.0, 0.5, 1.0],
-                                        ["#0000FF", "#FFFFFF", "#FF0000"])
-
-        # plottable with something like this
-        image = np.arange(9).reshape((3, 3))
-        plt.imshow(image, cmap=cmap)
-    """
-    reds, greens, blues = [], [], []
-    for color in colors:
-        reds.append(int(color[1:3], 16) / 255)
-        greens.append(int(color[3:5], 16) / 255)
-        blues.append(int(color[5:], 16) / 255)
-
-    return create_colormap(steps, reds, greens, blues, lut_size=lut_size,
-                           cmap_name=cmap_name)
+cm_lmf2root = LinearSegmentedColormap.from_list(
+    "lmf2root",
+    [(0.0, (0.5, 1.0, 1.0)),
+     (0.3, (0.0, 0.0, 1.0)),
+     (0.7, (1.0, 0.0, 0.0)),
+     (1.0, (1.0, 1.0, 1.0))]
+)
+matplotlib.colormaps.register(cm_lmf2root, force=True)
+cm_lmf2root_from_white = LinearSegmentedColormap.from_list(
+    "lmf2root_from_white",
+    [(0.0, (1.0, 1.0, 1.0)),
+     (0.65, (0.5, 1.0, 1.0)),
+     (0.3, (0.0, 0.0, 1.0)),
+     (0.7, (1.0, 0.0, 0.0)),
+     (1.0, (1.0, 1.0, 1.0))]
+)
+matplotlib.colormaps.register(cm_lmf2root_from_white, force=True)
 
 
 def textwithbox(
-    axes: mplax.Axes,
+    axes: Axes,
     x: float,
     y: float,
     text: str,
@@ -585,14 +179,14 @@ def textwithbox(
     boxedgecolor: str = "black",
     boxedgewidth: float = 0.5,
     **text_kwargs
-) -> mpltxt.Text:
+) -> Text:
     """
     Plot text with matplotlib surrounded by a box. Only works with a
     latex backend
 
     Parameters
     ----------
-    ax : `matplotlib.pyplot.axes`
+    ax : ``matplotlib.axes.Axes``
         the axes
 
     x : float
@@ -607,11 +201,10 @@ def textwithbox(
     pad : float, default: :code:`1.0` (in pts)
         padding between boxedge and text
 
-    boxbackground : :code:`None`, :code:`False`, or str, \
-default: :code:`"white"`
+    boxbackground : ``None``, ``False``, or str, default: ``"white"``
         background of box
 
-        - :code:`None` or :code:`False`: No background color
+        - ``None`` or ``False``: No background color
         - str: latex xcolor named color
 
     boxedgecolor : str, optional, default: :code:`"black"`
@@ -621,14 +214,15 @@ default: :code:`"white"`
     boxedgewidth : float, default :code:`0.5` (in pts)
         edgelinewidth of the box
 
+    **text_kwargs : ``matpotlib.text.Text``
+
     Returns
     -------
-    `matplotlib.text.Text <https://matplotlib.org/stable/api/text_api.html#matplotlib.text.Text>`_
-        The created :code:`matplotib.text.Text` instance
+    text ``matplotlib.text.Text``
+        The text artist.
 
     Other Parameters
     ----------------
-    **text_kwargs : `matpotlib.text.Text <https://matplotlib.org/stable/api/text_api.html#matplotlib.text.Text>`_ \
 properties
         Other miscellaneous text parameters
     """
@@ -640,18 +234,6 @@ properties
     else:
         text = r"%s\fbox{%s}" % (sep + rule, text)
     return axes.text(x, y, text, **text_kwargs)
-
-
-class AliasError(Exception):
-    def __init__(self,
-                 keyword_arg: str,
-                 alias: str):
-        self.keyword_arg = keyword_arg
-        self.alias = alias
-
-    def __str__(self):
-        return (f"Both '{self.keyword_arg}' and '{self.alias}' have been "
-                "provided, but they are aliases")
 
 
 def _set_lw_fs_lh(
@@ -699,9 +281,9 @@ def dotted(
 
     Parameters
     ----------
-    linewidth (or lw) : float, optional, default: rcParams["lines.linewidth"]
+    linewidth (or lw) : float, optional, default: ``rcParams["lines.linewidth"]``
 
-    fontsize : float or str, Optional, default: rcParams["legend.fontsize"]
+    fontsize : float or str, Optional, default: ``rcParams["legend.fontsize"]``
         The fontsize used in the legend
 
         - float: fontsize in pts
@@ -709,8 +291,7 @@ def dotted(
           :code:`"medium"`, :code:`"large"`, :code:`"x-large"`, 
           :code:`"xx-large"`, :code:`"larger"`, or :code:`"smaller"`
 
-    legend_handlelength (or lh) : float, default \
-:code:`rcParams["legend.handlelength"]`
+    legend_handlelength (or lh) : float, default ``rcParams["legend.handlelength"]``
         Length of the legend handles (the dotted line, in this case) in font
         units
 
@@ -721,7 +302,7 @@ def dotted(
 
     Examples
     --------
-    ::
+    .. code-block:: python
 
         import matplotlib.pyplot as plt
         import atompy as ap
@@ -781,9 +362,9 @@ def dash_dotted(
     n_dashes : int, default: 3
         Number of dashes drawn
 
-    linewidth (or lw) : float, optional, default: `rcParams["lines.linewidth"]`
+    linewidth (or lw) : float, optional, default: ``rcParams["lines.linewidth"]``
 
-    fontsize : float or str, Optional, default: `rcParams["legend.fontsize"]`
+    fontsize : float or str, Optional, default: ``rcParams["legend.fontsize"]``
         The fontsize used in the legend
 
         - float: fontsize in pts
@@ -791,8 +372,7 @@ def dash_dotted(
           :code:`"medium"`, :code:`"large"`, :code:`"x-large"`, 
           :code:`"xx-large"`, :code:`"larger"`, or :code:`"smaller"`
 
-    legend_handlelength (or 'lh') : float, default \
-:code:`rcParams["legend.handlelength"]`
+    legend_handlelength (or 'lh') : float, default :code:`rcParams["legend.handlelength"]`
         Length of the legend handles (the dotted line, in this case) in font
         units
 
@@ -800,6 +380,10 @@ def dash_dotted(
     -------
     tuple : (float, (float, float, float, float))
         tuple to be used as linetype in plotting
+
+    Examples
+    --------
+    See :func:`.dotted`.
     """
     lw_, fs_, lh_ = _set_lw_fs_lh(
         linewidth, fontsize, legend_handlelength, **aliases)
@@ -856,6 +440,10 @@ def dashed(
     -------
     (float, (float, float, float, float))
         tuple to be used as linetype in plotting
+
+    Examples
+    --------
+    See :func:`.dotted`.
     """
     lw_, fs_, lh_ = _set_lw_fs_lh(
         linewidth, fontsize, legend_handlelength, **aliases)
@@ -869,1759 +457,1239 @@ def dashed(
     return 0.0, (dashwidth, spacewidth)
 
 
-def emarker(**kwargs) -> dict:
+def add_colorbar(
+        mappable: ScalarMappable,
+        ax: Optional[Axes] = None,
+        location: Literal["left", "right", "top", "bottom"] = "right",
+        thickness_pts: Optional[float] = None,
+        pad_pts: Optional[float] = None,
+) -> matplotlib.colorbar.Colorbar:
     """
-    Use to change the default format of markers with errorbars
+    Add a colorbar to `axes`.
+
+    Create a new ``matplotlib.axes.Axes`` next to `ax` with the same height
+    (or width), then plot a ``matplotlib.color.Colorbar`` in it.
 
     Parameters
     ----------
-    **kwargs : `matplotlib.lines.Line2D` properties
-        These keyword parameters overwrite the default parameters of this
-        fuction
+    mappable : ``matplotlib.cm.ScalarMappable``
+        The colormap described by this colorbar.
+
+        For mor information, see
+        `matplotlib.pyplot.colorbar <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.colorbar.html>`_.
+
+    ax : ``matplotlib.axes.Axes``, optional
+        The axes to which the colorbar is added.
+
+        If ``None``, use currently active axes.
+
+    location : {'left', 'right', 'top', 'bottom'}, default: ``right``
+        Location of the colorbar relative to `ax`.
+
+    thickness_pts : float, optional
+        The thickness of the colorbar in pts.
+
+        If ``None``, the width will be 5% of the current width (or height,
+        depending on `location`) of the axes.
+
+    pad_pts : float, optional
+        The pad between the colorbar and `axes` in pts.
+
+        If ``None``, the pad will be 60% of `thickness_pts`.
 
     Returns
     -------
-    dict
-        A dictionary containing default parameters
-    """
-    rtn_dict = dict(kwargs)
-
-    if not ("color" in kwargs or "c" in kwargs):
-        rtn_dict["color"] = "k"
-
-    if not ("markeredgecolor" in kwargs or "mec" in kwargs):
-        try:
-            color = rtn_dict["color"]
-        except KeyError:
-            color = rtn_dict["c"]
-        rtn_dict["markeredgecolor"] = color
-
-    rtn_dict.setdefault("elinewidth", 0.5)
-    rtn_dict.setdefault("capthick", rtn_dict["elinewidth"])
-    rtn_dict.setdefault("capsize", 1.5)
-    rtn_dict.setdefault("marker", "o")
-
-    if not ("markersize" in kwargs or "ms" in kwargs):
-        rtn_dict["markersize"] = 2.0
-
-    if not ("linestyle" in kwargs or "ls" in kwargs):
-        rtn_dict["linestyle"] = None
-
-    if not ("linewidth" in kwargs or "lw" in kwargs):
-        rtn_dict["linewidth"] = 0.0
-
-    return rtn_dict
-
-
-def get_equal_tick_distance(
-    limits: Sequence[float],
-    n: int = 3
-) -> NDArray[np.float_]:
-    """
-    Calculate ticks for *n* number of ticks from *limits[0]* to
-    *limits[1]*
-
-    Parameters
-    ----------
-    limits : (float, float)
-        the minimum and maximum
-
-    n : int, default: 3
-        Number of equally spaced ticks
-
-    Returns
-    -------
-    `np.ndarray <https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html>`_
-        The values where the ticks need to be placed
-    """
-    spacing = (limits[1] - limits[0]) / (n - 1)
-    return np.array([limits[0] + i * spacing for i in range(n)])
-
-
-def equalize_xtick_distance(
-        axes: mplax.Axes,
-        n: int = 4,
-        limits: Optional[Sequence[float]] = None
-) -> NDArray[np.float_]:
-    """
-    Draw *n_ticks* number of ticks from 
-
-    Parameters
-    ----------
-    ax : :code:`matplotlib.axes.Axes`
-        The axes to change the xticks from
-
-    n : int, default :code:`4`
-        Number of equally spaced ticks
-
-    limits : (float, float), optional
-        the limits inbetween to equalize.
-
-    Returns
-    -------
-    :code:`numpy.ndarray`
-        The values where the ticks are placed
-    """
-    limits = limits or axes.get_xlim()
-    ticks = get_equal_tick_distance(limits, n)
-    axes.set_xticks(ticks)
-    return ticks
-
-
-def equalize_ytick_distance(
-        axes: mplax.Axes,
-        n: int = 4,
-        limits: Optional[Sequence[float]] = None
-) -> NDArray[np.float_]:
-    """
-    Draw *n_ticks* number of ticks from *limits[0]* to *limits[1]*
-
-    Parameters
-    ----------
-    ax : `matplotlib.axes.Axes`
-        The axes to change the yticks from
-
-    n : int, default: :code:`4`
-        Number of equally spaced ticks
-
-    limits : (float, float), optional
-        the limits inbetween to equalize
-
-    Returns
-    -------
-    `numpy.ndarray`
-        The values where the ticks are placed
-    """
-    limits = limits or axes.get_ylim()
-    ticks = get_equal_tick_distance(limits, n)
-    axes.set_yticks(ticks)
-    return ticks
-
-
-def get_figure_layout(
-    figure: mplfig.Figure,
-    axes: list[list[mplax.Axes]],
-    unit: Literal["mm", "inch", "pts"]
-) -> FigureLayout:
-    """
-    Get the layout of the *figure* with *axes*
-
-    Parameters
-    ----------
-    figure : `matplotlib.figure.Figure`
-
-    axes : list[list[`matplotlib.axes.Axes`]]
-
-    unit : "mm", "inch", "pts"
-
-    Returns
-    -------
-    `FigureLayout`
-        Named tuple (fig_width, fig_height, nrows, ncols, axes_width,
-        axes_height", xpad, ypad, margins)
-    """
-    if unit not in ["mm", "inch", "pts", "relative"]:
-        raise ValueError(
-            f"{unit=} needs to be either 'mm', 'inch' or 'pts' instead"
-        )
-    if unit == "mm":
-        convert_factor = MM_PER_INCH
-    elif unit == "pts":
-        convert_factor = PTS_PER_INCH
-    else:
-        convert_factor = 1.0
-
-    fw = 1.0 if unit == "relative" \
-        else figure.get_size_inches()[0] * convert_factor
-    fh = 1.0 if unit == "relative" \
-        else figure.get_size_inches()[1] * convert_factor
-    nrows, ncols = len(axes), len(axes[0])
-    aw = np.empty((nrows, ncols))
-    ah = np.empty((nrows, ncols))
-    x0s = np.empty((nrows, ncols))
-    y0s = np.empty((nrows, ncols))
-    x1s = np.empty((nrows, ncols))
-    y1s = np.empty((nrows, ncols))
-    ratio = np.empty((nrows, ncols))
-    for irow in range(nrows):
-        for icol in range(ncols):
-            x0s[irow, icol] = (axes[irow][icol].get_position().x0 * fw)
-            y0s[irow, icol] = (axes[irow][icol].get_position().y0 * fh)
-            x1s[irow, icol] = (axes[irow][icol].get_position().x1 * fw)
-            y1s[irow, icol] = (axes[irow][icol].get_position().y1 * fh)
-            aw[irow, icol] = (axes[irow][icol].get_position().width * fw)
-            ah[irow, icol] = (axes[irow][icol].get_position().height * fh)
-
-            ratio[irow, icol] = ah[irow, icol] / aw[irow, icol]
-
-    xpad = np.empty((nrows, ncols - 1))
-    ypad = np.empty((nrows - 1, ncols))
-    for irow in range(nrows):
-        for icol in range(ncols - 1):
-            xpad[irow, icol] = ((axes[irow][icol + 1].get_position().x0
-                                 - axes[irow][icol].get_position().x1)
-                                * fw)
-    for irow in range(nrows - 1):
-        for icol in range(ncols):
-            ypad[irow, icol] = ((axes[irow][icol].get_position().y0
-                                 - axes[irow + 1][icol].get_position().y1)
-                                * fh)
-
-    margins = FigureMargins(
-        left=np.array([ax.get_position().x0 * fw
-                       for ax in get_column(0, axes)]),
-        right=np.array([(1.0 - ax.get_position().x1) * fw
-                        for ax in get_column(-1, axes)]),
-        top=np.array([(1.0 - ax.get_position().y1) * fh
-                      for ax in axes[0]]),
-        bottom=np.array([ax.get_position().y0 * fh
-                         for ax in axes[-1]]))
-
-    return FigureLayout(fig_width=fw, fig_height=fh,
-                        nrows=nrows, ncols=ncols,
-                        axes_x0s=x0s, axes_y0s=y0s,
-                        axes_x1s=x1s, axes_y1s=y1s,
-                        axes_widths=aw, axes_heights=ah, ratios=ratio,
-                        xpads=xpad, ypads=ypad,
-                        margins=margins)
-
-
-def convert_figure_layout_to_relative(layout: FigureLayout) -> FigureLayout:
-    """ Convert a figure layout to relative units (everything from 0 to 1) """
-    margins = FigureMargins(
-        layout.margins.left / layout.fig_width,
-        layout.margins.right / layout.fig_width,
-        layout.margins.top / layout.fig_height,
-        layout.margins.bottom / layout.fig_height)
-    return FigureLayout(
-        1.0, 1.0,
-        layout.nrows, layout.ncols,
-        layout.axes_x0s / layout.fig_width,
-        layout.axes_y0s / layout.fig_height,
-        layout.axes_x1s / layout.fig_width,
-        layout.axes_y1s / layout.fig_height,
-        layout.axes_widths / layout.fig_width,
-        layout.axes_heights / layout.fig_height,
-        layout.ratios,
-        layout.xpads / layout.fig_width, layout.ypads / layout.fig_height,
-        margins)
-
-
-def _determine_aw(
-    grid: tuple[int, int],
-    fig_width: float,
-    xpad: float,
-    margins: FigureMarginsFloat
-) -> float:
-    total_xpad = (grid[1] - 1) * xpad
-    space_for_axes = fig_width - (margins.left + margins.right + total_xpad)
-    return space_for_axes / grid[1]
-
-
-def _determine_xpad(
-    grid: tuple[int, int],
-    fig_width: float,
-    axes_width: float,
-    margins: FigureMarginsFloat
-) -> float:
-    leftover = fig_width - (
-        grid[1] * axes_width + margins.left + margins.right)
-    return leftover / (grid[1] - 1)
-
-
-def _determine_fw(
-    grid: tuple[int, int],
-    xpad: float,
-    axes_width: float,
-    margins: FigureMarginsFloat
-) -> float:
-    return margins[0] + margins[1] + (grid[1] - 1) * xpad \
-        + grid[1] * axes_width
-
-
-def _determine_lr_margins(
-    grid: tuple[int, int],
-    xpad: float,
-    fig_width: float,
-    axes_width: float,
-    margins: FigureMarginsFloat
-) -> FigureMarginsFloat:
-    leftover = fig_width - (grid[1] - 1) * xpad + grid[1] * axes_width
-    return FigureMarginsFloat(leftover / 2.0, leftover / 2.0,
-                              margins.top, margins.bottom)
-
-
-@overload
-def subplots(
-    nrows: int = 1,
-    ncols: int = 1,
-    axes_width: Optional[float] = None,
-    margins: ArrayLike = (35.0, 15.0, 5.0, 35.0),
-    xpad: Optional[float] = 45.0,
-    ypad: Optional[float] = 35.0,
-    fig_width: Optional[float] = None,
-    ratio: float = 1.618,
-    projections: Optional[Union[str, list[Union[str, None]]]] = None,
-    axes_width_unit: str = "mm",
-    margins_unit: str = "pts",
-    pads_unit: str = "pts",
-    fig_width_unit: str = "mm",
-    axes_zorder: Optional[float] = 10000.0,
-    unroll: Literal[False] = False,
-) -> tuple[mplfig.Figure, list[list[mplax.Axes]]]: ...
-
-
-@overload
-def subplots(
-    nrows: int = 1,
-    ncols: int = 1,
-    axes_width: Optional[float] = None,
-    margins: ArrayLike = (35.0, 15.0, 5.0, 35.0),
-    xpad: Optional[float] = 45.0,
-    ypad: Optional[float] = 35.0,
-    fig_width: Optional[float] = None,
-    ratio: float = 1.618,
-    projections: Optional[Union[str, list[Union[str, None]]]] = None,
-    axes_width_unit: str = "mm",
-    margins_unit: str = "pts",
-    pads_unit: str = "pts",
-    fig_width_unit: str = "mm",
-    axes_zorder: Optional[float] = 10000.0,
-    *,
-    unroll: Literal[True],
-) -> tuple[mplfig.Figure, Any]: ...
-
-
-@overload
-def subplots(
-    nrows: int = 1,
-    ncols: int = 1,
-    axes_width: Optional[float] = None,
-    margins: ArrayLike = (35.0, 15.0, 5.0, 35.0),
-    xpad: Optional[float] = 45.0,
-    ypad: Optional[float] = 35.0,
-    fig_width: Optional[float] = None,
-    ratio: float = 1.618,
-    projections: Optional[Union[str, list[Union[str, None]]]] = None,
-    axes_width_unit: str = "mm",
-    margins_unit: str = "pts",
-    pads_unit: str = "pts",
-    fig_width_unit: str = "mm",
-    axes_zorder: Optional[float] = 10000.0,
-    unroll: Literal[True] = True,
-) -> tuple[mplfig.Figure, Any]: ...
-
-
-def subplots(
-    nrows: int = 1,
-    ncols: int = 1,
-    axes_width: Optional[float] = None,
-    margins: ArrayLike = (35.0, 15.0, 5.0, 35.0),
-    xpad: Optional[float] = 45.0,
-    ypad: Optional[float] = 35.0,
-    fig_width: Optional[float] = None,
-    ratio: float = 1.618,
-    projections: Optional[Union[str, list[Union[str, None]]]] = None,
-    axes_width_unit: str = "mm",
-    margins_unit: str = "pts",
-    pads_unit: str = "pts",
-    fig_width_unit: str = "mm",
-    axes_zorder: Optional[float] = 10000.0,
-    unroll: bool = False,
-) -> Union[tuple[mplfig.Figure,
-                 list[list[mplax.Axes]]],
-           tuple[mplfig.Figure,
-                 Any]]:
-    """
-    Create a :code:`matplotlib.figure.Figure` with *nrows* times *ncols*
-    subaxes and fixed margins, ratios, and pads.
-
-    Parameters
-    ----------
-
-    nrows : int, default :code:`1`
-        Number of rows of axes in the figure
-
-    ncols : int, default :code:`1`
-        Number of columns of axes in the figure
-
-    axes_width : float or :code:`None`, default :code:`45`
-        Width of all axes. Units are specified by *axes_width_unit*.
-        If `None`, determine width corresponding to fig_width, xpad and margins
-
-    margins : (float, float, float, float), default :code:`(35, 15, 5, 35)`
-        Left, right, top, bottom margins. Units are specified by *margins_unit*
-
-    xpad : float or :code:`None`, default :code:`35.0`
-        Horizontal space between axes. Units are specified by *pads_unit*.
-        If `None`, determine width corresponding to fig_width, axes_width
-        and margins
-
-    ypad : float or :code:`None`, default :code:`25`
-        Vertical space between axes. Units are specified by *pads_unit*
-        If `None`, use same as xpad
-
-    fig_width : float or :code:`None`, default :code:`None`
-        Width of the figure. Units are specified by *fig_width_unit*.
-        If `None`, determine width corresponding to axes_width, xpad and
-        margins
-
-    ratio : float, default :code:`1.618`
-        Axes width / axes height
-
-    projection : :code:`"aitoff"`, :code:`"hammer"`, :code:`"lambert"`, \
-:code:`"mollweide"`, :code:`"polar"`, :code:`"rectilinear"`, str,\
-or list thereof, optional
-        The projection type of the `matplotlib.axes.Axes`. *str* is the name of
-        a custom projection, see `matplotlib.projections <https://matplotlib.
-        org/stable/api/projections_api.html>`_. The default
-        :code:`None` results in a *rectilinear* projection.
-
-    axes_width_unit : :code:`"inch"`, :code:`"pts"` or :code:`"mm"`, \
-default :code:`"mm"`
-        Unit of *axes_width*
-
-    margins_unit : :code:`"inch"`, :code:`"pts"` or :code:`"mm"`, \
-default :code:`"pts"`
-        Unit of *margins*
-
-    pads_unit : :code:`"inch"`, :code:`"pts"` or :code:`"mm"`, \
-default :code:`"pts"`
-        Units of *xpad* and *ypad*
-
-    fig_width_unit : :code:`"inch"`, :code:`"pts"` or :code:`"mm"`, \
-default :code:`"mm"`
-        Unit of *fig_width*
-
-    axis_zorder : float, optional, default :code:`10000.0` (because why not)
-        Set zorder of the axes spines to this value
-
-    unroll : bool, default :code:`False`
-        Unroll 2D list of axes if possible.
-
-        - if *nrows* and *ncols* are both 1, return an axes 
-        - if either only *nrows* or *ncols* are 1, return a 1D list of
-          axes.
-
-    Returns
-    -------
-    `matplotlib.figure.Figure <https://matplotlib.org/3.3.4/api/_as_gen/matplotlib.figure.Figure.html>`_
-        The figure
-
-    list[list[`matplotlib.axes.Axes <https://matplotlib.org/stable/api/axes_api.html>`_]]
-        A two-dimensional list, where the first index refers to columns, the
-        second index to rows.
-
-        If *unroll* is :code:`True`, output may change depending on 
-        *ncols* and *nrows*.
+    colorbar : ``matplotlib.colorbar.Colorbar``
 
     Examples
     --------
+    .. code-block:: python
 
-    .. plot:: _examples/subplots.py
-        :include-source:
+        im = plt.imshow()
+        ap.add_colorbar(im)
 
+        fig, axs = plt.subplots(1, 2)
+
+        im0 = axs[0].imshow()
+        im1 = axs[1].imshow()
+
+        cb0 = ap.add_colorbar(im0, axs[0], location="top")
+        cb1 = ap.add_colorbar(im1, axs[1], location="bottom")
+
+        for cb in [cb0, cb1]:
+            cb.set_label("Colorbar Label")
     """
-    XPAD_DEF = 45.0 / PTS_PER_INCH
-    AW_DEF = 45.0 / MM_PER_INCH
-    # check and convert every layout parameters to inches if they are not None
-    valid_units = ["mm", "pts", "inch"]
-    for unit in [fig_width_unit, axes_width_unit, pads_unit, margins_unit]:
-        if unit not in valid_units:
-            raise ValueError(
-                f"Invalid unit specifier. "
-                f"Valid options are 'mm', 'pts', 'inch'"
-            )
+    valid_positions = ["left", "right", "top", "bottom"]
+    if location not in valid_positions:
+        msg = f"{location=}, but it should be in {valid_positions}"
+        raise ValueError(msg)
 
-    if fig_width_unit == "pts" and fig_width is not None:
-        fig_width = fig_width / PTS_PER_INCH
-    elif fig_width_unit == "mm" and fig_width is not None:
-        fig_width = fig_width / MM_PER_INCH
+    DEFAULT_THICKNESS = 0.05
+    DEFAULT_PAD = 0.6
 
-    if axes_width_unit == "pts" and axes_width is not None:
-        axes_width = axes_width / PTS_PER_INCH
-    elif axes_width_unit == "mm" and axes_width is not None:
-        axes_width = axes_width / MM_PER_INCH
+    ax = ax or plt.gca()
+    fig = plt.gcf()
+    fig_width, fig_height = fig.get_size_inches()
+    bbox = ax.get_position()
 
-    if pads_unit == "pts":
-        xpad = xpad / PTS_PER_INCH if xpad else xpad
-        ypad = ypad / PTS_PER_INCH if ypad else ypad
-    elif pads_unit == "mm":
-        xpad = xpad / MM_PER_INCH if xpad else xpad
-        ypad = ypad / MM_PER_INCH if ypad else ypad
+    if location in ["left", "right"]:
+        fig_size = fig_width
+        bbox_size = bbox.width
+    elif location in ["top", "bottom"]:
+        fig_size = fig_height
+        bbox_size = bbox.height
 
-    try:
-        iter(margins)  # type: ignore
-    except TypeError:
-        margins_ = FigureMarginsFloat(*[margins] * 4)  # type: ignore
+    if thickness_pts is None:
+        thickness = bbox_size * DEFAULT_THICKNESS
     else:
-        margins_ = FigureMarginsFloat(*margins)  # type: ignore
+        thickness = thickness_pts / PTS_PER_INCH / fig_size
 
-    if margins_unit == "pts":
-        margins_ = FigureMarginsFloat(*[m / PTS_PER_INCH for m in margins_])
-    if margins_unit == "mm":
-        margins_ = FigureMarginsFloat(*[m / MM_PER_INCH for m in margins_])
-
-    grid = (nrows, ncols)
-
-    # figure out all layout parameters
-
-    if grid[1] == 1:  # xpad not utilized since only one axes
-        if xpad is None:
-            xpad = XPAD_DEF
-
-        if fig_width is not None and axes_width is not None:
-            raise ValueError(
-                "Both fw and aw are provided and there is only one "
-                "column. I don't know what to adjust"
-            )
-
-        elif fig_width is not None and axes_width is None:
-            axes_width = _determine_aw(grid, fig_width, xpad, margins_)
-
-        elif fig_width is None and axes_width is None:
-            axes_width = AW_DEF
-            fig_width = _determine_fw(grid, xpad, axes_width, margins_)
-
-        elif fig_width is None and axes_width is not None:
-            fig_width = _determine_fw(grid, xpad, axes_width, margins_)
-
+    if pad_pts is None:
+        pad = thickness * DEFAULT_PAD
     else:
-        if fig_width is not None \
-                and axes_width is not None and xpad is not None:
-            margins_ = _determine_lr_margins(
-                grid, xpad, fig_width, axes_width, margins_)
+        pad = pad_pts / PTS_PER_INCH / fig_size
 
-        elif fig_width is not None and axes_width is not None and xpad is None:
-            xpad = _determine_xpad(grid, fig_width, axes_width, margins_)
+    if location == "left":
+        height = bbox.height
+        width = thickness
+        x0 = bbox.x0 - pad - width
+        y0 = bbox.y0
 
-        elif fig_width is not None and axes_width is None and xpad is not None:
-            axes_width = _determine_aw(grid, fig_width, xpad, margins_)
+    elif location == "right":
+        width = thickness
+        height = bbox.height
+        x0 = bbox.x1 + pad
+        y0 = bbox.y0
 
-        elif fig_width is not None and axes_width is None and xpad is None:
-            axes_width = AW_DEF
-            axes_width = _determine_xpad(grid, fig_width, axes_width, margins_)
+    elif location == "top":
+        width = bbox.width
+        height = thickness
+        x0 = bbox.x0
+        y0 = bbox.y1 + pad
 
-        elif fig_width is None and axes_width is not None and xpad is not None:
-            fig_width = _determine_fw(grid, xpad, axes_width, margins_)
+    elif location == "bottom":
+        width = bbox.width
+        height = thickness
+        x0 = bbox.x0
+        y0 = bbox.y0 - pad - height
 
-        elif fig_width is None and axes_width is not None and xpad is None:
-            xpad = XPAD_DEF
-            fig_width = _determine_fw(grid, xpad, axes_width, margins_)
+    colorbar_axes = fig.add_axes(
+        (x0, y0, width, height), label=_COLORBAR_LABEL)
+    colorbar = fig.colorbar(mappable, cax=colorbar_axes, location=location)
 
-        elif fig_width is None and axes_width is None and xpad is not None:
-            axes_width = AW_DEF
-            fig_width = _determine_fw(grid, xpad, axes_width, margins_)
-
-        elif fig_width is None and axes_width is None and xpad is None:
-            axes_width = AW_DEF
-            xpad = XPAD_DEF
-            axes_width = _determine_fw(grid, xpad, axes_width, margins_)
-
-    # if any layout parameters are still None (except ypad), something went
-    # wrong
-    if xpad is None or fig_width is None or axes_width is None:
-        raise RuntimeError("something went wrong with layout algorithm")
-
-    if ypad is None:
-        ypad = xpad
-
-    layout_width = ((grid[1] - 1) * xpad + grid[1] * axes_width + margins_.left
-                    + margins_.right)
-    if (layout_width >= fig_width + 0.0005 or fig_width <= 0
-            or axes_width <= 0 or xpad < 0):
-        print("\n\nLayout too big for fw\n")
-
-    axes_height = axes_width / ratio
-    fig_height = (margins_.top + margins_.bottom + (grid[0] - 1) * ypad
-                  + grid[0] * axes_height)
-
-    if isinstance(projections, list):
-        if len(projections) != grid[0] * grid[1]:
-            raise ValueError(
-                f"{len(projections)=} must match number "
-                f"of axes={grid[0]*grid[1]}"
-            )
-    else:
-        projections = [projections] * grid[0] * grid[1]
-
-    # layout is now set
-    # move on to actually create the figure and axes
-    fig = plt.figure(figsize=(fig_width, fig_height))
-
-    axes_height_rel = axes_height / fig_height  # relative coordinates
-    axes_width_rel = axes_width / fig_width
-    xpad_rel = xpad / fig_width
-    ypad_rel = ypad / fig_height
-    margins_rel = FigureMarginsFloat(
-        margins_.left / fig_width, margins_.right / fig_width,
-        margins_.top / fig_height, margins_.bottom / fig_height)
-
-    origins = np.empty((grid[0], grid[1], 2))
-    y0 = 1.0 - margins_rel.top - axes_height_rel
-    for irow in range(grid[0]):
-        x0 = margins_rel.left
-        for icol in range(grid[1]):
-            origins[irow, icol, 0] = x0
-            origins[irow, icol, 1] = y0
-            x0 += axes_width_rel + xpad_rel
-        y0 -= ypad_rel + axes_height_rel
-
-    axes: list[list[mplax.Axes]] = []
-    for irow in range(grid[0]):
-        axes.append([])
-        for icol in range(grid[1]):
-            axes[-1].append(
-                fig.add_axes((origins[irow, icol, 0],
-                              origins[irow, icol, 1],
-                              axes_width_rel,
-                              axes_height_rel),
-                             projection=projections[irow * grid[1] + icol]))
-            if axes_zorder is not None:
-                for _, spine in axes[-1][-1].spines.items():
-                    spine.set_zorder(axes_zorder)
-
-    if unroll and ncols == 1 and nrows == 1:
-        return fig, axes[0][0]
-    elif unroll and ncols == 1 and nrows != 1:
-        return fig, transpose(axes)[0]
-    elif unroll and ncols != 1 and nrows == 1:
-        return fig, axes[0]
-    else:
-        return fig, axes
+    _colorbar_manager.colorbars.append(
+        _Colorbar(colorbar, ax, location, thickness*fig_size, pad*fig_size)
+    )
+    return colorbar
 
 
-def _update_colorbar_position(
-    colorbar: Union[Colorbar, ColorbarLarge],
-    fig_width_inches: float,
-    fig_height_inches: float
+def assign_colorbar_to_ax(
+        colorbar: matplotlib.colorbar.Colorbar,
+        ax: Axes,
+        ax1: Optional[Axes] = None,
+        location: Literal["auto", "left", "right", "top", "bottom"] = "auto"
 ) -> None:
-    """ Update *colorbar* position to fit *colorbar.parent_axes* """
-    pos_cb = colorbar.colorbar.ax.get_position()
-
-    if isinstance(colorbar, Colorbar):
-        pos_ax = colorbar.parent_axes.get_position()
-        if colorbar.location == "right":
-            colorbar.colorbar.ax.set_position([
-                pos_ax.x1 + colorbar.pad_inch / fig_width_inches,
-                pos_ax.y0,
-                pos_cb.width,
-                pos_ax.height])
-        else:  # location == "top"
-            colorbar.colorbar.ax.set_position((
-                pos_ax.x0,
-                pos_ax.y1 + colorbar.pad_inch / fig_height_inches,
-                pos_ax.width,
-                pos_cb.height))
-
-    else:  # colorbar == ColorbarLarge
-        bbox_ax_0 = colorbar.parent_axes[0].get_position()
-        bbox_ax_1 = colorbar.parent_axes[1].get_position()
-
-        if colorbar.location == "right":
-            colorbar.colorbar.ax.set_position([
-                bbox_ax_1.x1 + colorbar.pad_inch / fig_width_inches,
-                bbox_ax_1.y0,
-                pos_cb.width,
-                bbox_ax_0.y1 - bbox_ax_1.y0])
-        else:  # location == "top"
-            colorbar.colorbar.ax.set_position((
-                bbox_ax_0.x0,
-                bbox_ax_0.y1 + colorbar.pad_inch / fig_height_inches,
-                bbox_ax_1.x1 - bbox_ax_0.x0,
-                pos_cb.height))
+    if ax1 is not None:
+        raise NotImplementedError
+    raise NotImplementedError
 
 
-def _get_offsets(
-    figure: mplfig.Figure,
-    edge_axes: _Regions,
-    renderer,
-) -> FigureMarginsFloat:
-    tight_bboxes = _Regions(
-        [ax.get_tightbbox(renderer) for ax in edge_axes.left],
-        [ax.get_tightbbox(renderer) for ax in edge_axes.right],
-        [ax.get_tightbbox(renderer) for ax in edge_axes.top],
-        [ax.get_tightbbox(renderer) for ax in edge_axes.bottom])
-
-    fw_inch, fh_inch = figure.get_size_inches()
-    fw_px, fh_px = fw_inch * figure.get_dpi(), fh_inch * figure.get_dpi()
-
-    all_offsets = FigureMargins(
-        np.array([b.x0 / fw_px * fw_inch for b in tight_bboxes.left]),
-        np.array([(fw_px - b.x1) / fw_px * fw_inch for b in tight_bboxes.right]),
-        np.array([(fh_px - b.y1) / fh_px * fh_inch for b in tight_bboxes.top]),
-        np.array([b.y0 / fh_px * fh_inch for b in tight_bboxes.bottom]))
-
-    relevant_offsets = FigureMarginsFloat(
-        *[np.min(o) for o in all_offsets])  # type: ignore
-
-    # calculate current margins, in case their largest value is smaller
-    # than the axes linewidth, adjust the corresponding offsets
-    current_margins = FigureMargins(
-        np.array([a.get_position().x0 * fw_inch
-                  for a in edge_axes.left]),
-        np.array([(1.0 - a.get_position().x1) * fw_inch
-                  for a in edge_axes.right]),
-        np.array([(1.0 - a.get_position().y1) * fh_inch
-                  for a in edge_axes.top]),
-        np.array([a.get_position().y0 * fh_inch
-                  for a in edge_axes.bottom]))
-
-    all_margins = FigureMargins(
-        current_margins.left - all_offsets.left,
-        current_margins.right - all_offsets.right,
-        current_margins.top - all_offsets.top,
-        current_margins.bottom - all_offsets.bottom)
-
-    margins = FigureMarginsFloat(
-        *[np.min(m) for m in all_margins])  # type: ignore
-
-    lw = plt.rcParams["axes.linewidth"] / PTS_PER_INCH
-    for i in range(4):
-        if margins[i] < lw / 2.0:
-            relevant_offsets[i] -= lw / 2.0
-
-    return relevant_offsets
-
-
-def _find_axes_x0y0(
-    margins_ofs_inch: FigureMarginsFloat,
-    layout_inch: FigureLayout,
-    pad_inch: FigureMarginsFloat
-) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
-    x0s = np.empty(layout_inch.axes_x0s.shape)
-    y0s = np.empty(layout_inch.axes_y0s.shape)
-    for irow in range(layout_inch.nrows):
-        for icol in range(layout_inch.ncols):
-            aw_until_now = np.sum(layout_inch.axes_widths[irow, :icol])
-            ah_until_now = np.sum(layout_inch.axes_heights[:irow + 1, icol])
-
-            ypads_until_now = np.sum(layout_inch.ypads[:irow, icol])
-            xpads_until_now = np.sum(layout_inch.xpads[irow, :icol])
-
-            x0s[irow, icol] = (
-                layout_inch.margins.left[irow] - margins_ofs_inch.left
-                + pad_inch.left
-                + xpads_until_now + aw_until_now)
-            y0s[irow, icol] = (
-                layout_inch.fig_height
-                - layout_inch.margins.top[icol]
-                + margins_ofs_inch.top
-                - pad_inch.top
-                - ypads_until_now
-                - ah_until_now)
-    return x0s, y0s
-
-
-def _change_margins(
-    margins_ofs_inch: FigureMarginsFloat,
-    axes: list[list[mplax.Axes]],
-    figure: mplfig.Figure,
-    fixed_figwidth: bool,
-    pad_inch: FigureMarginsFloat,
-    colorbars: list[Union[Colorbar, ColorbarLarge]]
-) -> None:
-    layout_inch = get_figure_layout(figure, axes, "inch")
-
-    xpads_sum = np.sum(layout_inch.xpads, axis=1)
-    ypads_sum = np.sum(layout_inch.ypads, axis=0)
-
-    if not fixed_figwidth:
-        axes_widths_sum = np.sum(layout_inch.axes_widths, axis=1)
-        axes_heights_sum = np.sum(layout_inch.axes_heights, axis=0)
-
-        layout_inch.fig_width = np.max(
-            layout_inch.margins.left - margins_ofs_inch.left
-            + layout_inch.margins.right - margins_ofs_inch.right
-            + pad_inch.left + pad_inch.right
-            + xpads_sum + axes_widths_sum)
-        layout_inch.fig_height = np.max(
-            layout_inch.margins.top - margins_ofs_inch.top
-            + layout_inch.margins.bottom - margins_ofs_inch.bottom
-            + pad_inch.top + pad_inch.bottom
-            + ypads_sum + axes_heights_sum)
-
-        layout_inch.axes_x0s, layout_inch.axes_y0s = _find_axes_x0y0(
-            margins_ofs_inch, layout_inch, pad_inch)
-
-    else:  # "fig_width"
-        # scale everything such that everything fits new_fw
-        current_effective_fig_width = (layout_inch.fig_width
-                                       - margins_ofs_inch.left
-                                       - margins_ofs_inch.right)
-
-        scale_x = layout_inch.fig_width / current_effective_fig_width
-
-        layout_inch.axes_widths *= scale_x
-        layout_inch.axes_heights = layout_inch.axes_widths * layout_inch.ratios
-        layout_inch.xpads *= scale_x
-
-        layout_inch.fig_height = np.max(
-            layout_inch.margins.top - margins_ofs_inch.top
-            + layout_inch.margins.bottom - margins_ofs_inch.bottom
-            + np.sum(layout_inch.axes_heights, axis=0)
-            + np.sum(layout_inch.ypads, axis=0))
-
-        layout_inch.axes_x0s, layout_inch.axes_y0s = _find_axes_x0y0(
-            margins_ofs_inch, layout_inch, pad_inch)
-
-    layout_rel = convert_figure_layout_to_relative(layout_inch)
-
-    figure.set_size_inches(layout_inch.fig_width, layout_inch.fig_height)
-
-    for irow in range(layout_rel.nrows):
-        for icol in range(layout_rel.ncols):
-            axes[irow][icol].set_position((
-                layout_rel.axes_x0s[irow, icol],
-                layout_rel.axes_y0s[irow, icol],
-                layout_rel.axes_widths[irow, icol],
-                layout_rel.axes_heights[irow, icol]))
-
-    for cb in colorbars:
-        _update_colorbar_position(
-            cb, layout_inch.fig_width, layout_inch.fig_height)
-
-
-def make_margins_tight(
-    axes: Union[mplax.Axes,
-                list[mplax.Axes],
-                list[list[mplax.Axes]]],
-    figure: Optional[mplfig.Figure] = None,
-    fixed_figwidth: bool = False,
-    colorbars: Union[Colorbar,
-                     list[Colorbar],
-                     list[list[Colorbar]],
-                     ColorbarLarge,
-                     None] = None,
-    pad: Union[float, Sequence[float]] = 0.0,
-    nruns: int = 1,
-    relevant_axes: Optional[Sequence[mplax.Axes]] = None,
-    log: bool = False,
-    axes_are_rows: bool = False,
-    axes_are_cols: bool = False,
-) -> FigureMargins:
+def add_abc(
+        fig: Optional[Figure] = None,
+        xoffset_pts: float = 2.0,
+        yoffset_pts: float = -12.0,
+        anchor: Literal["top left", "top right",
+                        "bottom left", "bottom right"] = "top left",
+        labels: Optional[str] = "a b c d e f g h i j k l m n o p q r s t u v w x y z",
+        pre: str = "(",
+        post: str = ")",
+        start_at: int = 0,
+        rowsfirst: bool = True,
+        **text_kwargs
+) -> dict[Axes, Text]:
     """
-    Change figure margins such that all elements of the axes fit neatly.
+    Add labels to all suplots in `fig`.
+
+    By default, adds '(a)', '(b)', ... to each subplot in the upper-right
+    corner.
 
     Parameters
     ----------
-    axes : :code:`~matplotlib.axes.Axes` or list or list[list] thereof
-        A 2D matrix of axes of the figure, where the first index specifies
-        the row, the second the column.
-        If no 2D matrix is provided (but a 1D list or no list), the input
-        will be interpreted as a 2D matrix.
+    fig : ``matplotlib.figure.Figure``, optional
+        If ``None``, use last active figure.
 
-        If *axes* is a 1D list, one has to specify if *axes* are aligned in 
-        rows or columns using *axes_are_rows* or *axes_are_cols*.
+    xoffset_pts : float, default 2.0
+        Offset in pts from `anchor`. Positive moves right.
 
-    figure : `matplotlib.figure.Figure`, optional
-        if not provided, get current figure with plt.gcf()
+    yoffset_pts : float, default -12.0
+        Offset in pts from `anchor`. Positive moves up.
 
-    fix_figwidth : bool, default `False`
-        Specify what width to keep constant
-        - `True`: Change "axes_width" and horizontal padding between
-        axes. May result in buggy behaviour if the aspect ratio of the axes
-        is not constant. In that case, a fixed "axes_width" will not have
-        problems
-        - `False`: Change the width of the figure to accomodate for the new
-        margins. Should also work if axes have different aspect ratios
+    anchor : {``"top left"``,``"top right"``, ``"bottom left"``, ``"bottom right"``}
+        Specify anchor point of the labels (offsets are relative to this).
+        Refers to the corner of the graph-area of the axes.
 
-    colorbars : `atompy.plotting.Colorbar` or `list[atompy.plotting.Colorbar]`
-    or `list[list[atompy.plotting.Colorbar]` or `atompy.plotting.ColorbarLarge`
-        Also consider and update colorbars of the figure.
+    labels : str, optional
+        A string of labels, where each label is seperated by a space.
 
-    pad : float or (float, float, float, float), default 0pts
-        Add padding in pts around the figure. If passed as a Sequecne, order
-        is (left, right, top, bottom)
+        If ``None``, use label of the respective axes.
 
-    nruns : int, default 1
-        If the width of the axes changes dramatically, the routine may need
-        to run multiple times to accommodate possibly updated ticklabels
+    pre : str, default ``"("``
+        String in front of `labels`. Applies only if `labels` is not ``None``.
 
-    relevant_axes: (plt.Axes, plt.Axes, plt.Axes, plt.Axes), optional
-        If the algorithm fails to figure out the correct margins, it may help
-        to tell it which axes should be used to determine which margin, i.e.
-        the passed Sequence of Axes is used to determine the
-        (left, right, top, bottom)-margins.
+    post : str, default ``")"``
+        String after `labels`. Applies only if `labels` is not ``None``.
 
-    log : bool, default `False`
-        Print margins that were determined
+    start_at : int, default 0
+        Skip `start_at` entries in `labels`. Only applies if `labels` is not
+        ``None``.
 
-    axes_are_rows : bool, default :code:`False`
-        Only relevant if axes is a 1D list.
+    rowsfirst: bool, default ``True``
+        Label rows first, e.g., 'a b c / d e f' instead of 'a c e / b d f'.
+        Only applies if `labels`is not ``None``.
 
-        Set to :code:`True` if *axes* are aligned in rows.
-
-    axes_are_cols : bool, default :code:`False`
-        Only relevant if *axes* is a 1D list.
-
-        Set to :code:`True` if *axes* are aligned in columns.
+    text_kwargs
+        Additional keyword arguments of ``matplotlib.text.Text``.
 
     Returns
     -------
-    margins : :class:`.FigureMargins`
-        The (left, right, top, bottom) margins of each axes located at the
-        edges of the figure
-    """
+    text_dict : dict[``matplotlib.axes.Axes``, ``matplotlib.text.Text``]
+        A dictionary with the axes of `fig` as keys and the corresponding
+        text instances added by ``add_abc`` as values.
 
-    axes_: list[list[mplax.Axes]]
-    if isinstance(axes, mplax.Axes):
-        axes_ = [[axes]]
-    elif isinstance(axes[0], mplax.Axes):
-        if axes_are_cols and axes_are_rows:
-            msg = (
-                "axes_are_rows and axes_are_cols cannot both be true at the"
-                "same time."
-            )
-            raise ValueError(msg)
-        if axes_are_rows:
-            axes_ = [axes]  # type: ignore
-        elif axes_are_cols:
-            axes_ = transpose([axes])  # type: ignore
-        else:
-            msg = (
-                "either axes_are_rows or axes_are_cols must be true"
-            )
-            raise ValueError(msg)
-    else:
-        axes_ = axes  # type: ignore
-
-    if _change_ratio_has_been_called and fixed_figwidth:
-        print("WARNING: atompy.change_ratio() has been called and a fixed "
-              "figure width in atompy.make_margins_tight() is requested. "
-              "This may not work")
-
-    if nruns <= 0 or not isinstance(nruns, int):
-        raise ValueError(
-            f"{nruns=}, but it needs to be of type int and larger than 0"
-        )
-
-    try:
-        iter(pad)  # type: ignore
-    except TypeError:
-        pad = FigureMarginsFloat(
-            *[pad / PTS_PER_INCH] * 4)  # type: ignore
-    else:
-        if not isinstance(pad, FigureMarginsFloat):
-            pad = FigureMarginsFloat(
-                *[p / PTS_PER_INCH for p in pad])  # type: ignore
-
-    figure = figure or plt.gcf()
-
-    renderer = figure.canvas.get_renderer()  # type: ignore
-
-    colorbars_ = [] if colorbars is None else return_as_list(colorbars)
-
-    if relevant_axes is not None:
-        edge_axes = _Regions(*[[ax] for ax in relevant_axes])
-    else:
-        edge_axes = _Regions(
-            get_column(0, axes_).copy(),
-            get_column(-1, axes_).copy(),
-            axes_[0].copy(),
-            axes_[-1].copy())
-        # append colorbars to relevant axes if they exist
-        for cb in colorbars_:
-            if isinstance(cb, Colorbar):
-                if cb.parent_axes in edge_axes.left and cb.location == "top":
-                    edge_axes.left.append(cb.colorbar.ax)
-                if cb.parent_axes in edge_axes.right:
-                    edge_axes.right.append(cb.colorbar.ax)
-                if cb.parent_axes in edge_axes.top:
-                    edge_axes.top.append(cb.colorbar.ax)
-                if (cb.parent_axes in edge_axes.bottom
-                        and cb.location == "right"):
-                    edge_axes.bottom.append(cb.colorbar.ax)
-            elif isinstance(cb, ColorbarLarge):
-                if (cb.parent_axes[0] in edge_axes.left
-                        and cb.location == "top"):
-                    edge_axes.left.append(cb.colorbar.ax)
-                if cb.parent_axes[1] in edge_axes.right:
-                    edge_axes.right.append(cb.colorbar.ax)
-                if cb.parent_axes[0] in edge_axes.top:
-                    edge_axes.top.append(cb.colorbar.ax)
-                if (cb.parent_axes[1] in edge_axes.bottom
-                        and cb.location == "right"):
-                    edge_axes.bottom.append(cb.colorbar.ax)
-
-    for _ in range(nruns):
-        margins = _get_offsets(figure, edge_axes, renderer)
-        _change_margins(
-            margins, axes_, figure, fixed_figwidth, pad, colorbars_)  # type: ignore
-
-    new_layout = get_figure_layout(figure, axes_, "pts")
-    if log:
-        print("I have changed the margins to the follwoing:")
-        for l, m in zip("left right top bottom".split(), new_layout.margins):
-            with np.printoptions(precision=3):
-                print(f"{l}:\t{m}")
-
-    return new_layout.margins
-
-
-def _format_colorbar(
-    cb: mplcb.Colorbar,
-    where: str,
-    label: str,
-    **kwargs
-) -> None:
-    """ Do some formatting for colorbars """
-    if where == "right":
-        kwargs.setdefault("rotation", 270.0)
-        if not ("va" in kwargs or "verticalalignment" in kwargs):
-            kwargs["va"] = "baseline"
-
-    elif where == "top":
-        kwargs.setdefault("rotation", 0.0)
-        if not ("va" in kwargs or "verticalalignment" in kwargs):
-            kwargs["va"] = "bottom"
-        cb.ax.xaxis.set_label_position("top")
-        cb.ax.xaxis.set_ticks_position("top")
-
-    cb.set_label(label, **kwargs)
-
-
-@overload
-def add_colorbar(
-    axes: mplax.Axes,
-    image: mplcm.ScalarMappable,
-    figure: Optional[mplfig.Figure] = None,
-    width_pts: float = 4.8,
-    pad_pts: float = 3.0,
-    where: Literal["right", "top"] = "right",
-    rasterized: bool = True,
-    label: str = "",
-    **text_kwargs
-) -> Colorbar: ...
-
-
-@overload
-def add_colorbar(
-    axes: list[mplax.Axes],
-    image: Union[mplcm.ScalarMappable,
-                 list[mplcm.ScalarMappable]],
-    figure: Optional[mplfig.Figure] = None,
-    width_pts: float = 4.8,
-    pad_pts: float = 3.0,
-    where: Union[Literal["right", "top"],
-                 Sequence[Literal["right", "top"]]] = "right",
-    rasterized: bool = True,
-    label: Union[str, Sequence[str]] = "",
-    **text_kwargs
-) -> list[Colorbar]: ...
-
-
-@overload
-def add_colorbar(
-    axes: list[list[mplax.Axes]],
-    image: Union[mplcm.ScalarMappable,
-                 list[list[mplcm.ScalarMappable]]],
-    figure: Optional[mplfig.Figure] = None,
-    width_pts: float = 4.8,
-    pad_pts: float = 3.0,
-    where: Union[Literal["right", "top"],
-                 Sequence[Sequence[Literal["right", "top"]]]] = "right",
-    rasterized: bool = True,
-    label: Union[str, Sequence[Sequence[str]]] = "",
-    **text_kwargs
-) -> list[list[Colorbar]]: ...
-
-
-def add_colorbar(
-    axes: Union[mplax.Axes,
-                list[mplax.Axes],
-                list[list[mplax.Axes]]],
-    image: Union[mplcm.ScalarMappable,
-                 list[mplcm.ScalarMappable],
-                 list[list[mplcm.ScalarMappable]]],
-    figure: Optional[mplfig.Figure] = None,
-    width_pts: float = 4.8,
-    pad_pts: float = 3.0,
-    where: Union[Literal["right", "top"],
-                 Sequence[Literal["right", "top"]],
-                 Sequence[Sequence[Literal["right", "top"]]]] = "right",
-    rasterized: bool = True,
-    label: Union[str, Sequence[str], Sequence[Sequence[str]]] = "",
-    **text_kwargs
-) -> Union[Colorbar, list[Colorbar], list[list[Colorbar]]]:
-    """ Add a `~matplotlib.pyplot.colorbar` to a `~matplotlib.pyplot.axes`
-
-    Parameters
-    ----------
-    axes : `~matplotlib.axes.Axes` or list or list of lists thereof
-        The axes to append the colorbar to. If a list is given, append
-        colorbar to all those
-
-    figure : `matplotlib.figure.Figure`, optional
-        if not provided, get current figure with plt.gcf()
-
-    image : Mappable or list or list of lists thereof
-        The images corresponding to *axes*. (returned from,
-        e.g., `~matplotlib.pyplot.imshow`) If no list is given while *axes*
-        is a list, use same image for all colorbars.
-
-    width_pts : float, default: 4.8
-        width of the colorbar in pts
-
-        - float: overwrites ratio
-        - `None`: ignore, use *ratio* instead
-
-    pad_pts : float, default: 3pts
-        padding between colorbar and axes in pts
-
-    where : {'right', 'top'}, or list[str], default: 'right'
-        Position of the colorbar
-
-        - single string: global setting
-        - sequence of string: different position for each *axes* (as long as
-          a list of *axes* was given)
-
-    rasterized : bool, default `True`
-        Rasterize the colorbar image (replace it by a raster image in
-        vectorized graphics)
-
-    label : str or list[str], optional
-        Label for the color
-
-        - str: A label
-        - `None`: draw no label
-
-    **text_kwargs : `matplotlib.text.Text` properties
-        used for the label
-
-    Returns
-    -------
-    `atompy.Colorbar` or list or list of lists thereof
-        The colorbar(s). The `matplotlib.colorbar` object is stored in
-        `atompy.Colorbar.colorbar`.
+        Can be used to manipulate the text later (to, e.g., change the color
+        of the text only for certain subplots).
 
     Notes
     -----
-    A colorbar without a previously drawn artist (e.g., by imshow) can
-    be created on the fly, e.g.,
-    >>> add_colorbar(fig, ax, matplotlib.cm.ScalarMappable())
+    - Cannot handle fancy GridSpecs, e.g., where one
+      subplot spans multiple other subplots.
+      If you need one of those, you're on your own.
 
-    Examples
-    --------
-
-    .. plot:: _examples/add_colorbar.py
-        :include-source:
-
+    - :func:`make_me_nice` does not see the added labels. If your labels extent
+      further than the current axes dimensions, they will be cut of when calling
+      :func:`make_me_nice`. To alleviate the problem, apply additional margins
+      in :func:`make_me_nice`.
     """
-    ############################
-    # process input parameters #
-    ############################
-    original_shape = None
-    if isinstance(axes, list) and isinstance(axes[0], list):
-        original_shape = (len(axes), len(axes[0]))
-        axes = flatten(axes)
-    else:
-        axes = return_as_list(axes, 1)
+    fig = fig or plt.gcf()
+    axs = get_sorted_axes_grid(fig)
+    nrows, ncols = axs.shape
 
-    figure = figure or plt.gcf()
+    bboxes_inch = np.empty((nrows, ncols), dtype=Bbox)
 
-    image = return_as_list(image, len(axes))
-    where_ = return_as_list(where, len(axes))
-    label = return_as_list(label, len(axes))
+    valid_anchors = ["top left", "top right", "bottom left", "bottom right"]
+    if anchor not in valid_anchors:
+        err_msg = (f"{anchor=}, but it needs to be one of {valid_anchors}")
+        raise ValueError(err_msg)
+    topbottom = anchor.split(" ")[0]
+    leftright = anchor.split(" ")[1]
+    refs_hori_inch = np.empty((nrows, ncols), dtype=Bbox)
+    refs_vert_inch = np.empty((nrows, ncols), dtype=Bbox)
 
-    if len(image) != len(axes):
-        raise ValueError(
-            f"{len(image)=} != {len(axes)=}, but that should not be"
-        )
-    if len(where_) != len(axes):
-        raise ValueError(
-            f"{len(where_)=} != {len(axes)=}, but that should not be"
-        )
-    if len(label) != len(axes):
-        raise ValueError(
-            f"{len(label)=} != {len(axes)=}, but that should not be"
-        )
+    if labels is not None:
+        labels_ = labels.split(" ")
+    text: list[list[str]] = []
 
-    for w in where_:
-        if w not in ["top", "right"]:
-            raise ValueError(
-                f"where is '{w}', but needs to be either 'top' or 'right'"
-            )
+    for row in range(nrows):
+        text.append([])
+        for col in range(ncols):
+            bboxes_inch[row, col] = ax_get_position_inch(axs[row, col])
 
-    #######################################
-    # loop through axes and add colorbars #
-    #######################################
-    return_colorbars: list[Colorbar] = []
-    for i in range(len(axes)):
-        figsize = figure.get_size_inches()
-        bbox_ax = axes[i].get_position()
+            if leftright == "left":
+                refs_hori_inch[row, col] = bboxes_inch[row, col].x0
+            else:  # right
+                refs_hori_inch[row, col] = bboxes_inch[row, col].x1
+            if topbottom == "top":
+                refs_vert_inch[row, col] = bboxes_inch[row, col].y1
+            else:  # bottom
+                refs_vert_inch[row, col] = bboxes_inch[row, col].y0
 
-        if where_[i] == "right":
-            orientation = "vertical"
-            x0 = bbox_ax.x0 + bbox_ax.width \
-                + pad_pts / PTS_PER_INCH / figsize[0]
-            y0 = bbox_ax.y0
-            width = width_pts / PTS_PER_INCH / figsize[0]
-            height = bbox_ax.height
-        else:
-            orientation = "horizontal"
-            x0 = bbox_ax.x0
-            y0 = bbox_ax.y0 + bbox_ax.height \
-                + pad_pts / PTS_PER_INCH / figsize[1]
-            width = bbox_ax.width
-            height = width_pts / PTS_PER_INCH / figsize[1]
+            if labels is None:
+                text[row].append(str(axs[row, col].get_label()))
+            else:
+                if rowsfirst:
+                    text[row].append(
+                        pre + labels_[start_at + ncols*row + col] + post)
+                else:
+                    text[row].append(
+                        pre + labels_[start_at + nrows*col + row] + post)
 
-        cax = figure.add_axes((x0, y0, width, height))
-        cb = plt.colorbar(image[i], cax=cax, orientation=orientation)
-        cb.solids.set_rasterized(rasterized)  # type: ignore
+    xoffset_inch = xoffset_pts / PTS_PER_INCH
+    yoffset_inch = yoffset_pts / PTS_PER_INCH
+    x_positions_inch = np.empty((nrows, ncols))
+    y_positions_inch = np.empty((nrows, ncols))
 
-        _format_colorbar(cb, where_[i], label[i], **text_kwargs)
+    for row in range(nrows):
+        for col in range(ncols):
+            if leftright == "left":
+                x_positions_inch[row, col] = \
+                    xoffset_inch / bboxes_inch[row, col].width
+            else:
+                x_positions_inch[row, col] = \
+                    1.0 + xoffset_inch / bboxes_inch[row, col].width
+            if topbottom == "top":
+                y_positions_inch[row, col] = \
+                    1.0 + yoffset_inch / bboxes_inch[row, col].height
+            else:
+                y_positions_inch[row, col] = \
+                    yoffset_inch / bboxes_inch[row, col].height
 
-        return_colorbars.append(
-            Colorbar(cb, axes[i], where_[i],  # type: ignore
-                     pad_pts / PTS_PER_INCH, width_pts / PTS_PER_INCH))
+    text_kwargs.setdefault("clip_on", False)
 
-    if original_shape:
-        return reshape(return_colorbars, original_shape)
-    else:
-        return (return_colorbars if len(return_colorbars) > 1
-                else return_colorbars[0])
+    out: dict[Axes, Text] = {}
+    for row in range(nrows):
+        for col in range(ncols):
+            out[axs[row, col]] = axs[row, col].text(
+                x_positions_inch[row, col],
+                y_positions_inch[row, col],
+                text[row][col],
+                transform=axs[row, col].transAxes,
+                **text_kwargs)
+
+    return out
 
 
-def add_colorbar_large(
-    axes: Sequence[mplax.Axes],
-    image: mplcm.ScalarMappable,
-    figure: Optional[mplfig.Figure] = None,
-    width_pts: float = 4.8,
-    pad_pts: float = 3.0,
-    where: Literal["right", "top"] = "right",
-    rasterized: bool = True,
-    label: str = "",
-    **text_kwargs
-) -> ColorbarLarge:
+def update_colorbars(fig: Optional[Figure] = None) -> None:
     """
-    Add a colorbar spanning multiple axes
+    Re-align colorbars to their parent axes.
 
     Parameters
     ----------
-    axes : (axes, axes)
-        The left-/top-most and right-/bottom-most axes that the colorbar
-        should span
-
-    figure : `matplotlib.figure.Figure`, optional
-        if not provided, get current figure with plt.gcf()
-
-    image : `AxesImage`
-        The images corresponding to axes.
-        (returned from, e.g., `~matplotlib.pyplot.imshow`)
-
-    width_pts : `None` or float, default: `None`
-        width of the colorbar in pts
-        - float: overwrites ratio
-        - `None`: ignore, use *ratio* instead
-
-    pad_pts : float, default: 3pts
-        padding between colorbar and axes in pts
-
-    where : {'right', 'top'}
-        Position of the colorbar
-
-    rasterized : bool, default `True`
-        Rasterize the colorbar image (replace it by a raster image in
-        vectorized graphics)
-
-    label : str, default ""
-        Label for the color
-        - str: A label
-        - `None`: draw no label
-
-    **text_kwargs : `matplotlib.text.Text` properties
-        used for the label
-
-    Returns
-    -------
-    `atompy.ColorbarLarge`
-        The colorbar. The parent_axes asigned to it will be the
-        top-most/left-most axes, i.e., parameter `axes[0]`
-
-    Notes
-    -----
-    A colorbar without a previously drawn artist (e.g., by imshow) can
-    be created on the fly, e.g.,
-    >>> add_colorbar_large(fig, ax, matplotlib.cm.ScalarMappable())
+    fig : ``matplotlib.figure.Figure``, optional
+        If ``None``, use last active figure.
     """
-    figure = figure or plt.gcf()
-    figsize = figure.get_size_inches()
-    if len(axes) != 2:
-        raise ValueError(
-            f"*axes* needs to be of length 2, but is of length {len(axes)}"
-        )
-    bbox_ax_0 = axes[0].get_position()
-    bbox_ax_1 = axes[1].get_position()
+    fig = fig or plt.gcf()
+    fig_width_inch, fig_height_inch = fig.get_size_inches()
+    axs = fig.get_axes()
 
-    if where == "right":
-        orientation = "vertical"
-        x0 = bbox_ax_1.x1 + pad_pts / PTS_PER_INCH / figsize[0]
-        y0 = bbox_ax_1.y0
-        width = width_pts / PTS_PER_INCH / figsize[0]
-        height = bbox_ax_0.y1 - bbox_ax_1.y0
-    else:
-        orientation = "horizontal"
-        x0 = bbox_ax_0.x0
-        y0 = bbox_ax_0.y1 + pad_pts / PTS_PER_INCH / figsize[1]
-        width = bbox_ax_1.x1 - bbox_ax_0.x0
-        height = width_pts / PTS_PER_INCH / figsize[1]
+    for colorbar in _colorbar_manager.colorbars:
+        # check that colorbar is actually in the figure. If not: Skip
+        if colorbar.ax not in axs:
+            continue
 
-    cax = figure.add_axes((x0, y0, width, height))
-    cb = plt.colorbar(image, cax=cax, orientation=orientation)
-    cb.solids.set_rasterized(rasterized)  # type: ignore
+        bbox_ax = colorbar.parent_ax.get_position()
 
-    _format_colorbar(cb, where, label, **text_kwargs)
+        if colorbar.location in ["left", "right"]:
+            pad = colorbar.pad_inch / fig_width_inch
+            thickness = colorbar.thickness_inch / fig_width_inch
+        elif colorbar.location in ["top", "bottom"]:
+            pad = colorbar.pad_inch / fig_height_inch
+            thickness = colorbar.thickness_inch / fig_height_inch
 
-    return ColorbarLarge(
-        cb, tuple(axes), where, pad_pts / PTS_PER_INCH, width)  # type: ignore
-
-
-@overload
-def square_polar_frame(
-    axes: mplax.Axes,
-    figure: Optional[mplfig.Figure] = None,
-    n_gridlines: int = 12,
-    mark_zero: bool = True,
-    **plot_kwargs
-) -> mplax.Axes: ...
-
-
-@overload
-def square_polar_frame(
-    axes: list[mplax.Axes],
-    figure: Optional[mplfig.Figure] = None,
-    n_gridlines: int = 12,
-    mark_zero: bool = True,
-    **plot_kwargs
-) -> list[mplax.Axes]: ...
+        if colorbar.location == "left":
+            colorbar.ax.set_position((
+                bbox_ax.x0 - pad - thickness,
+                bbox_ax.y0,
+                thickness,
+                bbox_ax.height
+            ))
+        if colorbar.location == "right":
+            colorbar.ax.set_position((
+                bbox_ax.x1 + pad,
+                bbox_ax.y0,
+                thickness,
+                bbox_ax.height
+            ))
+        if colorbar.location == "top":
+            colorbar.ax.set_position((
+                bbox_ax.x0,
+                bbox_ax.y1 + pad,
+                bbox_ax.width,
+                thickness
+            ))
+        if colorbar.location == "bottom":
+            colorbar.ax.set_position((
+                bbox_ax.x0,
+                bbox_ax.y0 - pad - thickness,
+                bbox_ax.width,
+                thickness
+            ))
 
 
-@overload
-def square_polar_frame(
-    axes: list[list[mplax.Axes]],
-    figure: Optional[mplfig.Figure] = None,
-    n_gridlines: int = 12,
-    mark_zero: bool = True,
-    **plot_kwargs
-) -> list[list[mplax.Axes]]: ...
-
-
-def square_polar_frame(
-    axes: Union[mplax.Axes,
-                list[mplax.Axes],
-                list[list[mplax.Axes]]],
-    figure: Optional[mplfig.Figure] = None,
-    n_gridlines: int = 12,
-    mark_zero: bool = True,
-    **plot_kwargs
-) -> Union[mplax.Axes,
-           list[mplax.Axes],
-           list[list[mplax.Axes]]]:
+def get_renderer(fig: Optional[Figure]) -> RendererBase:
     """
-    Draw a square frame around a polar plot and hide the other stuff
-
-    Parameters
-    ----------
-    axes : list of list of `matplotlib.axes.Axes`
-
-    figure : `matplotlib.figure.Figure`, optional
-        if not provided, get current figure with plt.gcf()
-
-    n_gridlines : int
-        Draw this many (outspreading) gridlines
-
-    mark_zero : bool,
-        Draw a crosshair at 0, 0
-
-    **plot_kwargs
-        `matplotlib.pyplot.plot` keyword arguments
-
-    Returns
-    -------
-    `matplotlib.axes.Axes` or list or list of list thereof
-        The (new) axes
+    Taken from https://stackoverflow.com/questions/22667224/get-text-bounding-box-independent-of-backend/
     """
-    figure = figure or plt.gcf()
-
-    original_shape = None
-    if isinstance(axes, list) and isinstance(axes[0], list):
-        original_shape = (len(axes), len(axes[0]))
-        axes = flatten(axes)
+    fig = fig or plt.gcf()
+    if hasattr(fig.canvas, "get_renderer"):
+        # Some backends, such as TkAgg, have the get_renderer method, which
+        # makes this easy.
+        renderer = fig.canvas.get_renderer()  # type: ignore
     else:
-        axes = return_as_list(axes, 1)
-
-    ax_frame: list[mplax.Axes] = []
-    for ax in axes:
-        pos = ax.get_position()
-        zorder = ax.get_zorder()
-        ax.axis("off")
-
-        ax_frame.append(figure.add_axes(pos))  # type: ignore
-        ax_frame[-1].set_zorder(zorder - 1)
-        ax_frame[-1].set_xlim(-1, 1)
-        ax_frame[-1].set_ylim(-1, 1)
-        ax_frame[-1].set_xticks([])
-        ax_frame[-1].set_yticks([])
-
-        if not ("linewidth" in plot_kwargs or "lw" in plot_kwargs):
-            plot_kwargs["linewidth"] = plt.rcParams["axes.linewidth"]
-        if not ("color" in plot_kwargs or "c" in plot_kwargs):
-            plot_kwargs["color"] = plt.rcParams["axes.edgecolor"]
-        plot_kwargs.setdefault("zorder", zorder)
-
-        if n_gridlines > 0:
-            if 360 % n_gridlines:
-                print(f"WARNING: {n_gridlines=}, which 360 is not dividable "
-                      "by. Should that be the case?")
-            angles = [x * 2.0 * np.pi / n_gridlines
-                      for x in range(n_gridlines)]
-
-            for angle in angles:
-                a, b = 0.95, 1.5
-                ax_frame[-1].plot([a * np.cos(angle), b * np.cos(angle)],
-                                  [a * np.sin(angle), b * np.sin(angle)],
-                                  **plot_kwargs)
-
-        if mark_zero:
-            ax_frame[-1].axvline(0, **plot_kwargs)
-            ax_frame[-1].axhline(0, **plot_kwargs)
-
-    if original_shape:
-        return reshape(ax_frame, original_shape)
-    else:
-        return ax_frame if len(ax_frame) > 1 else ax_frame[0]
+        # Other backends do not have the get_renderer method, so we have a work
+        # around to find the renderer.  Print the figure to a temporary file
+        # object, and then grab the renderer that was used.
+        # (I stole this trick from the matplotlib backend_bases.py
+        # print_figure() method.)
+        fig.canvas.print_pdf(io.BytesIO())  # type: ignore
+        renderer = fig._cachedRenderer  # type: ignore
+    return (renderer)
 
 
-def change_ratio(
-    new_ratio: float,
-    axes: Union[mplax.Axes,
-                list[mplax.Axes],
-                list[list[mplax.Axes]]],
-    figure: Optional[mplfig.Figure] = None,
-    adjust: Literal["height", "width"] = "height",
+def set_axes_size(
+    width_inch: float,
+    height_inch: float,
+    ax: Optional[Axes] = None,
     anchor: Literal["center", "left", "right", "upper", "lower",
                     "upper left", "upper right", "upper center",
                     "center left", "center right", "center center",
                     "lower left", "lower right", "lower center"] = "center",
-    colorbars: Optional[Union[Colorbar,
-                              list[Colorbar],
-                              list[list[Colorbar]]]] = None
 ) -> None:
     """
-    Change the ratio of *axes* to *new_ratio*
+    Set physical size of `ax`.
 
     Parameters
     ----------
-    new_ratio : float
-        The new ratio width/height
+    width_inch, height_inch : float
+        New width and height of the graph-area of `ax`.
 
-    axes : `matplotlib.axes.Axes` or list thereof
+    ax : ``matplotlib.pyplot.Axes``, optional
+        If ``None``, change last active axes.
 
-    figure : `matplotlib.figure.Figure`, optional
-        If not provided, get current figure using plt.gcf()
+    anchor : {``"left"``, ``"right"``, ``"upper"``, ``"lower"``, \
+``"upper left"``, ``"upper right"``, ``"upper center"``, \
+``"center left"``, ``"center right"``, ``"center center"``, \
+``"lower left"``, ``"lower right"``, ``"lower center"``}, default "center",
+        Anchor point of `ax`.
 
-    adjust : "height", "width"
-
-    anchor : "center", "left", "right", "upper", "lower",
-        "upper left", "upper right", "upper center",
-        "center left", "center right", "center center",
-        "lower left", "lower right", "lower center"
-
-    colorbar : `atompy.Colorbar` or list thereof, optional
-        If colorbars exist, they need to be passed to also be updated. This
-        can be passed as a list, even if *axes* is a single axes. (It'll
-        pick the correct one)
-
-    Notes
-    -----
-    Should not be called before `atompy.make_margins_tight()` is called,
-    since that relies on all axes-ratios to be equal.
-    If you plan to add a colorbar that spans multiple axes, do this
-    afterwards, too.
+        E.g., ``"upper left"`` means the upper left corner of `ax` stays fixed.
     """
-    global _change_ratio_has_been_called
-    _change_ratio_has_been_called = True
-
-    figure = figure or plt.gcf()
-
-    valid_adjusts = ["height", "width"]
-    if adjust not in valid_adjusts:
-        raise ValueError(
-            f"{adjust=}, but must be in {valid_adjusts}"
-        )
-    valid_anchors = [
-        "center", "left", "right", "upper", "lower",
-        "upper left", "upper right", "upper center",
-        "center left", "center right", "center center",
-        "lower left", "lower right", "lower center"]
-    if anchor not in valid_anchors:
-        raise ValueError(
-            f"{anchor=}, but must be in {valid_anchors}"
-        )
-    axes = return_as_list(axes, desired_length=1)
-    if colorbars:
-        colorbars = return_as_list(colorbars, desired_length=1)
-    else:
-        colorbars = []
-
-    @ dataclass
+    @dataclass
     class Position:
         x0: float
         y0: float
         width: float
         height: float
 
-    fig_ratio = figure.get_size_inches()[0] / figure.get_size_inches()[1]
-    for ax in axes:
-        old_pos = ax.get_position()
-        new_pos = Position(old_pos.x0, old_pos.y0,
-                           old_pos.width, old_pos.height)
+    fw_inch, fh_inch = plt.gcf().get_size_inches()
+    ax = ax or plt.gca()
+    ax.set_adjustable("datalim")
 
-        # adjust ratio ...
-        if adjust == "height":
-            new_pos.height = old_pos.width / new_ratio * fig_ratio
-        else:
-            new_pos.width = old_pos.height * new_ratio / fig_ratio
+    old_pos = ax.get_position()
+    new_pos = Position(old_pos.x0, old_pos.y0,
+                       width_inch / fw_inch, height_inch / fh_inch)
 
-        # then adjust x0/y0 position
-        if anchor == "center":
-            anchor = "center center"
-        if anchor == "left":
-            anchor = "center left"
-        if anchor == "right":
-            anchor = "center right"
-        if anchor == "upper":
-            anchor = "upper center"
-        if anchor == "lower":
-            anchor = "lower center"
+    if anchor == "center":
+        anchor = "center center"
+    elif anchor == "left":
+        anchor = "center left"
+    elif anchor == "right":
+        anchor = "center right"
+    elif anchor == "upper":
+        anchor = "upper center"
+    elif anchor == "lower":
+        anchor = "lower center"
 
-        anchor_split = anchor.split()
+    anchor_split = anchor.split()
 
-        if anchor_split[0] == "lower":
-            pass
-        elif anchor_split[0] == "upper":
-            new_pos.y0 = old_pos.y0 + (old_pos.height - new_pos.height)
-        elif anchor_split[0] == "center":
-            new_pos.y0 = old_pos.y0 + (old_pos.height - new_pos.height) / 2.0
+    if anchor_split[0] == "lower":
+        pass
+    elif anchor_split[0] == "upper":
+        new_pos.y0 = old_pos.y0 + (old_pos.height - new_pos.height)
+    elif anchor_split[0] == "center":
+        new_pos.y0 = old_pos.y0 + (old_pos.height - new_pos.height) / 2.0
 
-        if anchor_split[1] == "left":
-            pass
-        elif anchor_split[1] == "right":
-            new_pos.x0 = old_pos.x0 + (old_pos.width - new_pos.width)
-        elif anchor_split[1] == "center":
-            new_pos.x0 = old_pos.x0 + (old_pos.width - new_pos.width) / 2.0
+    if anchor_split[1] == "left":
+        pass
+    elif anchor_split[1] == "right":
+        new_pos.x0 = old_pos.x0 + (old_pos.width - new_pos.width)
+    elif anchor_split[1] == "center":
+        new_pos.x0 = old_pos.x0 + (old_pos.width - new_pos.width) / 2.0
 
-        ax.set_position((new_pos.x0, new_pos.y0,
-                         new_pos.width, new_pos.height))
-        for cb in colorbars:
-            _update_colorbar_position(cb, *figure.get_size_inches())
+    ax.set_position((new_pos.x0, new_pos.y0,
+                     new_pos.width, new_pos.height))
+
+    update_colorbars()
 
 
-def add_abc(
-    axes: list[list[mplax.Axes]],
-    figure: Optional[mplfig.Figure] = None,
-    xoffset: Union[Optional[float],
-                   Sequence[Sequence[Optional[float]]]] = None,
-    yoffset: Union[Optional[float],
-                   Sequence[Sequence[Optional[float]]]] = 0.0,
-    anchor: Literal["upper left", "upper right",
-                    "lower left", "lower right"] = "upper left",
-    prefix: str = "",
-    suffix: str = "",
-    start_at: Literal["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
-                      "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v",
-                      "w", "x", "y", "z"] = "a",
-    rowsfirst: bool = True,
-    sansserif: bool = False,
-    smallcaps: bool = False,
-    uppercase: bool = False,
-    display_warning: bool = True,
-    **text_kwargs
-) -> list[list[mpltxt.Text]]:
-    r"""
-    Add labeling to all *axes* of *figure*
+def get_sorted_axes_grid(fig: Optional[Figure] = None) -> NDArray:
+    """
+    Get all axes from `fig` and sort them into a 2D grid.
 
-    Parameters
-    ----------
-    axes : list[list[`matplotlib.axes.Axes`]
+    Only works if all axes of `fig` are part of one-and-the-same
+    ``matplotlib.gridspec.GridSpec`` and if axes are indeed aranged
+    in a 2D grid.
 
-    figure : `matplotlib.figure.Figure`
-        If not provided, get current figure using plt.gcf()
+    Ignores colormap axes added by :func:`.add_colorbar`.
 
-    xoffset : float | None | list[list[float | None]], default None
-        Horizontal shift from *anchor* in pts. Positive moves right.
-        If provided as a 2D list, entries correspond to each *axes*,
-        otherwise global.
-        If xoffset is None, use the width of ylabel of each axes
-
-    yoffset : float | None | list[list[float | None]], default 0pts.
-        Vertical shift from *anchor* in pts. Positive moves up. If provided
-        as a 2D list, entries correspond to each *axes*, otherwise global.
-        If yoffset is None, use the extent of all axes elements into the upper
-        margins instead.
-
-    anchor : {'upper/lower left/right'}
-        Where to align the labels from
-
-    prefix : str, optional
-        Print this before the labels a, b, c, ...
-
-    suffix : str, optional
-        Print this after the labels a, b, c, ...
-
-    start_at : {'a', 'b', 'c', ..., 'z'}, default 'a'
-        Specify with which letter to start
-
-    rowsfirst : bool, default `True`
-
-    sf : bool, default `False`
-        Print `\sffamily` before label (works only with latex backend)
-
-    sc : bool, default `False`
-        Print \scfamily before label (works only with latex backend)
-
-    uppercase : bool, default `False`
-        Use uppercase instead of lowercase letters
-
-    **text_kwargs : `matplotlib.text.Text` properties
+    Paramters
+    ---------
+    fig : ``matplotlib.figure.Figure``, optional
+        If ``None``, use last active figure.
 
     Returns
     -------
-    list[list[`matplotlib.text.Text`]]
-        The text instances of the labels
+    axes_grid : ``numpy.ndarray``, shape ``(nrows, ncols)``
+        A 2D numpy array containing the axes of `fig`.
+
+        ``axes_grid[0, 0]`` refers to the top-left,
+        ``axes_grid[nrows-1, ncols-1]`` to the bottom right corner.
     """
-    if display_warning:
-        print("WARNING: Don't call 'add_abc()' before changes to the "
-              "figure layout since that'll end up with funny business")
+    fig = fig or plt.gcf()
 
-    figure = figure or plt.gcf()
+    axs_unordered: list[Axes] = []
+    for ax in fig.get_axes():
+        if ax.get_label() != _COLORBAR_LABEL:
+            axs_unordered.append(ax)
 
-    valid_anchors = ["upper left", "upper right", "lower left", "lower right"]
-    if anchor not in valid_anchors:
-        raise ValueError(
-            f"{anchor=}, but it needs to be in {valid_anchors}"
+    # get subplotspecs, ensureing that it is not None
+    subplotspecs: dict[Axes, SubplotSpec] = {}
+    for ax in axs_unordered:
+        subplotspec = ax.get_subplotspec()
+        if subplotspec is None:
+            msg = "axes not part of a GridSpec, this won't work"
+            raise ValueError(msg)
+        else:
+            subplotspecs[ax] = subplotspec
+    assert subplotspecs, "subplotspecs were empty here"
+
+    # check that there is only one GridSpec in the figure
+    gridspec = subplotspecs[axs_unordered[0]].get_gridspec()
+    for subplotspec in subplotspecs.values():
+        if subplotspec.get_gridspec() is not gridspec:
+            raise ValueError("Multiple GridSpecs in figure, this won't work")
+        if subplotspec.num1 != subplotspec.num2:
+            msg = "GridSpec too fancy for me. I can't handle this :c"
+            raise ValueError(msg)
+
+    # create a ndarray of axes aranged in a grid corresponding to the gridspec
+    axs = np.empty((gridspec.nrows, gridspec.ncols), dtype=Axes)
+    for row in range(gridspec.nrows):
+        for col in range(gridspec.ncols):
+            for ax in axs_unordered:
+                if subplotspecs[ax] == gridspec[row, col]:
+                    axs[row, col] = ax
+
+    return axs
+
+
+def get_column_pads_inches(fig: Optional[Figure] = None) -> NDArray[np.float_]:
+    """
+    Get distance between columns of axes in inches.
+
+    Only works if all axes of `fig` are part of one-and-the-same
+    ``matplotlib.gridspec.GridSpec`` and if axes are indeed aranged
+    in a 2D grid.
+
+    Ignores colormap axes added by :func:`.add_colorbar`.
+
+    Paramters
+    ---------
+    fig : ``matplotlib.figure.Figure``, optional
+        If ``None``, use last active figure.
+
+    Returns
+    -------
+    xpads_inches : ``numpy.ndarray``, shape ``(nrows, ncols-1)``
+        2D numpy array of the distance in-between columns in inch.
+    """
+    fig = fig or plt.gcf()
+    fig_width_inch, _ = fig.get_size_inches()
+
+    axs = get_sorted_axes_grid(fig)
+    gridspec: GridSpec = axs[0, 0].get_subplotspec().get_gridspec()
+
+    if gridspec.ncols == 1:
+        raise ValueError("Only one column in 'fig'")
+
+    xpads_inch = np.empty((gridspec.nrows, gridspec.ncols-1), dtype=Axes)
+    for row in range(gridspec.nrows):
+        for col in range(gridspec.ncols-1):
+            bbox0 = axs[row, col].get_position()
+            bbox1 = axs[row, col+1].get_position()
+            xpads_inch[row, col] = (bbox1.x0 - bbox0.x1) * fig_width_inch
+
+    return xpads_inch
+
+
+def set_min_column_pad(
+    column_pad_pts: ArrayLike,
+    fig: Optional[Figure] = None
+) -> None:
+    """
+    Set the minimum distance between columns.
+
+    Parameters
+    ----------
+    xpads_pts: ArrayLike
+        The desired minimum distance in pts.
+
+        You can pass a single float or number-of-columns floats.
+
+    fig : ``matplotlib.figure.Figure``, optional
+        If ``None``, use last active figure.
+    """
+    fig = fig or plt.gcf()
+    fw_inch, _ = fig.get_size_inches()
+
+    axs = get_sorted_axes_grid(fig)
+    gridspec: GridSpec = axs[0, 0].get_subplotspec().get_gridspec()
+    if gridspec.ncols == 1:
+        raise ValueError("Only one column in 'fig'")
+
+    xpads_inch = np.array(column_pad_pts) / fw_inch
+    if xpads_inch.size == 1:
+        value = xpads_inch[0] if xpads_inch.shape else xpads_inch
+        xpads_inch = np.full(gridspec.ncols-1, value)
+    elif xpads_inch.shape != (gridspec.ncols-1,):
+        msg = (
+            f"len(xpad_pts)={xpads_inch.size}, but it should be "
+            f"{gridspec.ncols-1}"
         )
+        raise ValueError(msg)
 
-    layout_inch = get_figure_layout(figure, axes, "inch")
+    deltas = np.min(get_column_pads_inches(fig), axis=0) - xpads_inch
+    for row in range(gridspec.nrows):
+        for col in range(1, gridspec.ncols):
+            bbox = axs[row, col].get_position()
+            axs[row, col].set_position((
+                bbox.x0 - col*deltas[col-1] / fw_inch,
+                bbox.y0,
+                bbox.width,
+                bbox.height
+            ))
 
-    try:
-        iter(xoffset)  # type: ignore
-    except TypeError:
-        xoffset = [[xoffset] * layout_inch.ncols] * \
-            layout_inch.nrows  # type: ignore
-    try:
-        iter(yoffset)  # type: ignore
-    except TypeError:
-        yoffset = [[yoffset] * layout_inch.ncols] * \
-            layout_inch.nrows  # type: ignore
+    update_colorbars()
 
-    if rowsfirst:
-        axes_flat = flatten(axes)
-        xoffsets_flat: list[Union[float, None]
-                            ] = flatten(xoffset)  # type: ignore
-        yoffsets_flat: list[Union[float, None]
-                            ] = flatten(yoffset)  # type: ignore
+
+def get_row_pads_inches(fig: Optional[Figure] = None) -> NDArray:
+    """
+    Get distance between rows of axes in inches.
+
+    Only works if all axes of `fig` are part of one-and-the-same
+    ``matplotlib.gridspec.GridSpec`` and if axes are indeed aranged
+    in a 2D grid.
+
+    Ignores colormap axes added by :func:`.add_colorbar`.
+
+    Paramters
+    ---------
+    fig : ``matplotlib.figure.Figure``, optional
+        Specify the figure within which to update the colorbars.
+
+        If ``None``, use last active figure.
+
+    Returns
+    -------
+    ypads_inches : ``numpy.ndarray``, shape ``(nrows-1, ncols)``
+        2D numpy array of the distance in-between rows in inches.
+    """
+    fig = fig or plt.gcf()
+    _, fig_height_inch = fig.get_size_inches()
+
+    axs = get_sorted_axes_grid(fig)
+    gridspec: GridSpec = axs[0, 0].get_subplotspec().get_gridspec()
+
+    if gridspec.nrows == 1:
+        raise ValueError("Only one row in 'fig'")
+
+    ypads_inch = np.empty((gridspec.nrows-1, gridspec.ncols), dtype=Axes)
+    for row in range(gridspec.nrows-1):
+        for col in range(gridspec.ncols):
+            bbox0 = axs[row, col].get_position()
+            bbox1 = axs[row+1, col].get_position()
+            ypads_inch[row, col] = (bbox0.y0 - bbox1.y1) * fig_height_inch
+
+    return ypads_inch
+
+
+def set_min_row_pads(
+    ypads_pts: ArrayLike,
+    fig: Optional[Figure] = None
+) -> None:
+    """
+    Set the minimum distance between rows.
+
+    Parameters
+    ----------
+    ypads_inches : ArrayLike
+        The desired minimum distance in inches.
+
+        You can pass a single float or number-of-rows floats.
+
+    fig : ``matplotlib.figure.Figure``, optional
+        Specify the figure within which to update the colorbars.
+
+        If ``None``, use last active figure.
+    """
+    fig = fig or plt.gcf()
+    _, fig_height_inch = fig.get_size_inches()
+
+    axs = get_sorted_axes_grid(fig)
+    gridspec: GridSpec = axs[0, 0].get_subplotspec().get_gridspec()
+    if gridspec.ncols == 1:
+        raise ValueError("Only one column in 'fig'")
+
+    ypads_inches = np.array(ypads_pts) / PTS_PER_INCH
+    if ypads_inches.size == 1:
+        value = ypads_inches[0] if ypads_inches.shape else ypads_inches
+        ypads_inches = np.full(gridspec.ncols-1, value)
+    elif ypads_inches.shape != (gridspec.ncols-1,):
+        msg = (
+            f"{len(ypads_inches)=}, but it should be {gridspec.ncols-1}"
+        )
+        raise ValueError(msg)
+
+    deltas = np.min(get_row_pads_inches(fig), axis=1) - ypads_inches
+    for row in range(1, gridspec.nrows):
+        for col in range(gridspec.ncols):
+            bbox = axs[row, col].get_position()
+            axs[row, col].set_position((
+                bbox.x0,
+                bbox.y0 + row*deltas[row-1] / fig_height_inch,
+                bbox.width,
+                bbox.height
+            ))
+
+    update_colorbars()
+
+
+def get_fig_margins_inches(fig: Optional[Figure] = None) -> Edges:
+    """
+    Get margins of the figure.
+
+    Only works if all axes of `fig` are part of one-and-the-same
+    ``matplotlib.gridspec.GridSpec`` and if axes are aranged
+    in a 2D grid.
+
+    Parameters
+    ----------
+    fig : ``matplotlib.figure.Figure``, optional
+        Specify the figure within which to update the colorbars.
+
+        If ``None``, use last active figure.
+
+    Returns
+    -------
+    margins_inch : :class:`.Edges`
+        left, right, top, and bottom margins of the figure.
+
+        ``margins_inch.left``
+            ``numpy.ndarray`` of all the `nrow` left margins
+
+        ``margins_inch.right``
+            ``numpy.ndarray`` of all the `nrow` right margins
+
+        ``margins_inch.top``
+            ``numpy.ndarray`` of all the `ncol` top margins
+
+        ``margins_inch.bottom``
+            ``numpy.ndarray`` of all the `ncol` bottom margins
+
+    """
+    fig = fig or plt.gcf()
+    fw_inch, fh_inch = fig.get_size_inches()
+    axs = get_sorted_axes_grid(fig)
+    gridspec: GridSpec = axs[0, 0].get_subplotspec().get_gridspec()
+
+    margins_inches = Edges(
+        left=np.empty(gridspec.nrows, dtype=np.float64),
+        right=np.empty(gridspec.nrows, dtype=np.float64),
+        top=np.empty(gridspec.ncols, dtype=np.float64),
+        bottom=np.empty(gridspec.ncols, dtype=np.float64)
+    )
+
+    for i, ax in enumerate(axs[:, 0]):
+        margins_inches.left[i] = ax.get_position().x0 * fw_inch
+
+    for i, ax in enumerate(axs[:, -1]):
+        margins_inches.right[i] = (1.0 - ax.get_position().x1) * fw_inch
+
+    for i, ax in enumerate(axs[0]):
+        margins_inches.top[i] = (1.0 - ax.get_position().y1) * fh_inch
+
+    for i, ax in enumerate(axs[-1]):
+        margins_inches.bottom[i] = ax.get_position().y0 * fh_inch
+
+    return margins_inches
+
+
+def ax_get_position_inch(
+    ax: Optional[Axes] = None
+) -> Bbox:
+    """
+    Get bounding box of `ax` in inches.
+
+    Wrapper function for ``matplotlib.axes.Axes.get_position()`` which converts
+    it to inches.
+
+    Parameters
+    ----------
+    ax : ``matplotlib.axes.Axes``, optional
+        If ``None``, use last active axes.
+
+    Returns
+    -------
+    bbox : ``matplotlib.transforms.Bbox``
+        The bounding box of just the graph-area of `ax` in inches.
+
+        Useful members:
+
+        ``bbox.x0``/``bbox.x1``
+            Location of the left/right edge in inches. Negative values are
+            left of the figure left edge.
+
+        ``bbox.y0``/``bbox.y1``
+            Lower/upper edge in inches. Negative values are below the 
+            figure bottom edge.
+
+        ``bbox.width``/``bbox.height``
+    """
+    ax = ax or plt.gca()
+    fig = ax.get_figure()
+    if fig is None:
+        raise ValueError("ax must be part of a figure")
+
+    fw, fh = fig.get_size_inches()
+    bbox = ax.get_position()
+
+    return Bbox([[bbox.x0*fw, bbox.y0*fh], [bbox.x1*fw, bbox.y1*fh]])
+
+
+def ax_get_tightbbox_inch(
+    ax: Optional[Axes] = None,
+    renderer: Optional[RendererBase] = None
+) -> Bbox:
+    """
+    Get bounding box of `ax` including labels in inches.
+
+    Wrapper function for ``matplotlib.axes.Axes.get_tightbbox()`` which converts
+    it to inches.
+
+    Parameters
+    ----------
+    ax : ``matplotlib.axes.Axes``, optional
+        If ``None``, use last active axes.
+
+    renderer : ``matplotlib.backend_bases.RendererBase``, optional
+        The renderer used to draw the figure.
+
+        Generally not necessary to pass it. If, however, you use
+        a backend that takes a long time to render (e.g., a LuaLaTeX pgf
+        backend), it may increase performance by passing the renderer.
+        Use :func:`.get_renderer` to get your current renderer.
+
+    Returns
+    -------
+    bbox : ``matplotlib.transforms.Bbox``
+        The bounding box of `ax` including x/ylabels, titles, etc, in inches.
+
+        Useful members:
+
+        ``bbox.x0``/``bbox.x1``
+            Location of the left/right edge in inches. Negative values are
+            left of the figure left edge.
+
+        ``bbox.y0``/``bbox.y1``
+            Lower/upper edge in inches. Negative values are below the 
+            figure bottom edge.
+
+        ``bbox.width``/``bbox.height``
+    """
+    ax = ax or plt.gca()
+    fig = ax.get_figure()
+    if fig is None:
+        raise ValueError("ax must be part of a figure")
+    dpi = fig.get_dpi()
+
+    tbbox_ax = ax.get_tightbbox(renderer)
+    assert tbbox_ax
+    xy_candidates = Edges([tbbox_ax.x0], [tbbox_ax.x1],
+                          [tbbox_ax.y1], [tbbox_ax.y0])
+
+    for cb in _colorbar_manager.colorbars:
+        if cb.parent_ax is ax:
+            tbbox_cb = cb.ax.get_tightbbox(renderer)
+            assert tbbox_cb
+            if cb.location == "left":
+                xy_candidates.left.append(tbbox_cb.x0)
+                xy_candidates.top.append(tbbox_cb.y1)
+                xy_candidates.bottom.append(tbbox_cb.y0)
+            if cb.location == "right":
+                xy_candidates.right.append(tbbox_cb.x1)
+                xy_candidates.top.append(tbbox_cb.y1)
+                xy_candidates.bottom.append(tbbox_cb.y0)
+            if cb.location == "top":
+                xy_candidates.top.append(tbbox_cb.y1)
+                xy_candidates.left.append(tbbox_cb.x0)
+                xy_candidates.right.append(tbbox_cb.x1)
+            if cb.location == "bottom":
+                xy_candidates.bottom.append(tbbox_cb.y0)
+                xy_candidates.left.append(tbbox_cb.x0)
+                xy_candidates.right.append(tbbox_cb.x1)
+
+    relevant_xy = (
+        np.min([x0 / dpi for x0 in xy_candidates.left]),
+        np.min([y0 / dpi for y0 in xy_candidates.bottom]),
+        np.max([x1 / dpi for x1 in xy_candidates.right]),
+        np.max([y1 / dpi for y1 in xy_candidates.top]),
+    )
+
+    rtn = Bbox.from_extents(*relevant_xy)
+    return rtn
+
+
+def make_me_nice(
+    fig: Optional[Figure] = None,
+    fix_figwidth: bool = True,
+    margin_pad_pts: ArrayLike = 5.0,
+    col_pad_pts: ArrayLike = 10.0,
+    row_pad_pts: ArrayLike = 10.0,
+    fail_if_figwidth_exceeds: Union[float,
+                                    Literal["current"],
+                                    Literal["auto"]] = "auto",
+    nruns: int = 2,
+    renderer: Optional[RendererBase] = None,
+) -> None:
+    """
+    Optimize space in the figure.
+
+    Re-arange axes in `fig` such that their margins don't overlap.
+    Also change margins at the edges of the figure such that everything fits.
+    Trim or expand the figure height accordingly.
+
+    Advantages over ``matplotlib.pyplot.tight_layout`` or 
+    `constrained layout <https://matplotlib.org/stable/users/explain/axes/constrainedlayout_guide.html>`_:
+
+    - Keeps widths constant (either of the axes, or of the figure)
+    - Handle colorbars as one may expect (if they were added using
+      :func:`.add_colorbar`)
+    - Updates figure height to optimize white-space for fixed aspect ratios
+
+    Disadvantages:
+
+    - Can only handle `nrows` times `ncols` grids. If you have anything fancy
+      (an axes that spans multiple columns), you cannot use this
+      straightforwardly.
+
+    Parameters
+    ----------
+    fig : ``matplotlib.figure.Figure``, optional
+        If ``None``, use last active figure.
+
+    fix_figwidth : bool, default ``True``
+        Configure if the figure width is kept constant or not.
+
+        ``True``
+            Keep the figure width constant and scale all axes-widths
+            accordingly.
+        ``False``
+            Keep axes widths constant and scale figure width accordingly. 
+            Also note `fail_if_figwidth_exceeds` parameter.
+
+    margin_pad_pts : ArrayLike, default 5.0
+        Extra padding for the figure edges in pts.
+
+        float
+            Same padding for left, right, top, bottom edge.
+        (float, float, float, float)
+            Different padding for left, right, top, bottom edge.
+
+    col_pad_pts, row_pad_pts : ArrayLike, default 10.0
+        Extra padding between the columns (rows) in pts.
+
+        float
+            Same padding in-between all columns (rows).
+        (float, ...)
+            Different values in-between all columns. Must have a length
+            of ``number_of_columns-1`` (``number_of_rows-1``).
+
+    fail_if_figwidth_exceeds : {float, "auto", "current"}, default "auto"
+        Only relevant if ``fix_figwidth == False``.
+
+        ``"current"``
+            Fail if the new figure width is bigger than the current width.
+
+        ``"auto"`` (default)
+            Same as ``"current"`` but only if the figure width was changed
+            from the default (as defined by
+            ``matplotlib.rcParams["figure.figsize"][0]``.
+
+        float
+            In inches. Fail if figure width exceeds this value.
+
+    nruns : int, default 2
+        Number of times the algorithm runs.
+
+        If your axes change significantly in size, different ticklabels may
+        be drawn which may change the size of the axes. To account for this,
+        ``make_me_nice`` has to run another time.
+
+        If the margins produced by ``make_me_nice`` are wrong, increasing
+        the number of runs may help.
+
+    renderer : ``matplotlib.backend_bases.RendererBase``, optional
+        The renderer used to draw the figure.
+
+        Generally not necessary to pass it. If, however, you use
+        a backend that takes a long time to render (e.g., a LuaLaTeX pgf
+        backend), it may increase performance by passing the renderer.
+        Use :func:`.get_renderer` to get your current renderer.
+
+    Notes
+    -----
+    - Cannot handle fancy GridSpecs, e.g., where one
+      subplot spans multiple other subplots.
+      If you need one of those, you're on your own.
+
+    - If you have subplots with different aspect ratios and `fig_width` is not
+      ``None``, the positioning of the subplots may be incorrect (e.g.,
+      off-centered in the column). Use :func:`.align_axes_vertically` or
+      :func:`.align_axes_horizontally` to fix that.
+
+    - If you use a different backend in `plt.savefig` than the default,
+      you need to specify that before creating the figure. E.g., with
+      ``matplotlib.use("some-backend")``.
+    """
+    fig = fig or plt.gcf()
+    fw_inch, fh_inch = fig.get_size_inches()
+    axs = get_sorted_axes_grid(fig)
+    gridspec: GridSpec = axs[0, 0].get_subplotspec().get_gridspec()
+    nrows, ncols = gridspec.nrows, gridspec.ncols
+    renderer = renderer or get_renderer(fig)
+
+    margin_pad_pts = np.array(margin_pad_pts)
+    if margin_pad_pts.size == 1:
+        value = margin_pad_pts[0] if margin_pad_pts.shape else margin_pad_pts
+        margin_pad_pts = np.array([value] * 4)
+    elif margin_pad_pts.shape != (4,):
+        raise ValueError(f"{margin_pad_pts.shape=} is invalid")
+    mpads_inch = Edges(*(margin_pad_pts / PTS_PER_INCH))
+
+    if ncols > 1:
+        col_pad_pts = np.array(col_pad_pts)
+        if col_pad_pts.size == 1:
+            value = col_pad_pts[0] if col_pad_pts.shape else col_pad_pts
+            col_pad_pts = np.array([value] * (ncols-1))
+        elif col_pad_pts.shape != (ncols-1,):
+            raise ValueError(f"{col_pad_pts.shape=} is invalid")
+        col_pads_inch = col_pad_pts / PTS_PER_INCH
     else:
-        axes_transposed: list[list[mplax.Axes]] = list(map(list, zip(*axes)))
-        xoffset_transposed = list(map(list, zip(*xoffset)))
-        yoffset_transposed = list(map(list, zip(*yoffset)))
-        axes_flat = flatten(axes_transposed)
-        xoffsets_flat: list[Union[float, None]] = flatten(xoffset_transposed)
-        yoffsets_flat: list[Union[float, None]] = flatten(yoffset_transposed)
+        col_pads_inch = np.array([0.0])
 
-    abc = "abcdefghijklmnopqrstuvwxyz"
-    abc_ofs = abc.index(start_at)
-    if uppercase:
-        abc = abc.upper()
+    if nrows > 1:
+        row_pad_pts = np.array(row_pad_pts)
+        if row_pad_pts.size == 1:
+            value = row_pad_pts[0] if row_pad_pts.shape else row_pad_pts
+            row_pad_pts = np.array([value] * (nrows-1))
+        elif row_pad_pts.shape != (ncols-1,):
+            raise ValueError(f"{row_pad_pts.shape=} is invalid")
+        row_pads_inch = row_pad_pts / PTS_PER_INCH
+    else:
+        row_pads_inch = np.array([0.0])
 
-    renderer = figure.canvas.get_renderer()  # type: ignore
-    prefix_sf = r"\sffamily" if sansserif else ""
-    prefix_sc = r"\scshape" if smallcaps else ""
-    text_kwargs["transform"] = figure.transFigure
-    text_kwargs["clip_on"] = False
+    bboxes_inch = np.empty((nrows, ncols), dtype=Bbox)
+    tbboxes_inch = np.empty((nrows, ncols), dtype=Bbox)
 
-    @ dataclass
-    class Offset:
-        dx: float
-        dy: float
+    for row in range(nrows):
+        for col in range(ncols):
+            bboxes_inch[row, col] = ax_get_position_inch(axs[row, col])
+            tbboxes_inch[row, col] = ax_get_tightbbox_inch(
+                axs[row, col], renderer=renderer)
 
-    output_text: list[mpltxt.Text] = []
-    for i, (ax, xofs, yofs) in enumerate(zip(axes_flat,
-                                             xoffsets_flat,
-                                             yoffsets_flat)):
-        ofs_rel = Offset(0.0, 0.0)
-        bbox = ax.get_position()
-        if xofs is None:
-            tbbox = ax.get_tightbbox(renderer)
-            ofs_rel.dx = (
-                tbbox.x0 / figure.get_dpi() / layout_inch.fig_width  # type: ignore
-                - bbox.x0)
+    extra_wspaces_inch = np.zeros(ncols)
+    extra_wspaces_inch[0] = np.min([t.x0 for t in tbboxes_inch[:, 0]])
+    for col in range(1, ncols):
+        extra_wspaces_inch[col] = (
+            np.min([t.x0 for t in tbboxes_inch[:, col]])
+            - np.max([t.x1 for t in tbboxes_inch[:, col-1]]))
+
+    extra_hspaces_inch = np.zeros(nrows)
+    extra_hspaces_inch[0] = fh_inch - np.max([t.y1 for t in tbboxes_inch[0]])
+    for row in range(1, nrows):
+        extra_hspaces_inch[row] = (
+            np.min([t.y0 for t in tbboxes_inch[row-1]])
+            - np.max([t.y1 for t in tbboxes_inch[row]]))
+
+    new_fw_inch: float = (
+        (np.max([t.x1 for t in tbboxes_inch[:, -1]])
+         - np.min([t.x0 for t in tbboxes_inch[:, 0]]))
+        - np.sum(extra_wspaces_inch[1:])
+        + mpads_inch.left + mpads_inch.right
+        + np.sum(col_pads_inch)
+    )
+
+    if fix_figwidth:
+        scale = fw_inch / new_fw_inch
+
+        for row in range(nrows):
+            for col in range(ncols):
+                set_axes_size(bboxes_inch[row, col].width * scale,
+                              bboxes_inch[row, col].height * scale,
+                              ax=axs[row, col],
+                              anchor="center")
+                tbboxes_inch[row, col] = ax_get_tightbbox_inch(
+                    axs[row, col], renderer=renderer)
+
+        if nruns > 1:
+            next_fix_figwidth = True
         else:
-            ofs_rel.dx = xofs / PTS_PER_INCH / layout_inch.fig_width
+            next_fix_figwidth = False
 
-        if yofs is None:
-            tbbox = ax.get_tightbbox(renderer)
-            ofs_rel.dy = (
-                tbbox.y1 / layout_inch.fig_height / figure.get_dpi()  # type: ignore
-                - bbox.y1)
+        return make_me_nice(
+            fig=fig,
+            fix_figwidth=next_fix_figwidth,
+            fail_if_figwidth_exceeds=np.inf,
+            margin_pad_pts=margin_pad_pts,
+            row_pad_pts=row_pad_pts,
+            col_pad_pts=col_pad_pts,
+            nruns=nruns-1,
+            renderer=renderer
+        )
+
+    if fail_if_figwidth_exceeds == "auto":
+        if plt.rcParams["figure.figsize"][0] != fw_inch:
+            fail_if_figwidth_exceeds = "current"
         else:
-            ofs_rel.dy = yofs / PTS_PER_INCH / layout_inch.fig_height
+            fail_if_figwidth_exceeds = np.inf
+    if fail_if_figwidth_exceeds == "current":
+        fail_if_figwidth_exceeds = fw_inch
+    assert isinstance(fail_if_figwidth_exceeds, float)
+    if new_fw_inch > fail_if_figwidth_exceeds:
+        raise FigureWidthTooLargeError
 
-        if anchor.split()[0] == "upper":
-            pos_abc_y = bbox.y1 + ofs_rel.dy
-        else:
-            pos_abc_y = bbox.y0 + ofs_rel.dy
-        if anchor.split()[1] == "left":
-            pos_abc_x = bbox.x0 + ofs_rel.dx
-        else:
-            pos_abc_x = bbox.x1 + ofs_rel.dx
+    new_fh_inch = (
+        (np.max([t.y1 for t in tbboxes_inch[0]])
+            - np.min([t.y0 for t in tbboxes_inch[-1]]))
+        - np.sum(extra_hspaces_inch[1:])
+        + mpads_inch.top + mpads_inch.bottom
+        + np.sum(row_pads_inch)
+    )
 
-        label = f"{prefix_sf}{prefix_sc}{prefix}{abc[i+abc_ofs]}{suffix}"
+    fig.set_size_inches(new_fw_inch, new_fh_inch)
 
-        output_text.append(ax.text(pos_abc_x, pos_abc_y, label, **text_kwargs))
+    for row in range(nrows):
+        for col in range(ncols):
+            x0s_inch = (
+                bboxes_inch[row, col].x0
+                - np.sum(extra_wspaces_inch[:col+1])
+                + np.sum(col_pads_inch[:col])
+                + mpads_inch.left
+            )
+            y0s_inch = (
+                bboxes_inch[row, col].y0
+                + np.sum(extra_hspaces_inch[:row+1])
+                - np.sum(row_pads_inch[:row])
+            ) - fh_inch + new_fh_inch - mpads_inch.top
 
-    return reshape(output_text, (layout_inch.nrows, layout_inch.ncols))
+            axs[row, col].set_position((
+                x0s_inch / new_fw_inch,
+                y0s_inch / new_fh_inch,
+                bboxes_inch[row, col].width / new_fw_inch,
+                bboxes_inch[row, col].height / new_fh_inch,
+            ))
+
+    update_colorbars()
 
 
-def abcify_axes(
-    axes: Union[mplax.Axes,
-                list[mplax.Axes],
-                list[list[mplax.Axes]]],
-) -> dict[str, mplax.Axes]:
+def align_axes_vertically(
+    ax: Axes,
+    reference_ax: Axes,
+    alignment: Literal["center", "top", "bottom"] = "center",
+) -> None:
     """
-    Return a dictionary with keys a, b, b, ... of the input axes. If a 2D
-    list of axes is provided, it cycles through rows first. (If you want to
-    cycle through columns first, pass a transposed 2D list).
+    Set horizontal position of `ax` relative to `reference_ax`.
 
     Parameters
     ----------
-    axes : `matplotlib.axes.Axes` or list or list of lists thereof
+    ax : ``matplotlib.axes.Axes``
+        Axes to reposition.
+
+    reference_ax : ``matplotlib.axes.Axes``
+        Reference axes.
+
+    alignment : {``"center"``, ``"top"``, ``"bottom"``}, default ``"center"``
+        Which reference point to take from `reference_ax`.
+    """
+    bbox_ax = ax.get_position()
+    bbox_ref = reference_ax.get_position()
+
+    if alignment == "center":
+        delta = bbox_ref.height - bbox_ax.height
+        y0 = bbox_ref.y0 + delta / 2.0
+    elif alignment == "top":
+        y0 = bbox_ref.y1 - bbox_ax.height
+    elif alignment == "bottom":
+        y0 = bbox_ref.y0
+    else:
+        valid_anchors = "left", "top", "bottom"
+        msg = f"{alignment=}, but it should be one of {valid_anchors}"
+        raise ValueError(msg)
+    ax.set_position((bbox_ax.x0, y0, bbox_ax.width, bbox_ax.height))
+    update_colorbars()
+
+
+def align_axes_horizontally(
+    ax: Axes,
+    reference_ax: Axes,
+    alignment: Literal["center", "left", "right"] = "center"
+) -> None:
+    """
+    Set horizontal position of `ax` relative to `reference_ax`.
+
+    Parameters
+    ----------
+    ax : ``matplotlib.axes.Axes``
+        Axes to reposition.
+
+    reference_ax : ``matplotlib.axes.Axes``
+        Reference axes.
+
+    alignment : {``"center"``, ``"left"``, ``"right"``}, default ``"center"``
+        Which reference point to take from `reference_ax`.
+    """
+    bbox_ax = ax.get_position()
+    bbox_ref = reference_ax.get_position()
+
+    if alignment == "center":
+        delta = bbox_ref.width - bbox_ax.width
+        x0 = bbox_ref.x0 + delta / 2.0
+    elif alignment == "left":
+        x0 = bbox_ref.x1 - bbox_ax.width
+    elif alignment == "right":
+        x0 = bbox_ref.x0
+    else:
+        valid_anchors = "left", "top", "bottom"
+        msg = f"{alignment=}, but it should be one of {valid_anchors}"
+        raise ValueError(msg)
+    ax.set_position((x0, bbox_ax.y0, bbox_ax.width, bbox_ax.height))
+    update_colorbars()
+
+
+def get_axes_margins_inches(
+        ax: Optional[Axes] = None,
+        renderer: Optional[RendererBase] = None
+) -> Edges:
+    """
+    Get left, right, top, bottom margins of `ax`.
+
+    Parameters
+    ----------
+    ax : ``matplotlib.axes.Axes``, optional
+        If ``None``, use last active axes.
+
+    renderer : ``matplotlib.backend_bases.RendererBase``, optional
+        The renderer used to draw the figure.
+
+        Generally not necessary to pass it. If, however, you use
+        a backend that takes a long time to render (e.g., a LuaLaTeX pgf
+        backend), it may increase performance by passing the renderer.
+        Use :func:`.get_renderer` to get your current renderer.
 
     Returns
     -------
-    dict[str, matplotlib.axes.Axes]
-        A dictionary where keys are a, b, c, ... and values are the input axes
+    margins : :class:`.Edges`
+        The margins in inches wrapped in an instance of :class:`.Edges`,
+        e.g., ``margins.left`` is the left margin.
     """
-    if isinstance(axes, str):
-        raise ValueError(
-            "*axes* cannot be a string"
-        )
+    tbbox = ax_get_tightbbox_inch(ax, renderer)
+    bbox = ax_get_position_inch(ax)
+    return Edges(
+        bbox.x0 - tbbox.x0,
+        tbbox.x1 - bbox.x1,
+        tbbox.y1 - bbox.y1,
+        bbox.y0 - tbbox.y0
+    )
 
-    abc = "abcdefghijklmnopqrstufvxyz"
 
-    if isinstance(axes, mplax.Axes):
-        return {abc[0]: axes}
-
-    try:
-        iter(axes)  # type: ignore
-    except TypeError:
-        raise ValueError(
-            "Invalid input for *axes*"
-        )
-
-    axes = flatten(axes)
-    output = {}
-    for i, a in enumerate(axes):
-        output[abc[i]] = a
-    return output
+if __name__ == "__main__":
+    print("oi mate")

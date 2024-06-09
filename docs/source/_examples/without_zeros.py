@@ -8,16 +8,15 @@ plt.rcParams["image.aspect"] = "auto"
 gen = np.random.default_rng(42)
 hist = ap.Hist2d(*np.histogram2d(*gen.normal(size=(2, 100))))
 
-fig, ax_ = ap.subplots(ncols=3, ratio=1)
-ax = ap.abcify_axes(ax_)
+_, axs = plt.subplot_mosaic([["a", "b", "c"]])
 
-im = [] # empty list to store colorbar images in
-im.append(ax["a"].imshow(**hist.for_imshow()))
-im.append(ax["b"].imshow(**hist.without_zeros.for_imshow(), vmin=0))
-im.append(ax["c"].imshow(**hist.without_zeros.for_imshow()))
+imga = axs["a"].imshow(**hist.for_imshow())
+imgb = axs["b"].imshow(**hist.without_zeros.for_imshow(), vmin=0)
+imgc = axs["c"].imshow(**hist.without_zeros.for_imshow())
 
-colorbars = ap.add_colorbar(ax_, im, where="top")
-ap.make_margins_tight(ax_, pad=5, colorbars=colorbars)
-ap.add_abc(ax_, prefix="(", suffix=")")
+for img, ax in zip([imga, imgb, imgc], axs.values()):
+    ax.set_box_aspect(1.0)
+    ap.add_colorbar(img, ax, location="top")
 
-
+ap.add_abc()
+ap.make_me_nice()

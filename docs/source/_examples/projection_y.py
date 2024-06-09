@@ -6,7 +6,13 @@ import atompy as ap
 plt.rcParams["image.cmap"] = "lmf2root"
 plt.rcParams["image.interpolation"] = "none"
 plt.rcParams["image.aspect"] = "auto"
-fig, ax = ap.subplots(ncols=2, ratio=1, xpad=3)
+
+_, axs = plt.subplots(1, 2, sharey=True)
+
+# formatting of axes sizes
+w, h = 3.0, 3.0
+ap.set_axes_size(w, h, axs[1])
+ap.set_axes_size(w*0.3, h, axs[0])
 
 # example data
 gen = np.random.default_rng(42)
@@ -14,11 +20,10 @@ hist2d = ap.Hist2d(*np.histogram2d(*gen.normal(size=(2, 1_000))))
 hist1d = hist2d.projected_onto_y
 
 # plotting
-ax[0][0].imshow(**hist2d.for_imshow())
-ax[0][1].step(hist1d.for_step[1][::-1], hist1d.for_step[0][::-1])
+axs[0].step(hist1d.for_step[1][::-1], hist1d.for_step[0][::-1])
+axs[0].invert_xaxis()
+im = axs[1].imshow(**hist2d.for_imshow())
 
-# formatting
-ap.change_ratio(0.5, ax[0][1], anchor="left", adjust="width")
-ax[0][1].set_yticklabels([])
-ax[0][1].set_ylim(ax[0][0].get_ylim())
-ap.make_margins_tight(ax, pad=5)
+ap.add_colorbar(im, axs[1])
+
+ap.make_me_nice(col_pad_pts=1, fix_figwidth=False)

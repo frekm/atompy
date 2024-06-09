@@ -118,6 +118,14 @@ _colorbar_manager = _ColorbarManager()
 
 @dataclass
 class Edges:
+    """
+    Wrapper for things that are at the left, right, top, bottom edge of
+    something (e.g., the margins of a ``matplotlib.axes.Axes``.
+
+    Parameters
+    ----------
+    left, right, top, bottom : Any
+    """
     left: Any
     right: Any
     top: Any
@@ -157,17 +165,16 @@ def create_colormap(
     Parameters
     ----------
     steps : Sequence floats
-        the steps of the colorbar ranging from :code:`0.0` to :code:`1.0`
+        the steps of the colorbar ranging from ``0.0`` to ``1.0``.
 
-    reds/greens/blues : Sequence floats
-        The corresponding value of the colors ranging from :code:`0.0` to
-        :code:`1.0`
+    reds, greens, blues : Sequence floats
+        The corresponding value of the colors ranging from ``0.0`` to ``1.0``.
 
-    lut_size : int, default :code:`256`
-        number of different colors in the colormap
+    lut_size : int, default 256
+        Number of different colors in the colormap.
 
-    cmap_name : str, default :code:`"MyCmap"`
-        The name of the colormap instance
+    cmap_name : str, default ``"MyCmap"``
+        The name of the colormap instance.
 
     Returns
     -------
@@ -1259,7 +1266,7 @@ def set_min_row_pads(
     update_colorbars()
 
 
-def get_margins_inches(fig: Optional[Figure] = None) -> Edges:
+def get_fig_margins_inches(fig: Optional[Figure] = None) -> Edges:
     """
     Get margins of the figure.
 
@@ -1769,6 +1776,42 @@ def align_axes_horizontally(
         raise ValueError(msg)
     ax.set_position((x0, bbox_ax.y0, bbox_ax.width, bbox_ax.height))
     update_colorbars()
+
+
+def get_axes_margins_inches(
+        ax: Optional[Axes] = None,
+        renderer: Optional[RendererBase] = None
+) -> Edges:
+    """
+    Get left, right, top, bottom margins of `ax`.
+
+    Parameters
+    ----------
+    ax : ``matplotlib.axes.Axes``, optional
+        If ``None``, use last active axes.
+
+    renderer : ``matplotlib.backend_bases.RendererBase``, optional
+        The renderer used to draw the figure.
+
+        Generally not necessary to pass it. If, however, you use
+        a backend that takes a long time to render (e.g., a LuaLaTeX pgf
+        backend), it may increase performance by passing the renderer.
+        Use :func:`.get_renderer` to get your current renderer.
+
+    Returns
+    -------
+    margins : :class:`.Edges`
+        The margins in inches wrapped in an instance of :class:`.Edges`,
+        e.g., ``margins.left`` is the left margin.
+    """
+    tbbox = ax_get_tightbbox_inch(ax, renderer)
+    bbox = ax_get_position_inch(ax)
+    return Edges(
+        bbox.x0 - tbbox.x0,
+        tbbox.x1 - bbox.x1,
+        tbbox.y1 - bbox.y1,
+        bbox.y0 - tbbox.y0
+    )
 
 
 if __name__ == "__main__":

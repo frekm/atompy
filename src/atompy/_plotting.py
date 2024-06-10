@@ -58,7 +58,7 @@ class _Colors(NamedTuple):
     bright_green: Literal["#3BB143"]
 
 
-COLORS = _Colors(
+colors = _Colors(
     RED, BLUE, ORANGE, PINK, GREEN, TEAL, GREY,
     YELLOW, LEMON, CORN, PURPLE,
     DARK_PURPLE, FOREST_GREEN, BRIGHT_GREEN)
@@ -145,7 +145,17 @@ class Edges:
 
 def clear_colorbars() -> None:
     """
-    Clear reference to all Colorbars.
+    Clear reference to all colorbars that were created by :func:`add_colorbar`.
+
+    You probably never have to call this.
+
+    Notes
+    -----
+    ``atompy`` keeps track of all colorbars added by :func:`add_colorbar` in
+    a list. This list is not cleared, even if one closes the figure within
+    which the colorbar is contained.
+
+    Calling ``clear_colorbars`` clears that list.
     """
     del _colorbar_manager.colorbars[:]
 
@@ -475,7 +485,7 @@ def add_colorbar(
     mappable : ``matplotlib.cm.ScalarMappable``
         The colormap described by this colorbar.
 
-        For mor information, see
+        For more information, see
         `matplotlib.pyplot.colorbar <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.colorbar.html>`_.
 
     ax : ``matplotlib.axes.Axes``, optional

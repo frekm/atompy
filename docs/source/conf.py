@@ -8,7 +8,7 @@
 
 import sys
 import os
-import atompy
+from atompy import __version__
 
 from intersphinx_registry import get_intersphinx_mapping
 
@@ -18,7 +18,7 @@ sys.path.append(os.path.abspath('../../src/'))
 project = 'atompy'
 copyright = 'Max Kircher, CC BY-NC 4.0'
 author = 'Max Kircher'
-release = atompy.__version__
+release = __version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

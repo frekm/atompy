@@ -284,7 +284,7 @@ def dotted(
     **aliases
 ) -> tuple[float, tuple[float, float]]:
     """
-    Return a ls tuple to create a dotted line that fits perfectly into a
+    Return a tuple to create a dotted line that fits perfectly into a
     legend. For that to work properly you may need to provide the linewidth of
     the graph and the fontsize of the legend.
 
@@ -308,6 +308,11 @@ def dotted(
     -------
     tuple : (float, (float, float))
         tuple to be used as linetype in plotting
+
+    See Also
+    --------
+    :func:`.dash_dotted` : Create dotted-line linestyle.
+    :func:`.dashed` : Create dash-dotted-line linestyle.
 
     Examples
     --------
@@ -359,7 +364,7 @@ def dash_dotted(
     **aliases
 ) -> tuple[float, tuple[float, float, float, float]]:
     """
-    Return a ls tuple to create a dash-dotted line that fits perfectly into a
+    Return a tuple to create a dash-dotted line that fits perfectly into a
     legend. For that to work properly you may need to provide the linewidth of
     the graph and the fontsize of the legend.
 
@@ -390,9 +395,10 @@ def dash_dotted(
     tuple : (float, (float, float, float, float))
         tuple to be used as linetype in plotting
 
-    Examples
+    See Also
     --------
-    See :func:`.dotted`.
+    :func:`.dotted` : Create dotted-line linestyle.
+    :func:`.dashed` : Create dash-dotted-line linestyle.
     """
     lw_, fs_, lh_ = _set_lw_fs_lh(
         linewidth, fontsize, legend_handlelength, **aliases)
@@ -418,7 +424,7 @@ def dashed(
     **aliases
 ) -> tuple[float, tuple[float, float]]:
     """
-    Return a ls tuple to create a dashed line that fits perfectly into a
+    Return a tuple to create a dashed line that fits perfectly into a
     legend. For that to work properly you may need to provide the linewidth of
     the graph and the fontsize of the legend.
 
@@ -450,9 +456,10 @@ def dashed(
     (float, (float, float, float, float))
         tuple to be used as linetype in plotting
 
-    Examples
+    See Also
     --------
-    See :func:`.dotted`.
+    :func:`.dotted` : Create dotted-line linestyle.
+    :func:`.dash_dotted` : Create dash-dotted-line linestyle.
     """
     lw_, fs_, lh_ = _set_lw_fs_lh(
         linewidth, fontsize, legend_handlelength, **aliases)
@@ -495,7 +502,7 @@ def add_colorbar(
 
         If ``None``, use currently active axes.
 
-    location : {'left', 'right', 'top', 'bottom'}, default: ``right``
+    location : {"left", "right", "top", "bottom"}, default: ``"right"``
         Location of the colorbar relative to `ax`.
 
     thickness_pts : float, optional
@@ -662,6 +669,7 @@ def add_abc(
 
     text_kwargs
         Additional keyword arguments of ``matplotlib.text.Text``.
+        For a list thereof, see `here <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>`_.
 
     Returns
     -------
@@ -866,7 +874,8 @@ def set_axes_size(
     Parameters
     ----------
     width_inch, height_inch : float
-        New width and height of the graph-area of `ax`.
+        New width and height of the graph-area of `ax` (that is, excluding
+        the axis labels, titles, etc).
 
     ax : ``matplotlib.pyplot.Axes``, optional
         If ``None``, change last active axes.
@@ -932,7 +941,7 @@ def get_sorted_axes_grid(fig: Optional[Figure] = None) -> NDArray:
     Get all axes from `fig` and sort them into a 2D grid.
 
     Only works if all axes of `fig` are part of one-and-the-same
-    ``matplotlib.gridspec.GridSpec`` and if axes are indeed aranged
+    ``matplotlib.gridspec.GridSpec`` and if axes are arranged
     in a 2D grid.
 
     Ignores colormap axes added by :func:`.add_colorbar`.
@@ -944,7 +953,7 @@ def get_sorted_axes_grid(fig: Optional[Figure] = None) -> NDArray:
 
     Returns
     -------
-    axes_grid : ``numpy.ndarray``, shape ``(nrows, ncols)``
+    axes_grid : ``numpy.ndarray``, shape(nrows, ncols)
         A 2D numpy array containing the axes of `fig`.
 
         ``axes_grid[0, 0]`` refers to the top-left,
@@ -977,7 +986,7 @@ def get_sorted_axes_grid(fig: Optional[Figure] = None) -> NDArray:
             msg = "GridSpec too fancy for me. I can't handle this :c"
             raise ValueError(msg)
 
-    # create a ndarray of axes aranged in a grid corresponding to the gridspec
+    # create a ndarray of axes arranged in a grid corresponding to the gridspec
     axs = np.empty((gridspec.nrows, gridspec.ncols), dtype=Axes)
     for row in range(gridspec.nrows):
         for col in range(gridspec.ncols):
@@ -993,7 +1002,7 @@ def get_column_pads_inches(fig: Optional[Figure] = None) -> NDArray[np.float_]:
     Get distance between columns of axes in inches.
 
     Only works if all axes of `fig` are part of one-and-the-same
-    ``matplotlib.gridspec.GridSpec`` and if axes are indeed aranged
+    ``matplotlib.gridspec.GridSpec`` and if axes are arranged
     in a 2D grid.
 
     Ignores colormap axes added by :func:`.add_colorbar`.
@@ -1005,7 +1014,7 @@ def get_column_pads_inches(fig: Optional[Figure] = None) -> NDArray[np.float_]:
 
     Returns
     -------
-    xpads_inches : ``numpy.ndarray``, shape ``(nrows, ncols-1)``
+    xpads_inches : ``numpy.ndarray``, shape(nrows, ncols-1)
         2D numpy array of the distance in-between columns in inch.
     """
     fig = fig or plt.gcf()
@@ -1036,12 +1045,12 @@ def set_min_column_pads(
 
     Parameters
     ----------
-    xpads_pts: ArrayLike
+    xpads_pts : array_like
         The desired minimum distance in pts.
 
         You can pass a single float or number-of-columns floats.
 
-    fig : ``matplotlib.figure.Figure``, optional
+    fig : :class:`matplotlib.figure.Figure`, optional
         If ``None``, use last active figure.
     """
     fig = fig or plt.gcf()
@@ -1082,7 +1091,7 @@ def get_row_pads_inches(fig: Optional[Figure] = None) -> NDArray:
     Get distance between rows of axes in inches.
 
     Only works if all axes of `fig` are part of one-and-the-same
-    ``matplotlib.gridspec.GridSpec`` and if axes are indeed aranged
+    ``matplotlib.gridspec.GridSpec`` and if axes are arranged
     in a 2D grid.
 
     Ignores colormap axes added by :func:`.add_colorbar`.
@@ -1096,7 +1105,7 @@ def get_row_pads_inches(fig: Optional[Figure] = None) -> NDArray:
 
     Returns
     -------
-    ypads_inches : ``numpy.ndarray``, shape ``(nrows-1, ncols)``
+    ypads_inches : ``numpy.ndarray``, shape(nrows-1, ncols)
         2D numpy array of the distance in-between rows in inches.
     """
     fig = fig or plt.gcf()
@@ -1174,14 +1183,12 @@ def get_figure_margins_inches(fig: Optional[Figure] = None) -> Edges:
     Get margins of the figure.
 
     Only works if all axes of `fig` are part of one-and-the-same
-    ``matplotlib.gridspec.GridSpec`` and if axes are aranged
+    ``matplotlib.gridspec.GridSpec`` and if axes are arranged
     in a 2D grid.
 
     Parameters
     ----------
     fig : ``matplotlib.figure.Figure``, optional
-        Specify the figure within which to update the colorbars.
-
         If ``None``, use last active figure.
 
     Returns
@@ -1190,16 +1197,16 @@ def get_figure_margins_inches(fig: Optional[Figure] = None) -> Edges:
         left, right, top, and bottom margins of the figure.
 
         ``margins_inch.left``
-            ``numpy.ndarray`` of all the `nrow` left margins
+            ``numpy.ndarray`` of all the `nrows` left margins
 
         ``margins_inch.right``
-            ``numpy.ndarray`` of all the `nrow` right margins
+            ``numpy.ndarray`` of all the `nrows` right margins
 
         ``margins_inch.top``
-            ``numpy.ndarray`` of all the `ncol` top margins
+            ``numpy.ndarray`` of all the `ncols` top margins
 
         ``margins_inch.bottom``
-            ``numpy.ndarray`` of all the `ncol` bottom margins
+            ``numpy.ndarray`` of all the `ncols` bottom margins
 
     """
     fig = fig or plt.gcf()
@@ -1233,7 +1240,7 @@ def get_axes_position_inch(
     ax: Optional[Axes] = None
 ) -> Bbox:
     """
-    Get bounding box of `ax` in inches.
+    Get the bounding box of `ax` in inches, excluding labels, titles, etc.
 
     Wrapper function for ``matplotlib.axes.Axes.get_position()`` which converts
     it to inches.
@@ -1250,15 +1257,16 @@ def get_axes_position_inch(
 
         Useful members:
 
-        ``bbox.x0``/``bbox.x1``
-            Location of the left/right edge in inches. Negative values are
+        ``bbox.x0``, ``bbox.x1``
+            Location of the left and right edge in inches. Negative values are
             left of the figure left edge.
 
-        ``bbox.y0``/``bbox.y1``
-            Lower/upper edge in inches. Negative values are below the 
+        ``bbox.y0``, ``bbox.y1``
+            Lower and upper edge in inches. Negative values are below the 
             figure bottom edge.
 
-        ``bbox.width``/``bbox.height``
+        ``bbox.width``, ``bbox.height``
+            Width and height of the graph-area of `ax`.
     """
     ax = ax or plt.gca()
     fig = ax.get_figure()
@@ -1301,15 +1309,23 @@ def get_axes_tightbbox_inch(
 
         Useful members:
 
-        ``bbox.x0``/``bbox.x1``
-            Location of the left/right edge in inches. Negative values are
+        ``bbox.x0``, ``bbox.x1``
+            Location of the left and right edge in inches. Negative values are
             left of the figure left edge.
 
-        ``bbox.y0``/``bbox.y1``
-            Lower/upper edge in inches. Negative values are below the 
+        ``bbox.y0``, ``bbox.y1``
+            Lower and upper edge in inches. Negative values are below the 
             figure bottom edge.
 
-        ``bbox.width``/``bbox.height``
+        ``bbox.width``, ``bbox.height``
+            Width and height of the `ax`, including labels, titles, etc.
+
+    Notes
+    -----
+    This ignores text elements added to `ax`. In particular, this means if
+    you used :func:`.add_abc` to add labels outside of the graph-area of `ax`,
+    the dimensions returned by ``get_axes_tightbbox_inch`` will not include
+    those.
     """
     ax = ax or plt.gca()
     fig = ax.get_figure()
@@ -1371,15 +1387,15 @@ def make_me_nice(
     Also change margins at the edges of the figure such that everything fits.
     Trim or expand the figure height accordingly.
 
-    Advantages over ``matplotlib.pyplot.tight_layout`` or 
+    **Advantages** over ``matplotlib.pyplot.tight_layout`` or 
     `constrained layout <https://matplotlib.org/stable/users/explain/axes/constrainedlayout_guide.html>`_:
 
-    - Keeps widths constant (either of the axes, or of the figure)
+    - Keeps widths constant (either of the axes or of the figure).
     - Handle colorbars as one may expect (if they were added using
-      :func:`.add_colorbar`)
-    - Updates figure height to optimize white-space for fixed aspect ratios
+      :func:`.add_colorbar`).
+    - Updates figure height to optimize white-space for fixed aspect ratios.
 
-    Disadvantages:
+    **Disadvantages**:
 
     - Can only handle `nrows` times `ncols` grids. If you have anything fancy
       (an axes that spans multiple columns), you cannot use this
@@ -1415,7 +1431,7 @@ def make_me_nice(
             Same padding in-between all columns (rows).
         (float, ...):
             Different values in-between all columns. Must have a length
-            of ``number_of_columns-1`` (``number_of_rows-1``).
+            of `ncols-1` (`nrows-1`).
 
     max_figwidth : float, default ``numpy.inf``
         Only relevant if ``fix_figwidth == False``.
@@ -1607,7 +1623,7 @@ def align_axes_vertically(
         Reference axes.
 
     alignment : {``"center"``, ``"top"``, ``"bottom"``}, default ``"center"``
-        Which reference point to take from `reference_ax`.
+        Which reference axis to take from `reference_ax`.
     """
     bbox_ax = ax.get_position()
     bbox_ref = reference_ax.get_position()
@@ -1644,7 +1660,7 @@ def align_axes_horizontally(
         Reference axes.
 
     alignment : {``"center"``, ``"left"``, ``"right"``}, default ``"center"``
-        Which reference point to take from `reference_ax`.
+        Which reference axis to take from `reference_ax`.
     """
     bbox_ax = ax.get_position()
     bbox_ref = reference_ax.get_position()

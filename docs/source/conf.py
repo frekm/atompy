@@ -8,12 +8,17 @@
 
 import sys
 import os
+import atompy
+
+from intersphinx_registry import get_intersphinx_mapping
+
 sys.path.append(os.path.abspath('../../src/'))
+
 
 project = 'atompy'
 copyright = 'Max Kircher, CC BY-NC 4.0'
 author = 'Max Kircher'
-release = '4.0.0'
+release = atompy.__version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -23,13 +28,26 @@ extensions = [
     "numpydoc",
     "sphinx.ext.viewcode",
     "sphinx.ext.autosummary",
+    "sphinx.ext.intersphinx",
     'matplotlib.sphinxext.plot_directive',
 ]
 autodoc_type_aliases = {
     'ArrayLike': 'ArrayLike',
 }
 autodoc_typehints = "none"
+
+rst_prolog = r"""
+.. glossary::
+
+    numpy
+"""
+
+pygments_style = "sphinx"
+
 numpydoc_class_members_toctree = False
+numpydoc_xref_param_type = True
+numpydoc_xref_aliases = {
+}
 
 templates_path = ['_templates']
 exclude_patterns = []
@@ -46,3 +64,6 @@ html_theme_options = {
     "navigation_with_keys": False,
     "show_nav_level": 4,
 }
+
+intersphinx_mapping = get_intersphinx_mapping(
+    packages=["python", "numpy", "matplotlib"]) # type: ignore

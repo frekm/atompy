@@ -1,4 +1,5 @@
 sphinx>=7.2.6
+intersphinx_registry
 pydata-sphinx-theme
 numpydoc
 -e .

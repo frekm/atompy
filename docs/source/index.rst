@@ -72,8 +72,8 @@ This method does not install the dependencies of ``atompy``. You'll have to
 install these manually (e.g., with ``pip``).
 
 
-Using and ``git``
------------------
+Using ``git``
+-------------
 
 .. code-block:: shell
 

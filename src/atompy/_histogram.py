@@ -372,10 +372,10 @@ class Hist2d:
             imshow_data = hist.for_imshow
             plt.imshow(imshow_data.image, extent=imshow_data.extent)
         """
-        if not np.all(np.diff(
+        if np.any(np.diff(
                 self.xedges) < (self.xedges[1] - self.xedges[0]) * 0.001):
             raise ValueError("xbinsize not constant, use pcolormesh instead")
-        if not np.all(np.diff(
+        if np.any(np.diff(
                 self.yedges) < (self.yedges[1] - self.yedges[0]) * 0.001):
             raise ValueError("ybinsize not constant, use pcolormesh instead")
         origin = plt.rcParams["image.origin"]

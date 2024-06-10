@@ -24,8 +24,7 @@ def thomson_cross_section(
     thetas: Union[float, npt.NDArray[np.float_]],
     normalize: bool = False
 ) -> Union[float, npt.NDArray[np.float_]]:
-    """Calculate the differential thomson cross section dsigma/dOmega in
-    square cm
+    r"""Calculate the differential thomson cross section.
 
     Parameters
     ----------
@@ -37,9 +36,9 @@ def thomson_cross_section(
 
     Returns
     -------
-    cross_section : float or `numpy.ndarray`
-        The cross section in cm**2 or normalized to 1 (depending on
-        *normalize*)
+    cross_section : float or ``numpy.ndarray``
+        The cross section in cm\ :sup:`2` or with a maximum normalized to 1
+        (depending on `normalize`).
     """
     cross_section = 1.0 / 137.0**4 * (1.0 + np.cos(thetas)**2) / 2.0
     return (cross_section / np.amax(cross_section) if normalize

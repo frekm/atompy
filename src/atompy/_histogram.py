@@ -509,6 +509,12 @@ class Hist2d:
         hist1d : :class:`.Hist1d`
             A 1D histogram where the *bins* are the x-bins of the original
             2D histogram, and the *bin-values* are the projection.
+        
+        Examples
+        --------
+
+        .. plot:: _examples/projection_y.py
+            :include-source:
         """
         return Hist1d(np.sum(self.H, axis=0), self.yedges)
 

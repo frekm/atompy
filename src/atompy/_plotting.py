@@ -480,6 +480,9 @@ def add_colorbar(
     Create a new ``matplotlib.axes.Axes`` next to `ax` with the same height
     (or width), then plot a ``matplotlib.color.Colorbar`` in it.
 
+    If you change the figure-layout after the fact, you can update the colorbar
+    position with :func:`.update_colorbars`.
+
     Parameters
     ----------
     mappable : ``matplotlib.cm.ScalarMappable``
@@ -702,7 +705,7 @@ def add_abc(
     for row in range(nrows):
         text.append([])
         for col in range(ncols):
-            bboxes_inch[row, col] = ax_get_position_inch(axs[row, col])
+            bboxes_inch[row, col] = get_axes_position_inch(axs[row, col])
 
             if leftright == "left":
                 refs_hori_inch[row, col] = bboxes_inch[row, col].x0
@@ -762,6 +765,8 @@ def update_colorbars(fig: Optional[Figure] = None) -> None:
     """
     Re-align colorbars to their parent axes.
 
+    Only re-aligns colorbars added by :func:`.add_colorbar`.
+
     Parameters
     ----------
     fig : ``matplotlib.figure.Figure``, optional
@@ -817,7 +822,18 @@ def update_colorbars(fig: Optional[Figure] = None) -> None:
 
 def get_renderer(fig: Optional[Figure]) -> RendererBase:
     """
+    Get the renderer of the `fig`.
+
     Taken from https://stackoverflow.com/questions/22667224/get-text-bounding-box-independent-of-backend/
+
+    Parameters
+    ----------
+    fig : ``matplotlib.figure.Figure``, optional
+        If ``None``, use last active figure.
+
+    Returns
+    -------
+    renderer : ``matplotlib.matplotlib.backend_bases.RendererBase``
     """
     fig = fig or plt.gcf()
     if hasattr(fig.canvas, "get_renderer"):
@@ -1153,7 +1169,7 @@ def set_min_row_pads(
     update_colorbars()
 
 
-def get_fig_margins_inches(fig: Optional[Figure] = None) -> Edges:
+def get_figure_margins_inches(fig: Optional[Figure] = None) -> Edges:
     """
     Get margins of the figure.
 
@@ -1213,7 +1229,7 @@ def get_fig_margins_inches(fig: Optional[Figure] = None) -> Edges:
     return margins_inches
 
 
-def ax_get_position_inch(
+def get_axes_position_inch(
     ax: Optional[Axes] = None
 ) -> Bbox:
     """
@@ -1255,7 +1271,7 @@ def ax_get_position_inch(
     return Bbox([[bbox.x0*fw, bbox.y0*fh], [bbox.x1*fw, bbox.y1*fh]])
 
 
-def ax_get_tightbbox_inch(
+def get_axes_tightbbox_inch(
     ax: Optional[Axes] = None,
     renderer: Optional[RendererBase] = None
 ) -> Bbox:
@@ -1351,7 +1367,7 @@ def make_me_nice(
     renderer: Optional[RendererBase] = None,
 ) -> None:
     """
-    Optimize space in the figure.
+    Optimize whitespace in the figure.
 
     Re-arange axes in `fig` such that their margins don't overlap.
     Also change margins at the edges of the figure such that everything fits.
@@ -1492,8 +1508,8 @@ def make_me_nice(
 
     for row in range(nrows):
         for col in range(ncols):
-            bboxes_inch[row, col] = ax_get_position_inch(axs[row, col])
-            tbboxes_inch[row, col] = ax_get_tightbbox_inch(
+            bboxes_inch[row, col] = get_axes_position_inch(axs[row, col])
+            tbboxes_inch[row, col] = get_axes_tightbbox_inch(
                 axs[row, col], renderer=renderer)
 
     extra_wspaces_inch = np.zeros(ncols)
@@ -1527,7 +1543,7 @@ def make_me_nice(
                               bboxes_inch[row, col].height * scale,
                               ax=axs[row, col],
                               anchor="center")
-                tbboxes_inch[row, col] = ax_get_tightbbox_inch(
+                tbboxes_inch[row, col] = get_axes_tightbbox_inch(
                     axs[row, col], renderer=renderer)
 
         if nruns > 1:
@@ -1691,8 +1707,8 @@ def get_axes_margins_inches(
         The margins in inches wrapped in an instance of :class:`.Edges`,
         e.g., ``margins.left`` is the left margin.
     """
-    tbbox = ax_get_tightbbox_inch(ax, renderer)
-    bbox = ax_get_position_inch(ax)
+    tbbox = get_axes_tightbbox_inch(ax, renderer)
+    bbox = get_axes_position_inch(ax)
     return Edges(
         bbox.x0 - tbbox.x0,
         tbbox.x1 - bbox.x1,

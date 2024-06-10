@@ -2,27 +2,10 @@ import numpy as np
 import numpy.typing as npt
 from numpy.typing import NDArray
 import uproot
-from typing import Literal, Sequence, Union, overload
+from typing import Literal, Sequence, Union, overload, Optional
 import matplotlib.pyplot as plt
 from . import _histogram as aph
-
-
-class NonconstantBinsizeError(Exception):
-    def __init__(
-        self,
-        fname: str,
-        which: Literal["x", "y", ""]
-    ) -> None:
-        self.fname = fname
-        self.which = which
-
-    def __str__(self):
-        return (
-            f"{self.which}binsizes from {self.fname} are not constant. "
-            f"Therefore, I cannot accurately reconstruct {self.which}edges. "
-            "Use a different type of data import instead "
-            "(e.g., numpy.loadtxt)"
-        )
+from . import _miscellaneous as apm
 
 
 def save_ascii_hist1d(
@@ -124,6 +107,58 @@ def save_ascii_hist2d(
     np.savetxt(fname, out, **savetxt_kwargs)
 
 
+def __work_out_bin_edges(
+    centers: NDArray,
+    limits: Sequence[Optional[float]]
+) -> NDArray:
+    """
+    Work out bin edges from bin centers.
+
+    If the bins don't have constant size, at least one limit has to be
+    provided, from which the edges can be determined
+
+    Parameters
+    ----------
+    centers : np.ndarray, shape(n)
+        centers of the bins
+
+    limits : (float, float), optional
+        Lower and upper limits of the bins
+
+        At least on limit must be provided if bins don't have a constant 
+        size. If both lower and upper limits are provided, the lower one
+        will be prioritized
+
+    Returns
+    -------
+    edges : np.ndarray, shape(n+1)
+        Edges of the bins
+    """
+    # if bins don't have a constant size, determine xbinedges differently
+    edges = np.empty(centers.size + 1)
+    binsize = centers[1] - centers[0]
+    if not np.all(np.diff(centers) - binsize < binsize * 0.001):
+        if limits[0] is not None:
+            # take lower edge and work out binsize forward
+            edges[0] = limits[0]
+            for i in range(len(centers)):
+                edges[i+1] = 2.0 * centers[i] - edges[i]
+
+        elif limits[1] is not None:
+            # take upper edge and work out binsize backward
+            edges[-1] = limits[1]
+            for i in reversed(range(len(centers))):
+                edges[i] = 2.0 * centers[i] - edges[i+1]
+        else:
+            # cannot determine binsize, throw exception
+            raise ValueError
+    else:  # bins have equal size
+        edges[:-1] = centers - 0.5 * binsize
+        edges[-1] = centers[-1] + 0.5 * binsize
+
+    return edges
+
+
 @overload
 def load_ascii_hist1d(
     fnames: str,
@@ -182,7 +217,7 @@ def load_ascii_hist1d(
         binsize = data[1, 0] - data[0, 0]
 
         if not np.all(np.abs(np.diff(data[:, 0]) - binsize) < 1e-2):
-            raise NonconstantBinsizeError(fname, "")
+            raise apm.NonconstantBinsizeError(fname, "")
 
         edges = np.empty(data.shape[0] + 1)
         edges[: -1] = data[:, 0] - 0.5 * binsize
@@ -198,6 +233,8 @@ def load_ascii_hist2d(
     fnames: str,
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
+    xlim: Sequence[Optional[float]] = (None, None),
+    ylim: Sequence[Optional[float]] = (None, None),
     **loadtxt_kwargs
 ) -> aph.Hist2d: ...
 
@@ -207,6 +244,8 @@ def load_ascii_hist2d(
     fnames: Sequence[str],
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
+    xlim: Sequence[Optional[float]] = (None, None),
+    ylim: Sequence[Optional[float]] = (None, None),
     **loadtxt_kwargs
 ) -> tuple[aph.Hist2d, ...]: ...
 
@@ -215,6 +254,8 @@ def load_ascii_hist2d(
     fnames: Union[str, Sequence[str]],
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
+    xlim: Sequence[Optional[float]] = (None, None),
+    ylim: Sequence[Optional[float]] = (None, None),
     **loadtxt_kwargs
 ) -> Union[aph.Hist2d,
            tuple[aph.Hist2d, ...]]:
@@ -235,6 +276,13 @@ def load_ascii_hist2d(
         Order of permutation of x and y in ascii file
         - "x": first permute through x-values before changing y-values
         - "y": first permute through y-values before changing x-values
+
+    xlim, ylim : ({None, float}, {None, float}), default (None, None)
+        Lower and/or upper limits of x/y range (NOT the center of the bin,
+        but the lower/upper edge of the histogram)
+
+        If the binsize of the histogram is not constant, provide at least one
+        of them, otherwise a NonconstantBinsizeError exception is thrown.
 
     **loadtxt_kwargs
         Keyword arguments for `np.loadtxt <https://numpy.org/doc/stable/
@@ -258,19 +306,14 @@ def load_ascii_hist2d(
         x = np.unique(data[:, idx_x])
         y = np.unique(data[:, idx_y])
 
-        xbinsize = x[1] - x[0]
-        if not np.all(np.diff(x) - xbinsize < 1e-5):
-            raise NonconstantBinsizeError(fname, "x")
-        ybinsize = y[1] - y[0]
-        if not np.all(np.diff(y) - ybinsize < 1e-5):
-            raise NonconstantBinsizeError(fname, "y")
-
-        xedges = np.empty(x.size + 1)
-        xedges[:-1] = x - 0.5 * xbinsize
-        xedges[-1] = x[-1] + 0.5 * xbinsize
-        yedges = np.empty(y.size + 1)
-        yedges[:-1] = y + 0.5 * ybinsize
-        yedges[-1] = y[-1] + 0.5 * ybinsize
+        try:
+            xedges = __work_out_bin_edges(x, xlim)
+        except ValueError:
+            raise apm.NonconstantBinsizeError(fname, "x")
+        try:
+            yedges = __work_out_bin_edges(y, ylim)
+        except ValueError:
+            raise apm.NonconstantBinsizeError(fname, "y")
 
         if permuting == "x":
             z = data[:, idx_z].reshape(y.size, x.size).T
@@ -355,10 +398,11 @@ def import_ascii_for_imshow(
     fnames: str,
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
-    origin: Literal["upper", "lower", "auto"] = "auto",
+    xlim: Sequence[Optional[float]] = (None, None),
+    ylim: Sequence[Optional[float]] = (None, None),
+    origin: Literal["auto"] = "auto",
     **kwargs
-) -> tuple[npt.NDArray[np.float64],
-           npt.NDArray[np.float64]]: ...
+) -> apm.ImshowData: ...
 
 
 @overload
@@ -366,22 +410,23 @@ def import_ascii_for_imshow(
     fnames: Sequence[str],
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
-    origin: Literal["upper", "lower", "auto"] = "auto",
+    xlim: Sequence[Optional[float]] = (None, None),
+    ylim: Sequence[Optional[float]] = (None, None),
+    origin: Literal["auto"] = "auto",
     **kwargs
-) -> tuple[tuple[npt.NDArray[np.float64], ...],
-           tuple[npt.NDArray[np.float64], ...]]: ...
+) -> tuple[apm.ImshowData, ...]: ...
 
 
 def import_ascii_for_imshow(
     fnames: Union[str, Sequence[str]],
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
-    origin: Literal["upper", "lower", "auto"] = "auto",
+    xlim: Sequence[Optional[float]] = (None, None),
+    ylim: Sequence[Optional[float]] = (None, None),
+    origin: Literal["auto"] = "auto",
     **kwargs
-) -> Union[tuple[npt.NDArray[np.float64],
-                 npt.NDArray[np.float64]],
-           tuple[tuple[npt.NDArray[np.float64], ...],
-                 tuple[npt.NDArray[np.float64], ...]]]:
+) -> Union[apm.ImshowData,
+           tuple[apm.ImshowData, ...]]:
     """
     Import 2d-histogram data and return an image and the extents of the image.
     If you want to work with the histogram, consider using
@@ -393,7 +438,7 @@ def import_ascii_for_imshow(
         The filename(s) of the data. If a list is passed, return a list
         of images and extents
 
-    xyz_indiceds : (int, int, int), default (1, 0, 2)
+    xyz_indices : (int, int, int), default (1, 0, 2)
         Specify columns of x, y, and z, starting at 0
 
     permuting : `"x"` or `"y"`
@@ -401,17 +446,6 @@ def import_ascii_for_imshow(
 
         - `"x"`: first permutate through x-values before changing y-values
         - `"y"`: first permutate through y-values before changing x-values
-
-    origin : `"upper"`, `"lower"`, or `"auto"`, default (`"auto"`)
-        Origin of the image plotted by `plt.imshow
-        <https://matplotlib.org/stable/api/
-        _as_gen/matplotlib.pyplot.imshow.html>`_
-
-        - `"upper"`: origin is the upper left corner
-        - `"lower"`: origin is the lower left corner
-        - `"auto"`: *origin* is `rcParams["image.origin"] <https://
-          matplotlib.org/stable/users/explain/customizing.html
-          #the-default-matplotlibrc-file>`_
 
     **kwargs :
         `np.loadtxt <https://numpy.org/doc/stable/reference/generated/
@@ -427,6 +461,15 @@ def import_ascii_for_imshow(
         The extent of the image, e.g., [-1, 1, -2, 2]
         If *fnames* is a Sequence, *extent* is a tuple of arrays
 
+    Other Parameters
+    ----------------
+    origin : ``"auto"``
+        Origin of the image plotted by `plt.imshow
+        <https://matplotlib.org/stable/api/
+        _as_gen/matplotlib.pyplot.imshow.html>`_
+
+        Here for backward compatibility. Leave at ``"auto"``.
+
     Examples
     --------
     ::
@@ -441,57 +484,23 @@ def import_ascii_for_imshow(
         plt.imshow(data[0], extent=extent[0])
         plt.imshow(data[1], extent=extent[1])
     """
-    if isinstance(fnames, str):
-        fnames = [fnames]
-
-    if origin not in ["upper", "lower", "auto"]:
-        raise ValueError(
-            f"{origin=}, but it needs to be 'upper' or 'lower'"
+    if origin == "lower" or origin == "upper":
+        msg = (
+            f"{origin=} is no longer supported. If you want to force "
+            f"{origin=}, set rcParams['image.origin'] to '{origin}'"
         )
+        raise ValueError(msg)
+    elif origin != "auto":
+        msg = (f"{origin=}, but it must be 'auto'")
+        raise ValueError(msg)
 
-    if origin == "auto":
-        origin = plt.rcParams["image.origin"]
+    hist2d = load_ascii_hist2d(
+        fnames, xyz_indices, permuting, xlim, ylim, **kwargs)
 
-    idx_x, idx_y, idx_z = xyz_indices
-
-    output_data, output_extent = [], []
-    for fname in fnames:
-        data = np.loadtxt(fname, **kwargs)
-
-        x = np.unique(data[:, idx_x])
-        y = np.unique(data[:, idx_y])
-
-        if permuting == "x":
-            if origin == "upper":
-                z = np.flip(data[:, 2].reshape(y.shape[0], x.shape[0]),
-                            axis=0)
-            else:
-                z = data[:, 2].reshape(y.shape[0], x.shape[0])
-        elif permuting == "y":
-            if origin == "upper":
-                z = np.flip(data[:, idx_z].reshape(x.shape[0], y.shape[0]),
-                            axis=1).T
-            else:
-                z = data[:, idx_z].reshape(x.shape[1], y.shape[0]).T
-        else:
-            raise ValueError(
-                f"{permuting=}, but it needs to be 'x' or 'y'"
-            )
-
-        binsize_x = x[1] - x[0]
-        binsize_y = y[1] - y[0]
-        extent = np.array(
-            [np.min(x) - binsize_x / 2.0, np.max(x) + binsize_x / 2.0,
-             np.min(y) - binsize_y / 2.0, np.max(y) + binsize_y / 2.0]
-        )
-
-        output_data.append(z)
-        output_extent.append(extent)
-
-    if len(fnames) > 1:
-        return tuple(output_data), tuple(output_extent)
+    if isinstance(hist2d, aph.Hist2d):
+        return hist2d.for_imshow
     else:
-        return output_data[0], output_extent[0]
+        return tuple([x.for_imshow for x in hist2d])
 
 
 @overload
@@ -575,106 +584,6 @@ def load_root_data1d(
         return tuple(output_x), tuple(output_y)
     else:
         return output_x[0], output_y[0]
-
-
-@overload
-def import_root_for_imshow(
-    root_filename: str,
-    histogram_names: str,
-    origin: Literal["auto", "upper", "lower"] = "auto"
-) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]: ...
-
-
-@overload
-def import_root_for_imshow(
-    root_filename: str,
-    histogram_names: Sequence[str],
-    origin: Literal["auto", "upper", "lower"] = "auto"
-) -> tuple[tuple[npt.NDArray[np.float64], ...],
-           tuple[npt.NDArray[np.float64], ...]]: ...
-
-
-def import_root_for_imshow(
-    root_filename: str,
-    histogram_names: Union[str, Sequence[str]],
-    origin: Literal["auto", "upper", "lower"] = "auto"
-) -> Union[tuple[npt.NDArray[np.float64],
-                 npt.NDArray[np.float64]],
-           tuple[tuple[npt.NDArray[np.float64], ...],
-                 tuple[npt.NDArray[np.float64], ...]]]:
-    """
-    Import a 2d histogram from a root file to be plottable by
-    `plt.imshow <https://matplotlib.org/stable/api/_as_gen/
-    matplotlib.pyplot.imshow.html>`_.
-
-    Parameters
-    ----------
-    root_filename : str
-        The filename of the root file,
-        e.g., 'important_data.root'
-
-    histogram_names : str or Sequence[str]
-        The name of the histogram within the root file,
-        e.g., 'path/to/histogram2d'.
-        If a list of strings is passed, get multiple 2d histograms from the
-        root file
-
-    Returns
-    -------
-    image : `np.ndarray` or tuple[`np.ndarray`, ...]
-        A 2d-array of pixel values.
-        If *fnames* is a Sequence, *image* is a tuple of arrays
-
-    extent : `np.ndarray`, shape((4,)) or tuple[`np.ndarray`, ...]
-        The extent of the image, e.g., [-1, 1, -2, 2]
-        If *fnames* is a Sequence, *extent* is a tuple of arrays
-
-    Examples
-    --------
-    ::
-
-        import matplotlib.pyplot as plt
-
-        # Import one histogram
-        data, extent = import_root_for_imshow("rootfile.root", "path/to/hist")
-        plt.imshow(data, extent=extent)
-
-        # Import multiple histograms
-        data, extents = import_root_for_imshow(
-            "rootfile.root", ["path/to/histo1", "path/to/histo2"])
-        for date, extent in zip(data, extents):
-            plt.imshow(date, extent=extent),
-
-    """
-    if isinstance(histogram_names, str):
-        histogram_names = [histogram_names]
-
-    if origin == "auto":
-        origin = plt.rcParams["image.origin"]
-    elif origin != "upper" and origin != "lower":
-        raise ValueError(
-            f"{origin=}, but it needs to be 'upper', 'lower', or 'auto'"
-        )
-
-    with uproot.open(root_filename) as file:  # type: ignore
-        output_data: list[npt.NDArray] = []
-        output_extent: list[npt.NDArray] = []
-        for h in histogram_names:
-            image, xedges, yedges = file[h].to_numpy()  # type: ignore
-            if origin == "upper":
-                image = np.flip(image.T, axis=0)
-            else:
-                image = image.T
-            extent = np.array((np.min(xedges), np.max(xedges),
-                               np.min(yedges), np.max(yedges)))
-
-            output_data.append(image)
-            output_extent.append(extent)
-
-        if len(histogram_names) > 1:
-            return tuple(output_data), tuple(output_extent)
-        else:
-            return output_data[0], output_extent[0]
 
 
 @overload
@@ -820,6 +729,98 @@ def import_ascii_for_pcolormesh(
 ) -> tuple[npt.NDArray[np.float64],
            npt.NDArray[np.float64],
            npt.NDArray[np.float64]]: ...
+
+
+@overload
+def import_root_for_imshow(
+    root_filename: str,
+    histogram_names: str,
+    origin: Literal["auto"] = "auto"
+) -> apm.ImshowData: ...
+
+
+@overload
+def import_root_for_imshow(
+    root_filename: str,
+    histogram_names: Sequence[str],
+    origin: Literal["auto"] = "auto"
+) -> tuple[apm.ImshowData, ...]: ...
+
+
+def import_root_for_imshow(
+    root_filename: str,
+    histogram_names: Union[str, Sequence[str]],
+    origin: Literal["auto"] = "auto"
+) -> Union[apm.ImshowData,
+           tuple[apm.ImshowData, ...]]:
+    """
+    Import a 2d histogram from a root file to be plottable by
+    `plt.imshow <https://matplotlib.org/stable/api/_as_gen/
+    matplotlib.pyplot.imshow.html>`_.
+
+    Parameters
+    ----------
+    root_filename : str
+        The filename of the root file,
+        e.g., 'important_data.root'
+
+    histogram_names : str or Sequence[str]
+        The name of the histogram within the root file,
+        e.g., 'path/to/histogram2d'.
+        If a list of strings is passed, get multiple 2d histograms from the
+        root file
+
+    Other Parameters
+    ----------------
+    origin : ``"auto"``
+        Origin of the image plotted by `plt.imshow
+        <https://matplotlib.org/stable/api/
+        _as_gen/matplotlib.pyplot.imshow.html>`_
+
+        Here for backward compatibility. Leave at ``"auto"``.
+
+    Returns
+    -------
+    image : `np.ndarray` or tuple[`np.ndarray`, ...]
+        A 2d-array of pixel values.
+        If *fnames* is a Sequence, *image* is a tuple of arrays
+
+    extent : `np.ndarray`, shape((4,)) or tuple[`np.ndarray`, ...]
+        The extent of the image, e.g., [-1, 1, -2, 2]
+        If *fnames* is a Sequence, *extent* is a tuple of arrays
+
+    Examples
+    --------
+    ::
+
+        import matplotlib.pyplot as plt
+
+        # Import one histogram
+        data, extent = import_root_for_imshow("rootfile.root", "path/to/hist")
+        plt.imshow(data, extent=extent)
+
+        # Import multiple histograms
+        data, extents = import_root_for_imshow(
+            "rootfile.root", ["path/to/histo1", "path/to/histo2"])
+        for date, extent in zip(data, extents):
+            plt.imshow(date, extent=extent),
+
+    """
+    if origin == "lower" or origin == "upper":
+        msg = (
+            f"{origin=} is no longer supported. If you want to force "
+            f"{origin=}, set rcParams['image.origin'] to '{origin}'"
+        )
+        raise ValueError(msg)
+    elif origin != "auto":
+        msg = (f"{origin=}, but it must be 'auto'")
+        raise ValueError(msg)
+
+    hist2d = load_root_hist2d(root_filename, histogram_names)
+    if isinstance(hist2d, aph.Hist2d):
+        return hist2d.for_imshow
+    else:
+        return tuple([x.for_imshow for x in hist2d])
 
 
 @overload

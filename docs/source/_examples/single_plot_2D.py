@@ -14,17 +14,18 @@ plt.rcParams["image.aspect"] = "auto"
 plt.rcParams["image.interpolation"] = "none"
 
 # create a Figure with a single Axes
-fig, ax = ap.subplots(ratio=1)
+ax = plt.subplot()
+ap.set_axes_size(3.0, 3.0)
 
 # plot 
-cmap_image = ax[0][0].imshow(image, extent=extents)
+cmap_image = ax.imshow(image, extent=extents)
 
 # add a colorbar
-colorbar = ap.add_colorbar(ax, cmap_image, label="Yield (counts)")
+cb = ap.add_colorbar(cmap_image, ax)
+cb.set_label("Yield (counts)", rotation=270, va="baseline")
 
 # format plot
-ax[0][0].set_xlabel(r"$p_x$ (a.u.)")
-ax[0][0].set_ylabel(r"$p_y$ (a.u.)")
+ax.set_xlabel(r"$p_x$ (a.u.)")
+ax.set_ylabel(r"$p_y$ (a.u.)")
 
-# adjust margins such that everything fits
-ap.make_margins_tight(ax, colorbars=colorbar, pad=5.0)
+ap.make_me_nice(fix_figwidth=False)

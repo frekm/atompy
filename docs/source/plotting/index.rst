@@ -4,6 +4,12 @@ Plotting
 Navigation
 ----------
 
+Constants
+^^^^^^^^^
+
+Some constants (colors, conversion factors, ...) are provided
+at :doc:`constants`.
+
 .. currentmodule:: atompy
 
 Figure and Axes
@@ -59,6 +65,9 @@ Plotting
   dashed
   textwithbox
 
+  ImshowData
+  PcolormeshData
+
 Miscellaneous
 ^^^^^^^^^^^^^
 
@@ -75,3 +84,9 @@ Examples
 .. toctree::
 
   examples/index
+  
+
+.. toctree::
+  :hidden:
+
+  constants

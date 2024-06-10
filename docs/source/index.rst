@@ -22,33 +22,10 @@ Some theoretical modelling for atomic physics are provided by the submodules
 :code:`atompy.physics` (genereal stuff) and
 :code:`atompy.physics.compton_scattering`.
 
-Overview of provided functionality
-----------------------------------
-
-- How to use :code:`atompy` for plotting is documented under
-  :doc:`plotting/index`. Some examples are shown 
-  :doc:`here<plotting/examples/index>`.
-
-- An overview of the provided :class:`.Vector` class is given under
-  :doc:`vector/index`
-
-- An overview of the provided classes :class:`.Hist1d` and :class:`.Hist2d`
-  is given under :doc:`histograms/index`.
-
-- How to use :code:`atompy` data stored in ASCII or ROOT files is documented
-  under :doc:`io/index`.
-
-- The physics submodule is documented under :doc:`physics/index`.
-
-- The documentation of miscellaneous functions is under :doc:`misc/index`.
-
-
 .. toctree::
-   :hidden:
+  :maxdepth: 1
 
-   plotting/index
-   vector/index
-   histograms/index
-   io/index
-   physics/index
-   misc/index
+  plotting/index
+  analysis/index
+  io/index
+  physics/index

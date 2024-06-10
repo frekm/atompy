@@ -1,6 +1,6 @@
-=================
-Physics Submodule
-=================
+=======
+Physics
+=======
 
 The :code:`pyhsics` submodule offers some theoretical modelling of various
 atomic and molecular physics.

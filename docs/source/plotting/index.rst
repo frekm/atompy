@@ -1,9 +1,6 @@
 Plotting
 ========
 
-Navigation
-----------
-
 Constants
 ^^^^^^^^^
 
@@ -77,14 +74,6 @@ Miscellaneous
   Edges
   AliasError
   FigureWidthTooLargeError
-
-Examples
-^^^^^^^^
-
-.. toctree::
-
-  examples/index
-  
 
 .. toctree::
   :hidden:

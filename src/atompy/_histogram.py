@@ -96,7 +96,7 @@ class Hist1d:
         Other Parameters
         ----------------
         kwargs
-            Additional keyword arguments for numpy.savetxt()
+            Additional keyword arguments for :obj:`numpy.savetxt`.
         """
         apio.save_ascii_hist1d(self.histogram, self.edges, fname, **kwargs)
 
@@ -104,19 +104,16 @@ class Hist1d:
     def for_step(self) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
         """ Returns right edges and bin-values
 
-        By default, `plt.step <https://matplotlib.org/stable/api/_as_gen/
-        matplotlib.pyplot.step.html>`_ needs the right edges of a bin
-        and the corresponding bin value. See the *where* keyword argument.
+        By default, :meth:`matplotlib.axes.Axes.step` needs the right edges of a
+        bin and the corresponding bin value. See the *where* keyword argument.
 
         Returns
         -------
-        right_edges : `np.ndarray <https://numpy.org/doc/stable/reference/ \
-        generated/numpy.ndarray.html>`_
-            right edges, that is, :code:`Hist1d.edges[1:]`
+        right_edges : ndarray
+            right edges, that is, ``Hist1d.edges[1:]``.
 
-        bin_values : `np.ndarray <https://numpy.org/doc/stable/reference/ \
-        generated/numpy.ndarray.html>`_
-            bin values, that is, :code:`Hist1d.histogram`
+        bin_values : ndarray
+            bin values, that is, ``Hist1d.histogram``.
 
         Examples
         --------
@@ -137,11 +134,9 @@ class Hist1d:
 
         Returns
         -------
-        centers : `np.ndarray <https://numpy.org/doc/stable/reference/ \
-        generated/numpy.ndarray.html>`_
+        centers : ndarray
 
-        bin_values : `np.ndarray <https://numpy.org/doc/stable/reference/ \
-        generated/numpy.ndarray.html>`_
+        bin_values : ndarray
 
         Examples
         --------
@@ -181,8 +176,7 @@ class _Hist2dIterator:
 @dataclass
 class Hist2d:
     """
-    A numpy wrapper class for the return of `np.histogram2d
-    <https://numpy.org/doc/stable/reference/generated/numpy.histogram2d.html>`_
+    A numpy wrapper class for the return of :func:`numpy.histogram2d`.
 
     Parameters
     ----------
@@ -232,24 +226,22 @@ class Hist2d:
     @property
     def xcenters(self) -> NDArray[np.float64]:
         """
-        Get center of bins along first dimension of *H*
+        Get center of bins along first dimension of ``Hist2d.H``.
 
         Returns
         -------
-        xcenters : `np.ndarray <https://numpy.org/doc/stable/reference/ \
-        generated/numpy.ndarray.html>`_
+        xcenters : ndarray
         """
         return self.xedges[:-1] + 0.5 * np.diff(self.xedges)
 
     @property
     def ycenters(self) -> NDArray[np.float64]:
         """
-        Get center of bins along second dimension of *H*
+        Get center of bins along second dimension of ``Hist2d.H``
 
         Returns
         -------
-        xcenters : `np.ndarray <https://numpy.org/doc/stable/reference/ \
-        generated/numpy.ndarray.html>`_
+        xcenters : ndarray
         """
         return self.yedges[:-1] + 0.5 * np.diff(self.yedges)
 
@@ -326,22 +318,18 @@ class Hist2d:
                npt.NDArray[np.float64],
                npt.NDArray[np.float64]]:
         """
-        Return such that it can be plotted using \
-        `plt.pcolormesh <https://matplotlib.org/stable/api/_as_gen/ \
-        matplotlib.pyplot.pcolormesh.html>`_
+        Return such that it can be plotted using
+        :obj:`matplotlib.pyplot.pcolormesh`
 
         The input order for `pcolormesh` is xedges, yedges, H.T
 
         Returns
         -------
-        xedges : `np.ndarray <https://numpy.org/doc/stable/reference/generated/\
-        numpy.ndarray.html>`_
+        xedges : ndarray
 
-        yedges : `np.ndarray <https://numpy.org/doc/stable/reference/generated/\
-        numpy.ndarray.html>`_
+        yedges : ndarray
 
-        H.T : `np.ndarray <https://numpy.org/doc/stable/reference/generated/\
-        numpy.ndarray.html>`_
+        H.T : ndarray
             Transposed matrix of input *Hist2d.H*
 
         Examples
@@ -584,13 +572,13 @@ class Hist2d:
 
         Returns
         -------
-        h : `np.ndarray <https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html>`_
+        h : ndarray
 
             Mean values of each Y (i.e., column)
 
-        errors : `np.ndarray <https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html>`_
+        errors : ndarray
 
-            Errors of the mean values. Depends on *option*.
+            Errors of the mean values. Depends on `option`.
 
         Notes
         -----
@@ -634,8 +622,7 @@ class Hist2d:
         self,
     ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
         """
-        Alias for :meth:`get_profile_along_x(option="")  \
-        <.Hist2d.get_profile_along_x>`
+        Alias for :meth:`get_profile_along_x(option="") <.Hist2d.get_profile_along_x>`
         """
         return self.get_profile_along_x(option="")
 
@@ -663,11 +650,11 @@ class Hist2d:
 
         Returns
         -------
-        h : `np.ndarray <https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html>`_
+        h : ndarray
 
             Mean values of each X (i.e., row)
 
-        errors : `np.ndarray <https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html>`_
+        errors : ndarray
 
             Errors of the mean values. Depends on *option*.
 
@@ -713,8 +700,7 @@ class Hist2d:
         self,
     ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
         """
-        Alias for :meth:`get_profile_along_y(option="")  \
-        <.Hist2d.get_profile_along_y>`
+        Alias for :meth:`get_profile_along_y(option="") <.Hist2d.get_profile_along_y>`
         """
         return self.get_profile_along_y(option="")
 
@@ -752,11 +738,8 @@ class Hist2d:
         ----------
         fname : str
             Filename, including filetype
-
-        Other Parameters
-        ----------------
-        **kwargs : `np.savetxt <https://numpy.org/doc/stable/reference/\
-            generated/numpy.savetxt.html>`_ keyword arguments
+        **kwargs
+            keyword arguments for :func:`numpy.savetxt`
         """
         apio.save_ascii_hist2d(
             self.H, self.xedges, self.yedges, fname, **kwargs)

@@ -65,7 +65,7 @@ def crop(
 
     Parameters
     ----------
-    x, y : ArrayLike
+    x, y : array_like
         The x and y data
 
     lower : float
@@ -76,10 +76,10 @@ def crop(
 
     Returns
     -------
-    `numpy.ndarray`
+    new_x : ndarray
         cropped x-data
 
-    `numpy.ndarray`
+    new_y : ndarray
         cropped y-data
 
     Examples
@@ -115,10 +115,10 @@ def convert_cosine_to_angles(
 
     Parameters
     ----------
-    cos_angles : ArrayLike
+    cos_angles : array_like
         cosines of angles, within [-1, 1]
 
-    y_data : ArrayLike
+    y_data : array_like
         the corresponding y-data
 
     full_range : bool
@@ -128,11 +128,9 @@ def convert_cosine_to_angles(
 
     Returns
     -------
-    `numpy.ndarray`
-        angles in rad
+    angles : ndarray
 
-    `numpy.ndarray`
-        corresponding y data
+    y_data : ndarray
 
     Examples
     --------
@@ -183,7 +181,7 @@ def integral_sum(
 
     Returns
     -------
-    float
+    integral : float
         The value of the intergral
 
     Examples
@@ -215,7 +213,7 @@ def integral_polyfit(
 
     Parameters
     ----------
-    x, y : ArrayLike
+    x, y : array_like
         x, y data
 
     lower/upper : float, default -/+ np.inf
@@ -224,12 +222,12 @@ def integral_polyfit(
     fit_degree : int, default 5
         Degree of the polynomial used for the fit
 
-    showfit : bool, default: False
+    showfit : bool, default False
         Show a fit for each set of ydata (to check if fit is any good)
 
     Returns
     -------
-    float
+    integral : float
         The value of the integral
 
     Examples
@@ -276,11 +274,11 @@ def sample_distribution(
 
     Parameters
     ----------
-    edges : `np.ndarray` `shape(n,)`
+    edges : ndarray, shape(n,)
         The eft edges of the bins from the input distribution. Monotnoically
         increasing.
 
-    values : `np.ndarray` `shape(n,)`
+    values : ndarray, shape(n,)
         The correpsonding values. Must be >=0 everywhere
 
     size : int
@@ -288,7 +286,7 @@ def sample_distribution(
 
     Returns
     -------
-    sample: ``numpy.ndarray`` ``shape(size,)``
+    sample: ndarray, shape(size,)
         A sample ranging from ``distr_edges[0]`` to ``distr_edges[-1]`` with 
         a distribution corresponding to ``distr_values``.
     """
@@ -347,10 +345,10 @@ class ImshowData:
 
     Parameters
     ----------
-    image : np.ndarray
+    image : ndarray
         Data. A 2D pixel map of values from bins.
 
-    extent : np.ndarray
+    extent : ndarray
         Array (xmin, xmax, ymin, ymax)
 
     Examples
@@ -448,19 +446,15 @@ class PcolormeshData:
     """
     Store 2D data such that it can be plotted with pcolormesh
 
-    See `plt.pcolormesh <https://matplotlib.org/stable/api/_as_gen/matplotlib.
-    pyplot.pcolormesh.html>`_
+    See :obj:`matplotlib.pyplot.pcolormesh`
 
     Parameters
     ----------
-    x : `np.ndarray <https://numpy.org/doc/stable/reference/generated/ \
-    numpy.ndarray.html>`_
+    x : ndarray
 
-    y : `np.ndarray <https://numpy.org/doc/stable/reference/generated/ \
-    numpy.ndarray.html>`_
+    y : ndarray
 
-    c : `np.ndarray <https://numpy.org/doc/stable/reference/generated/ \
-    numpy.ndarray.html>`_
+    c : ndarray
 
     Examples
     --------
@@ -504,13 +498,12 @@ class PcolormeshData:
     ) -> Union[NDArray[np.float64], dict]:
         """ Return x, y, c or a dictionary of all three.
 
-        The dictionary can be unpacked to conveniently call `plt.pcolormesh 
-        <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.
-        pcolormesh.html>`_.
+        The dictionary can be unpacked to conveniently call
+        :obj:`matplotlib.pyplot.pcolormesh`.
 
         Parameters
         ----------
-        index : 0, 1, or 2, optional
+        index : {0, 1, 2}, optional
             Specify what to return
 
             - 0: x
@@ -520,8 +513,7 @@ class PcolormeshData:
 
         Returns
         -------
-        output : `np.ndarray <https://numpy.org/doc/stable/reference/ \
-        generated/numpy.ndarray.html>`_ or dict
+        output : ndarray
             See *index*
         """
         if index is None:

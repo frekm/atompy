@@ -31,23 +31,15 @@ extensions = [
     "sphinx.ext.intersphinx",
     'matplotlib.sphinxext.plot_directive',
 ]
-autodoc_type_aliases = {
-    'ArrayLike': 'ArrayLike',
-}
 autodoc_typehints = "none"
 
-rst_prolog = r"""
-.. glossary::
-
-    numpy
-"""
-
 pygments_style = "sphinx"
+python_display_short_literal_types = True
 
 numpydoc_class_members_toctree = False
 numpydoc_xref_param_type = True
-numpydoc_xref_aliases = {
-}
+numpydoc_xref_aliases = {}
+numpydoc_xref_ignore = "all"
 
 templates_path = ['_templates']
 exclude_patterns = []

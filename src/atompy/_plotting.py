@@ -119,7 +119,7 @@ _colorbar_manager = _ColorbarManager()
 class Edges:
     """
     Wrapper for things that are at the left, right, top, bottom edge of
-    something (e.g., the margins of a ``matplotlib.axes.Axes``.
+    something (e.g., the margins of a :class:`matplotlib.axes.Axes`.
 
     Parameters
     ----------
@@ -195,7 +195,7 @@ def textwithbox(
 
     Parameters
     ----------
-    ax : ``matplotlib.axes.Axes``
+    ax : :class:`matplotlib.axes.Axes`
         the axes
 
     x : float
@@ -227,7 +227,7 @@ def textwithbox(
 
     Returns
     -------
-    text ``matplotlib.text.Text``
+    text :class:`matplotlib.text.Text`
         The text artist.
 
     Other Parameters
@@ -491,13 +491,13 @@ def add_colorbar(
 
     Parameters
     ----------
-    mappable : ``matplotlib.cm.ScalarMappable``
+    mappable : :class:`matplotlib.cm.ScalarMappable`
         The colormap described by this colorbar.
 
         For more information, see
         `matplotlib.pyplot.colorbar <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.colorbar.html>`_.
 
-    ax : ``matplotlib.axes.Axes``, optional
+    ax : :class:`matplotlib.axes.Axes`, optional
         The axes to which the colorbar is added.
 
         If ``None``, use currently active axes.
@@ -518,7 +518,7 @@ def add_colorbar(
 
     Returns
     -------
-    colorbar : ``matplotlib.colorbar.Colorbar``
+    colorbar : :class:`matplotlib.colorbar.Colorbar`
 
     Examples
     --------
@@ -634,13 +634,13 @@ def add_abc(
 
     Parameters
     ----------
-    fig : ``matplotlib.figure.Figure``, optional
-        If ``None``, use last active figure.
+    fig : :class:`matplotlib.figure.Figure`, optional
+        If None, use last active figure.
 
-    xoffset_pts : float, default ``2.0``
+    xoffset_pts : float, default: ``2.0``
         Offset in pts from `anchor`. Positive moves right.
 
-    yoffset_pts : float, default ``-12.0``
+    yoffset_pts : float, default: ``-12.0``
         Offset in pts from `anchor`. Positive moves up.
 
     anchor : {``"top left"``, ``"top right"``, ``"bottom left"``, ``"bottom right"``}
@@ -653,27 +653,27 @@ def add_abc(
         If ``None``, use label of the respective axes
         (i.e., ``ax.get_label()``).
 
-    pre : str, default ``"("``
+    pre : str, default: ``"("``
         String in front of `labels`. Applies only if `labels` is not ``None``.
 
-    post : str, default ``")"``
+    post : str, default: ``")"``
         String after `labels`. Applies only if `labels` is not ``None``.
 
-    start_at : int, default 0
+    start_at : int, default: 0
         Skip `start_at` entries in `labels`. Only applies if `labels` is not
         ``None``.
 
-    rowsfirst : bool, default ``True``
+    rowsfirst : bool, default: ``True``
         Label rows first, e.g., "a b c / d e f" instead of "a c e / b d f".
         Only applies if `labels` is not ``None``.
 
     text_kwargs
-        Additional keyword arguments of ``matplotlib.text.Text``.
+        Additional keyword arguments of :class:`matplotlib.text.Text`.
         For a list thereof, see `here <https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.text.html>`_.
 
     Returns
     -------
-    text_dict : dict[``matplotlib.axes.Axes``, ``matplotlib.text.Text``]
+    text_dict : dict[:class:`matplotlib.axes.Axes`, :class:`matplotlib.text.Text`]
         A dictionary with the axes of `fig` as keys and the corresponding
         text instances added by ``add_abc`` as values.
 
@@ -682,13 +682,13 @@ def add_abc(
 
     Notes
     -----
-    - Cannot handle fancy GridSpecs, e.g., where one
-      subplot spans multiple other subplots.
+    - Cannot handle a fancy :class:`matplotlib.gridspec.GridSpec`, e.g.,
+      where one subplot spans multiple other subplots.
       If you need one of those, you're on your own.
 
     - :func:`make_me_nice` does not see the added labels. If your labels extent
       further than the current axes dimensions, they will be cut of when calling
-      ``make_me_nice``. To alleviate the problem, apply additional margins
+      ``.make_me_nice``. To alleviate the problem, apply additional margins
       in ``make_me_nice``.
     """
     fig = fig or plt.gcf()
@@ -777,7 +777,7 @@ def update_colorbars(fig: Optional[Figure] = None) -> None:
 
     Parameters
     ----------
-    fig : ``matplotlib.figure.Figure``, optional
+    fig : :class:`matplotlib.figure.Figure`, optional
         If ``None``, use last active figure.
     """
     fig = fig or plt.gcf()
@@ -836,12 +836,12 @@ def get_renderer(fig: Optional[Figure]) -> RendererBase:
 
     Parameters
     ----------
-    fig : ``matplotlib.figure.Figure``, optional
+    fig : :class:`matplotlib.figure.Figure`, optional
         If ``None``, use last active figure.
 
     Returns
     -------
-    renderer : ``matplotlib.backend_bases.RendererBase``
+    renderer : :class:`matplotlib.backend_bases.RendererBase`
     """
     fig = fig or plt.gcf()
     if hasattr(fig.canvas, "get_renderer"):
@@ -877,7 +877,7 @@ def set_axes_size(
         New width and height of the graph-area of `ax` (that is, excluding
         the axis labels, titles, etc).
 
-    ax : ``matplotlib.pyplot.Axes``, optional
+    ax : :class:`matplotlib.pyplot.Axes`, optional
         If ``None``, change last active axes.
 
     anchor : {``"left"``, ``"right"``, ``"upper"``, ``"lower"``, \
@@ -941,19 +941,19 @@ def get_sorted_axes_grid(fig: Optional[Figure] = None) -> NDArray:
     Get all axes from `fig` and sort them into a 2D grid.
 
     Only works if all axes of `fig` are part of one-and-the-same
-    ``matplotlib.gridspec.GridSpec`` and if axes are arranged
+    :class:`matplotlib.gridspec.GridSpec` and if axes are arranged
     in a 2D grid.
 
     Ignores colormap axes added by :func:`.add_colorbar`.
 
     Parameters
     ----------
-    fig : ``matplotlib.figure.Figure``, optional
+    fig : :class:`matplotlib.figure.Figure`, optional
         If ``None``, use last active figure.
 
     Returns
     -------
-    axes_grid : ``numpy.ndarray``, shape(nrows, ncols)
+    axes_grid : ndarray, shape(nrows, ncols)
         A 2D numpy array containing the axes of `fig`.
 
         ``axes_grid[0, 0]`` refers to the top-left,
@@ -1002,19 +1002,19 @@ def get_column_pads_inches(fig: Optional[Figure] = None) -> NDArray[np.float_]:
     Get distance between columns of axes in inches.
 
     Only works if all axes of `fig` are part of one-and-the-same
-    ``matplotlib.gridspec.GridSpec`` and if axes are arranged
+    :class:`matplotlib.gridspec.GridSpec` and if axes are arranged
     in a 2D grid.
 
     Ignores colormap axes added by :func:`.add_colorbar`.
 
     Parameters
     ----------
-    fig : ``matplotlib.figure.Figure``, optional
+    fig : :class:`matplotlib.figure.Figure`, optional
         If ``None``, use last active figure.
 
     Returns
     -------
-    xpads_inches : ``numpy.ndarray``, shape(nrows, ncols-1)
+    xpads_inches : ndarray, shape(nrows, ncols-1)
         2D numpy array of the distance in-between columns in inch.
     """
     fig = fig or plt.gcf()
@@ -1091,21 +1091,21 @@ def get_row_pads_inches(fig: Optional[Figure] = None) -> NDArray:
     Get distance between rows of axes in inches.
 
     Only works if all axes of `fig` are part of one-and-the-same
-    ``matplotlib.gridspec.GridSpec`` and if axes are arranged
+    :class:`matplotlib.gridspec.GridSpec` and if axes are arranged
     in a 2D grid.
 
     Ignores colormap axes added by :func:`.add_colorbar`.
 
     Parameters
     ----------
-    fig : ``matplotlib.figure.Figure``, optional
+    fig : :class:`matplotlib.figure.Figure`, optional
         Specify the figure within which to update the colorbars.
 
         If ``None``, use last active figure.
 
     Returns
     -------
-    ypads_inches : ``numpy.ndarray``, shape(nrows-1, ncols)
+    ypads_inches : ndarray, shape(nrows-1, ncols)
         2D numpy array of the distance in-between rows in inches.
     """
     fig = fig or plt.gcf()
@@ -1136,14 +1136,12 @@ def set_min_row_pads(
 
     Parameters
     ----------
-    ypads_inches : ArrayLike
+    ypads_inches : array_like
         The desired minimum distance in inches.
 
         You can pass a single float or number-of-rows floats.
 
-    fig : ``matplotlib.figure.Figure``, optional
-        Specify the figure within which to update the colorbars.
-
+    fig : :class:`matplotlib.figure.Figure`, optional
         If ``None``, use last active figure.
     """
     fig = fig or plt.gcf()
@@ -1183,12 +1181,12 @@ def get_figure_margins_inches(fig: Optional[Figure] = None) -> Edges:
     Get margins of the figure.
 
     Only works if all axes of `fig` are part of one-and-the-same
-    ``matplotlib.gridspec.GridSpec`` and if axes are arranged
+    :class:`matplotlib.gridspec.GridSpec` and if axes are arranged
     in a 2D grid.
 
     Parameters
     ----------
-    fig : ``matplotlib.figure.Figure``, optional
+    fig : :class:`matplotlib.figure.Figure`, optional
         If ``None``, use last active figure.
 
     Returns
@@ -1242,17 +1240,17 @@ def get_axes_position_inch(
     """
     Get the bounding box of `ax` in inches, excluding labels, titles, etc.
 
-    Wrapper function for ``matplotlib.axes.Axes.get_position()`` which converts
-    it to inches.
+    Wrapper function for :meth:`matplotlib.axes.Axes.get_position()` which
+    converts it to inches.
 
     Parameters
     ----------
-    ax : ``matplotlib.axes.Axes``, optional
+    ax : :class:`matplotlib.axes.Axes`, optional
         If ``None``, use last active axes.
 
     Returns
     -------
-    bbox : ``matplotlib.transforms.Bbox``
+    bbox : :class:`matplotlib.transforms.Bbox`
         The bounding box of just the graph-area of `ax` in inches.
 
         Useful members:
@@ -1286,15 +1284,15 @@ def get_axes_tightbbox_inch(
     """
     Get bounding box of `ax` including labels in inches.
 
-    Wrapper function for ``matplotlib.axes.Axes.get_tightbbox()`` which converts
-    it to inches.
+    Wrapper function for :meth:`matplotlib.axes.Axes.get_tightbbox()` which
+    converts it to inches.
 
     Parameters
     ----------
-    ax : ``matplotlib.axes.Axes``, optional
+    ax : :class:`matplotlib.axes.Axes`, optional
         If ``None``, use last active axes.
 
-    renderer : ``matplotlib.backend_bases.RendererBase``, optional
+    renderer : :class:`matplotlib.backend_bases.RendererBase`, optional
         The renderer used to draw the figure.
 
         Generally not necessary to pass it. If, however, you use
@@ -1304,7 +1302,7 @@ def get_axes_tightbbox_inch(
 
     Returns
     -------
-    bbox : ``matplotlib.transforms.Bbox``
+    bbox : :class:`matplotlib.transforms.Bbox`
         The bounding box of `ax` including x/ylabels, titles, etc, in inches.
 
         Useful members:
@@ -1387,7 +1385,7 @@ def make_me_nice(
     Also change margins at the edges of the figure such that everything fits.
     Trim or expand the figure height accordingly.
 
-    **Advantages** over ``matplotlib.pyplot.tight_layout`` or 
+    **Advantages** over :obj:`matplotlib.pyplot.tight_layout` or 
     `constrained layout <https://matplotlib.org/stable/users/explain/axes/constrainedlayout_guide.html>`_:
 
     - Keeps widths constant (either of the axes or of the figure).
@@ -1403,7 +1401,7 @@ def make_me_nice(
 
     Parameters
     ----------
-    fig : ``matplotlib.figure.Figure``, optional
+    fig : :class:`matplotlib.figure.Figure`, optional
         If ``None``, use last active figure.
 
     fix_figwidth : bool, default ``True``
@@ -1416,7 +1414,7 @@ def make_me_nice(
             Keep axes widths constant and scale figure width accordingly. 
             Also note `fail_if_figwidth_exceeds` parameter.
 
-    margin_pad_pts : ArrayLike, default ``5.0``
+    margin_pad_pts : array_like, default ``5.0``
         Extra padding for the figure edges in pts.
 
         float:
@@ -1424,7 +1422,7 @@ def make_me_nice(
         (float, float, float, float):
             Different padding for left, right, top, bottom edge.
 
-    col_pad_pts, row_pad_pts : ArrayLike, default ``10.0``
+    col_pad_pts, row_pad_pts : array_like, default ``10.0``
         Extra padding between the columns (rows) in pts.
 
         float:
@@ -1450,7 +1448,7 @@ def make_me_nice(
         If the margins produced by ``make_me_nice`` are wrong, increasing
         the number of runs may help.
 
-    renderer : ``matplotlib.backend_bases.RendererBase``, optional
+    renderer : :class:`matplotlib.backend_bases.RendererBase`, optional
         The renderer used to draw the figure.
 
         Generally not necessary to pass it. If, however, you use
@@ -1460,8 +1458,8 @@ def make_me_nice(
 
     Notes
     -----
-    - Cannot handle fancy GridSpecs, e.g., where one
-      subplot spans multiple other subplots.
+    - Cannot handle fancy :class:`matplotlib.gridspec.GridSpecs`, e.g., where
+      one subplot spans multiple other subplots.
       If you need one of those, you're on your own.
 
     - If you have subplots with different aspect ratios and `fig_width` is not
@@ -1616,10 +1614,10 @@ def align_axes_vertically(
 
     Parameters
     ----------
-    ax : ``matplotlib.axes.Axes``
+    ax : :class:`matplotlib.axes.Axes`
         Axes to reposition.
 
-    reference_ax : ``matplotlib.axes.Axes``
+    reference_ax : :class:`matplotlib.axes.Axes`
         Reference axes.
 
     alignment : {``"center"``, ``"top"``, ``"bottom"``}, default ``"center"``
@@ -1653,10 +1651,10 @@ def align_axes_horizontally(
 
     Parameters
     ----------
-    ax : ``matplotlib.axes.Axes``
+    ax : :class:`matplotlib.axes.Axes`
         Axes to reposition.
 
-    reference_ax : ``matplotlib.axes.Axes``
+    reference_ax : :class:`matplotlib.axes.Axes`
         Reference axes.
 
     alignment : {``"center"``, ``"left"``, ``"right"``}, default ``"center"``
@@ -1689,10 +1687,10 @@ def get_axes_margins_inches(
 
     Parameters
     ----------
-    ax : ``matplotlib.axes.Axes``, optional
+    ax : :class:`matplotlib.axes.Axes`, optional
         If ``None``, use last active axes.
 
-    renderer : ``matplotlib.backend_bases.RendererBase``, optional
+    renderer : :class:`matplotlib.backend_bases.RendererBase`, optional
         The renderer used to draw the figure.
 
         Generally not necessary to pass it. If, however, you use

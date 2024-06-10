@@ -616,7 +616,7 @@ def load_root_hist1d(
         The filename of the root file,
         e.g., 'important_data.root'
 
-    histogram_names : str or Sequence thereof
+    histogram_names : {str, Sequence}
         The name of the histogram(s) within the root file,
         e.g., 'path/to/histogram1d' or
         ['path/to/histogram1d_1', 'path/to/histogram1d_2']
@@ -755,8 +755,7 @@ def import_root_for_imshow(
            tuple[apm.ImshowData, ...]]:
     """
     Import a 2d histogram from a root file to be plottable by
-    `plt.imshow <https://matplotlib.org/stable/api/_as_gen/
-    matplotlib.pyplot.imshow.html>`_.
+    :obj:`matplotlib.pyplot.imshow`.
 
     Parameters
     ----------
@@ -773,19 +772,17 @@ def import_root_for_imshow(
     Other Parameters
     ----------------
     origin : ``"auto"``
-        Origin of the image plotted by `plt.imshow
-        <https://matplotlib.org/stable/api/
-        _as_gen/matplotlib.pyplot.imshow.html>`_
+        Origin of the image plotted by :obj:`matplotlib.pyplot.imshow`.
 
         Here for backward compatibility. Leave at ``"auto"``.
 
     Returns
     -------
-    image : `np.ndarray` or tuple[`np.ndarray`, ...]
+    image : { ndarray, tuple[ndarray, ...] }
         A 2d-array of pixel values.
         If *fnames* is a Sequence, *image* is a tuple of arrays
 
-    extent : `np.ndarray`, shape((4,)) or tuple[`np.ndarray`, ...]
+    extent : ndarray, shape(4,) or tuple[ndarray, ...]
         The extent of the image, e.g., [-1, 1, -2, 2]
         If *fnames* is a Sequence, *extent* is a tuple of arrays
 
@@ -953,11 +950,11 @@ def import_root_for_pcolormesh(
 
     Returns
     -------
-    X : `np.ndarray` or tuple[`np.ndarray`, ...]
+    X : ndarray or tuple[ndarray, ...]
 
-    Y : `np.ndarray` or tuple[`np.ndarray`, ...]
+    Y : ndarray or tuple[ndarray, ...]
 
-    C : `np.ndarray` or tuple[`np.ndarray`, ...]
+    C : ndarray or tuple[ndarray, ...]
 
     Examples
     --------

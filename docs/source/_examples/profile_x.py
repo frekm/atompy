@@ -18,10 +18,16 @@ plt.rcParams["image.cmap"] = "lmf2root"  # works only if atompy is imported
 plt.rcParams["image.interpolation"] = "none"
 plt.rcParams["image.aspect"] = "auto"
 
-# plot
-fig, ax = ap.subplots(ncols=2, ratio=1)
-for a in ap.flatten(ax):
-    a.imshow(**hist.for_imshow())
-ax[0][0].errorbar(hist.xcenters, mean, yerr=mean_errors)         # left panel
-ax[0][1].errorbar(hist.xcenters, mean, yerr=standard_deviation)  # right panel
-ap.make_margins_tight(ax, pad=5)
+_, axs = plt.subplots(1, 2)
+
+for ax in axs.flat:
+    ax.imshow(**hist.for_imshow())
+    ax.set_box_aspect(1.0)
+
+axs[0].errorbar(hist.xcenters, mean, yerr=mean_errors)
+axs[0].set_title("Errorbars = Mean errors")
+
+axs[1].errorbar(hist.xcenters, mean, yerr=standard_deviation)
+axs[1].set_title("Errorbars = Standard deviation")
+
+ap.make_me_nice()

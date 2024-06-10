@@ -1394,45 +1394,38 @@ def make_me_nice(
     fix_figwidth : bool, default ``True``
         Configure if the figure width is kept constant or not.
 
-        ``True``
+        ``True``:
             Keep the figure width constant and scale all axes-widths
             accordingly.
-        ``False``
+        ``False``:
             Keep axes widths constant and scale figure width accordingly. 
             Also note `fail_if_figwidth_exceeds` parameter.
 
-    margin_pad_pts : ArrayLike, default 5.0
+    margin_pad_pts : ArrayLike, default ``5.0``
         Extra padding for the figure edges in pts.
 
-        float
+        float:
             Same padding for left, right, top, bottom edge.
-        (float, float, float, float)
+        (float, float, float, float):
             Different padding for left, right, top, bottom edge.
 
-    col_pad_pts, row_pad_pts : ArrayLike, default 10.0
+    col_pad_pts, row_pad_pts : ArrayLike, default ``10.0``
         Extra padding between the columns (rows) in pts.
 
-        float
+        float:
             Same padding in-between all columns (rows).
-        (float, ...)
+        (float, ...):
             Different values in-between all columns. Must have a length
             of ``number_of_columns-1`` (``number_of_rows-1``).
 
-    fail_if_figwidth_exceeds : {float, "auto", "current"}, default "auto"
+    max_figwidth : float, default ``numpy.inf``
         Only relevant if ``fix_figwidth == False``.
 
-        ``"current"``
-            Fail if the new figure width is bigger than the current width.
+        Maximum figure width in inches. Throws 
+        :class:`.FigureWidthTooLargeError` if the new figure width exceeds
+        this value.
 
-        ``"auto"`` (default)
-            Same as ``"current"`` but only if the figure width was changed
-            from the default (as defined by
-            ``matplotlib.rcParams["figure.figsize"][0]``.
-
-        float
-            In inches. Fail if figure width exceeds this value.
-
-    nruns : int, default 2
+    nruns : int, default ``2``
         Number of times the algorithm runs.
 
         If your axes change significantly in size, different ticklabels may

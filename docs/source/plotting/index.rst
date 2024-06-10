@@ -9,8 +9,8 @@ at :doc:`constants`.
 
 .. currentmodule:: atompy
 
-Figure and Axes
-^^^^^^^^^^^^^^^
+Manipulate Figures and Axes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autosummary::
   :toctree: _autogen

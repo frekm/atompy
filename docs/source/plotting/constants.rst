@@ -23,44 +23,44 @@ Colors
 The colors listed below are also wrapped in a tuple :code:`colors`. One can
 access these, e.g., like :code:`colors.RED`.
 
-.. data:: atompy.RED
+.. data:: atompy.red
     :annotation: = "#AE1117"
 
-.. data:: atompy.TEAL
+.. data:: atompy.teal
     :annotation: = "#008081"
 
-.. data:: atompy.BLUE
+.. data:: atompy.blue
     :annotation: = "#2768F5"
 
-.. data:: atompy.GREEN
+.. data:: atompy.green
     :annotation: = "#007F00"
 
-.. data:: atompy.GREY
+.. data:: atompy.grey
     :annotation: = "#404040"
 
-.. data:: atompy.ORANGE
+.. data:: atompy.orange
     :annotation: = "#FD8D3C"
 
-.. data:: atompy.PINK
+.. data:: atompy.pink
     :annotation: = "#D4B9DA"
 
-.. data:: atompy.YELLOW
+.. data:: atompy.yellow
     :annotation: = "#FCE205"
 
-.. data:: atompy.LEMON
+.. data:: atompy.lemon
     :annotation: = "#EFFD5F"
 
-.. data:: atompy.CORN
+.. data:: atompy.corn
     :annotation: = "#E4CD05"
 
-.. data:: atompy.PURPLE
+.. data:: atompy.purple
     :annotation: = "#CA8DFD"
 
-.. data:: atompy.DARK_PURPLE
+.. data:: atompy.dark_purple
     :annotation: = "#9300FF"
 
-.. data:: atompy.FOREST_GREEN
+.. data:: atompy.forest_green
     :annotation: = "#0B6623"
 
-.. data:: atompy.BRIGHT_GREEN
+.. data:: atompy.bright_green
     :annotation: = "#3BB143"

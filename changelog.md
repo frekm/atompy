@@ -1,4 +1,13 @@
 # v4.0.0
+## Changes to plotting
+- Removed `atompy.subplots` as it became obsolete. No need to create axes
+  with it anymore to make all the other functions of `atompy` work.
+- Added `atompy.make_me_nice`
+- Reworked `atompy.add_colorbar`.
+- Added lots of functions to manipulate matplotlib axes and figures. See
+  Documentation->Plotting for an exhaustive list.
+
+## Changes for data loading
 - Dropped support for `origin` keyword in imshow imports. These functions
   now always use `plt.rcParams["image.origin"]` as the image's origin.
 - 2D histograms with non-constant bin sizes can now be imported and plotted
@@ -7,6 +16,9 @@
   `ImshowData` (or a tuple thereof)
 - `import_ascii_for_pcolormesh` and `import_root_for_pcolormesh` now return
   `PcolormeshData` (or a tuple thereof)
+
+## Miscellaneous
+- General improvements to documentation
 
 # v3.0.7
 - Add scipy to requirements list

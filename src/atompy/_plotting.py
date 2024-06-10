@@ -1,6 +1,5 @@
 import io
 import math
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.backend_bases import RendererBase
@@ -13,7 +12,7 @@ from matplotlib.transforms import Bbox
 from matplotlib.cm import ScalarMappable
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
-from typing import Optional, Literal, Union, Any, NamedTuple, Sequence
+from typing import Optional, Literal, Union, Any, NamedTuple
 from dataclasses import dataclass
 
 
@@ -834,7 +833,7 @@ def get_renderer(fig: Optional[Figure]) -> RendererBase:
 
     Returns
     -------
-    renderer : ``matplotlib.matplotlib.backend_bases.RendererBase``
+    renderer : ``matplotlib.backend_bases.RendererBase``
     """
     fig = fig or plt.gcf()
     if hasattr(fig.canvas, "get_renderer"):

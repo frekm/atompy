@@ -938,8 +938,8 @@ def get_sorted_axes_grid(fig: Optional[Figure] = None) -> NDArray:
 
     Ignores colormap axes added by :func:`.add_colorbar`.
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     fig : ``matplotlib.figure.Figure``, optional
         If ``None``, use last active figure.
 
@@ -999,8 +999,8 @@ def get_column_pads_inches(fig: Optional[Figure] = None) -> NDArray[np.float_]:
 
     Ignores colormap axes added by :func:`.add_colorbar`.
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     fig : ``matplotlib.figure.Figure``, optional
         If ``None``, use last active figure.
 
@@ -1088,8 +1088,8 @@ def get_row_pads_inches(fig: Optional[Figure] = None) -> NDArray:
 
     Ignores colormap axes added by :func:`.add_colorbar`.
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     fig : ``matplotlib.figure.Figure``, optional
         Specify the figure within which to update the colorbars.
 
@@ -1361,9 +1361,7 @@ def make_me_nice(
     margin_pad_pts: ArrayLike = 5.0,
     col_pad_pts: ArrayLike = 10.0,
     row_pad_pts: ArrayLike = 10.0,
-    fail_if_figwidth_exceeds: Union[float,
-                                    Literal["current"],
-                                    Literal["auto"]] = "auto",
+    max_figwidth: float = np.inf,
     nruns: int = 2,
     renderer: Optional[RendererBase] = None,
 ) -> None:
@@ -1555,7 +1553,7 @@ def make_me_nice(
         return make_me_nice(
             fig=fig,
             fix_figwidth=next_fix_figwidth,
-            fail_if_figwidth_exceeds=np.inf,
+            max_figwidth=np.inf,
             margin_pad_pts=margin_pad_pts,
             row_pad_pts=row_pad_pts,
             col_pad_pts=col_pad_pts,
@@ -1563,15 +1561,7 @@ def make_me_nice(
             renderer=renderer
         )
 
-    if fail_if_figwidth_exceeds == "auto":
-        if plt.rcParams["figure.figsize"][0] != fw_inch:
-            fail_if_figwidth_exceeds = "current"
-        else:
-            fail_if_figwidth_exceeds = np.inf
-    if fail_if_figwidth_exceeds == "current":
-        fail_if_figwidth_exceeds = fw_inch
-    assert isinstance(fail_if_figwidth_exceeds, float)
-    if new_fw_inch > fail_if_figwidth_exceeds:
+    if new_fw_inch > max_figwidth:
         raise FigureWidthTooLargeError
 
     new_fh_inch = (

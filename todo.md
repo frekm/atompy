@@ -1,4 +1,0 @@
-- Update documentation
-- Expand examples
-    - Rebinning
-    - row/column normalization

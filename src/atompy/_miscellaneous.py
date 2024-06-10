@@ -11,17 +11,24 @@ def get_all_dividers(
     n: int
 ) -> tuple[int, ...]:
     """
-    Return possible rebins of the integer *n*
+    Return possible rebins of the integer `n`.
 
     Parameters
     ----------
     n : int
-        A number
 
     Returns
     -------
     all_dividers : tuple
-        A tuple of all dividers of *n*
+        A tuple of all dividers of `n`.
+
+    Examples
+    --------
+    ::
+
+        >>> get_all_dividers(12)
+        (1, 2, 3, 4, 6)
+
     """
     all_dividers = []
     for divider in range(1, n // 2 + 1):
@@ -64,7 +71,7 @@ def crop(
 
         >>> import atompy as ap
         >>> import numpy as np
-        >>> x, y = np.arange(6), np.arange(6)
+        >>> x = y = np.arange(6)
         >>> x, y
         (array([0, 1, 2, 3, 4, 5]), array([0, 1, 2, 3, 4, 5]))
         >>> ap.crop_data(x, y, 1, 4)
@@ -79,69 +86,6 @@ def crop(
     xout = x[xi[0]:xi[-1] + 1]
     yout = y[xi[0]:xi[-1] + 1]
     return xout, yout
-
-
-def smooth(
-    x: npt.ArrayLike,
-    y: npt.ArrayLike,
-    n: int,
-    lower: float = -np.inf,
-    upper: float = np.inf,
-    fit_degree: int = 5,
-    showfit: bool = False
-) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]]:
-    """
-    Smooth data with a polynomial fit of degree *n*
-
-    Parameters
-    ----------
-    x, y : ArrayLike
-        the data
-
-    n : int
-        Size of the output data
-
-    lower, upper : int
-        The upper/lower bound in which to smooth the data, including edges
-
-    fit_degree: int, default : 5
-        The degree of the polynomial fit
-
-    show_fit : bool, default `False`
-        show the fit (for checks)
-
-    Returns
-    -------
-    `numpy.ndarray`
-        x-data
-
-    `numpy.ndarray`
-        y-data
-
-    Examples
-    --------
-    ::
-
-        >>> import atompy as ap
-        >>> import numpy as np
-        >>> x, y = np.arange(4), np.arange(4)**2
-        >>> x, y
-        (array([0, 1, 2, 3]), array([0, 1, 4, 9]))
-        >>> ap.smooth_data(x, y, 5, fit_degree=2)
-        (array([0.  , 0.75, 1.5 , 2.25, 3.  ]),
-         array([0., 0.56, 2.25, 5.06, 9.]))
-    """
-    x, y = crop(x, y, lower, upper)
-    outx = np.linspace(np.min(x), np.max(x), n, endpoint=True)
-    coeffs = np.polynomial.polynomial.polyfit(x, y, deg=fit_degree)
-    outy = np.polynomial.polynomial.polyval(outx, coeffs)
-    if showfit:
-        plt.plot(x, y, "o")
-        plt.plot(outx[-1], outy[-1])
-        plt.xlim(x[0], x[-1])
-        plt.ylim(0.9 * np.min(y), 1.1 * np.max(y))
-        plt.show()
-    return outx, outy
 
 
 def convert_cosine_to_angles(
@@ -250,7 +194,7 @@ def integral_polyfit(
 ) -> float:
     """
     Get the integral of the data. The integral is determined with by
-    integrating a polynomial fit
+    integrating a polynomial fit.
 
     Parameters
     ----------
@@ -308,10 +252,10 @@ def integral_polyfit(
 def sample_distribution(
     edges: npt.NDArray,
     values: npt.NDArray,
-    sample_size: int
+    size: int
 ) -> npt.NDArray:
     """ 
-    Create a sample of *sample_size* that follows a discrete distribution
+    Create a sample of `size` that follows a discrete distribution.
 
     Parameters
     ----------
@@ -322,26 +266,26 @@ def sample_distribution(
     values : `np.ndarray` `shape(n,)`
         The correpsonding values. Must be >=0 everywhere
 
-    sample_size : int
+    size : int
         size of the output sample distribution
 
     Returns
     -------
-    sample: `np.ndarray` `shape(sample_size,)`
-        A sample ranging from distr_edges[0] to distr_edges[-1] with 
-        a distribution corresponding to distr_values.
+    sample: ``numpy.ndarray`` ``shape(size,)``
+        A sample ranging from ``distr_edges[0]`` to ``distr_edges[-1]`` with 
+        a distribution corresponding to ``distr_values``.
     """
 
-    output = np.empty(sample_size)
+    output = np.empty(size)
     output_size = 0
 
-    line0 = f"Creating a distribution of {sample_size} samples"
+    line0 = f"Creating a distribution of {size} samples"
 
     t0 = time.time()
-    while output_size < sample_size:
-        line = f"\r{line0}: {100 * output_size/sample_size} percent done."
+    while output_size < size:
+        line = f"\r{line0}: {100 * output_size/size} percent done."
         print(line, end="")
-        buffer = sample_size - output_size
+        buffer = size - output_size
         sample = np.random.uniform(edges[0], edges[-1], buffer)
         test = np.random.uniform(0.0, np.max(values), buffer)
 

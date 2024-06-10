@@ -1027,7 +1027,7 @@ def get_column_pads_inches(fig: Optional[Figure] = None) -> NDArray[np.float_]:
     return xpads_inch
 
 
-def set_min_column_pad(
+def set_min_column_pads(
     column_pad_pts: ArrayLike,
     fig: Optional[Figure] = None
 ) -> None:

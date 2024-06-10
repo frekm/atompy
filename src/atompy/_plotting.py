@@ -631,20 +631,21 @@ def add_abc(
     fig : ``matplotlib.figure.Figure``, optional
         If ``None``, use last active figure.
 
-    xoffset_pts : float, default 2.0
+    xoffset_pts : float, default ``2.0``
         Offset in pts from `anchor`. Positive moves right.
 
-    yoffset_pts : float, default -12.0
+    yoffset_pts : float, default ``-12.0``
         Offset in pts from `anchor`. Positive moves up.
 
-    anchor : {``"top left"``,``"top right"``, ``"bottom left"``, ``"bottom right"``}
+    anchor : {``"top left"``, ``"top right"``, ``"bottom left"``, ``"bottom right"``}
         Specify anchor point of the labels (offsets are relative to this).
         Refers to the corner of the graph-area of the axes.
 
     labels : str, optional
         A string of labels, where each label is seperated by a space.
 
-        If ``None``, use label of the respective axes.
+        If ``None``, use label of the respective axes
+        (i.e., ``ax.get_label()``).
 
     pre : str, default ``"("``
         String in front of `labels`. Applies only if `labels` is not ``None``.
@@ -656,9 +657,9 @@ def add_abc(
         Skip `start_at` entries in `labels`. Only applies if `labels` is not
         ``None``.
 
-    rowsfirst: bool, default ``True``
-        Label rows first, e.g., 'a b c / d e f' instead of 'a c e / b d f'.
-        Only applies if `labels`is not ``None``.
+    rowsfirst : bool, default ``True``
+        Label rows first, e.g., "a b c / d e f" instead of "a c e / b d f".
+        Only applies if `labels` is not ``None``.
 
     text_kwargs
         Additional keyword arguments of ``matplotlib.text.Text``.
@@ -680,8 +681,8 @@ def add_abc(
 
     - :func:`make_me_nice` does not see the added labels. If your labels extent
       further than the current axes dimensions, they will be cut of when calling
-      :func:`make_me_nice`. To alleviate the problem, apply additional margins
-      in :func:`make_me_nice`.
+      ``make_me_nice``. To alleviate the problem, apply additional margins
+      in ``make_me_nice``.
     """
     fig = fig or plt.gcf()
     axs = get_sorted_axes_grid(fig)

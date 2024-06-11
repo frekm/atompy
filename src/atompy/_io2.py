@@ -19,7 +19,96 @@ class UnderdeterminedBinsizeError(Exception):
         )
 
 
-def _work_out_bin_edges(
+def save_1d_as_txt(
+    histogram: NDArray[np.float_],
+    edges: NDArray[np.float_],
+    fname: str,
+    **savetxt_kwargs
+) -> None:
+    """
+    Save a 1d histogram to a file.
+
+    Saves the centers of the bin, not the edges.
+
+    Parameters
+    ----------
+    histogram : ndarray, shape(n,)
+        The histogram values.
+
+    edges : ndarray, shape(n+1,)`
+        Edges of histogram.
+
+    **savetxt_kwargs
+        :func:`numpy.savetxt` keyword arguments. Useful to, e.g., set a header
+        with the ``header`` keyword.
+
+    Examples
+    --------
+    .. code-block:: python
+
+        samples = np.random.default_rng().normal(size=1_000)
+        h, edges = np.histogram(samples, 50)
+        ap.save_1d_as_txt(h, edges, "filename.txt")
+    """
+    bincenters = edges[:-1] + 0.5 * np.diff(edges)
+    output = np.zeros((len(bincenters), 2))
+    output[:, 0] = bincenters
+    output[:, 1] = histogram
+    savetxt_kwargs.setdefault("header", "x\tvalues")
+    np.savetxt(fname, output, **savetxt_kwargs)
+
+
+def save_2d_as_txt(
+    H: NDArray[np.float_],
+    xedges: NDArray[np.float_],
+    yedges: NDArray[np.float_],
+    fname: str,
+    **savetxt_kwargs
+) -> None:
+    """
+    Save a 2d histogram to a file.
+
+    The first column in the file will be y, the second x, the third z.
+    (this is chosen as such because the the standard hist2ascii-macro of the
+    Atomic Physics group has this format)
+
+    Parameters
+    ----------
+    H : ndarray shape(nx,ny)
+        A bi-dimensional histogram of samples x and y.
+
+    xedges : ndarray, shape(nx+1,)
+        Edges along x.
+
+    yedges : ndarray, shape(ny+1,)
+        Edges along y.
+
+    fname : str
+        Filename, including filetype.
+
+    **savetxt_kwargs
+        :func:`numpy.savetxt` keyword arguments. Useful to, e.g., set a header
+        with the ``header`` keyword.
+    """
+    xbinsizes = np.diff(xedges, 1)
+    ybinsizes = np.diff(yedges, 1)
+    xbincenters = xedges[:-1] + xbinsizes / 2.0
+    ybincenters = yedges[:-1] + ybinsizes / 2.0
+    nx = xbincenters.shape[0]
+    ny = ybincenters.shape[0]
+
+    out = np.zeros((nx * ny, 3))
+    for ix, x in enumerate(xbincenters):
+        for iy, y in enumerate(ybincenters):
+            out[ix + iy * nx, 0] = y
+            out[ix + iy * nx, 1] = x
+            out[ix + iy * nx, 2] = H[ix, iy]
+    savetxt_kwargs.setdefault("delimiter", "\t")
+    savetxt_kwargs.setdefault("header", "y\tx\tvalues")
+    np.savetxt(fname, out, **savetxt_kwargs)
+
+
+def work_out_bin_edges(
     centers: NDArray,
     lower: Optional[float],
     upper: Optional[float],
@@ -34,20 +123,20 @@ def _work_out_bin_edges(
 
     Parameters
     ----------
-    centers : np.ndarray, shape(n)
+    centers : ndarray, shape(n)
         centers of the bins
 
-    limits : (float, float), optional
-        Lower and upper limits of the bins
+    lower, uppper : float, optional
+        Lower and upper limits of the bins.
 
-        At least on limit must be provided if bins don't have a constant 
+        At least one limit must be provided if bins don't have a constant 
         size. If both lower and upper limits are provided, the lower one
-        will be prioritized
+        will be prioritized.
 
     Returns
     -------
-    edges : np.ndarray, shape(n+1)
-        Edges of the bins
+    edges : ndarray, shape(n+1)
+        Edges of the bins.
     """
     # if bins don't have a constant size, determine xbinedges differently
     edges = np.empty(centers.size + 1)
@@ -174,7 +263,7 @@ def load_1d_from_txt(
         return output  # type: ignore
 
     if output_format == "Hist1d":
-        xedges = _work_out_bin_edges(output[0], xmin, xmax, fname, "x")
+        xedges = work_out_bin_edges(output[0], xmin, xmax, fname, "x")
         return _histogram.Hist1d(output[1], xedges)
 
 
@@ -244,7 +333,7 @@ def load_1d_from_root(
         )
         raise ValueError(errmsg)
 
-    with uproot.open(fname) as file: # type: ignore
+    with uproot.open(fname) as file:  # type: ignore
         histogram, edges = file[hname].to_numpy()  # type: ignore
 
     if output_format == "ndarray":
@@ -255,7 +344,6 @@ def load_1d_from_root(
 
     if output_format == "Hist1d":
         return _histogram.Hist1d(histogram, edges)
-    
 
 
 if __name__ == "__main__":

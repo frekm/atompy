@@ -3,6 +3,7 @@ import numpy as np
 from numpy.typing import NDArray
 from typing import Optional, Union, Literal, overload
 from . import _histogram
+from . import _miscellaneous as _misc
 
 
 class UnderdeterminedBinsizeError(Exception):
@@ -108,7 +109,7 @@ def save_2d_as_txt(
     np.savetxt(fname, out, **savetxt_kwargs)
 
 
-def work_out_bin_edges(
+def _work_out_bin_edges(
     centers: NDArray,
     lower: Optional[float],
     upper: Optional[float],
@@ -263,7 +264,7 @@ def load_1d_from_txt(
         return output  # type: ignore
 
     if output_format == "Hist1d":
-        xedges = work_out_bin_edges(output[0], xmin, xmax, fname, "x")
+        xedges = _work_out_bin_edges(output[0], xmin, xmax, fname, "x")
         return _histogram.Hist1d(output[1], xedges)
 
 
@@ -344,6 +345,56 @@ def load_1d_from_root(
 
     if output_format == "Hist1d":
         return _histogram.Hist1d(histogram, edges)
+
+
+
+def load_2d_from_txt(
+        fname: str,
+        output_format: Literal["imshow", "pcolormesh", "Hist2d"] = "pcolormesh",
+        xyz_indices: tuple[int, int , int] = (1, 0, 2),
+        permuting: Literal["x", "y"] = "x",
+        xmin: Optional[float] = None,
+        xmax: Optional[float] = None,
+        ymin: Optional[float] = None,
+        ymax: Optional[float] = None,
+        **loadtxt_kwargs
+) -> Union[_misc.ImshowData, _misc.PcolormeshData, _histogram.Hist2d]:
+    valid_output_formats = ["imshow", "pcolormesh", "Hist2d"]
+    if output_format not in valid_output_formats:
+        errmsg = (
+            f"{output_format=}, but it must be one of {valid_output_formats}"
+        )
+        raise ValueError(errmsg)
+
+    idx_x, idx_y, idx_z = xyz_indices
+
+    data = np.loadtxt(fname, **loadtxt_kwargs)
+
+    x = np.unique(data[:, idx_x])
+    y = np.unique(data[:, idx_y])
+
+    xedges = _work_out_bin_edges(x, xmin, xmax, fname, "x")
+    yedges = _work_out_bin_edges(y, ymin, ymax, fname, "y")
+
+    if permuting == "x":
+        z = data[:, idx_z].reshape(y.size, x.size).T
+    elif permuting == "y":
+        z = data[:, idx_z].reshape(x.size, y.size)
+    else:
+        msg = f"'{permuting=}', but should be 'x' or 'y'"
+        raise ValueError(msg)
+
+    output = _histogram.Hist2d(z, xedges, yedges)
+
+    if output_format == "Hist2d":
+        return output
+    if output_format == "imshow":
+        return output.for_imshow
+    if output_format == "pcolormesh":
+        return output.for_pcolormesh
+
+
+
 
 
 if __name__ == "__main__":

@@ -347,18 +347,151 @@ def load_1d_from_root(
         return _histogram.Hist1d(histogram, edges)
 
 
+@overload
+def load_2d_from_txt(
+    fname: str,
+    output_format: Literal["pcolormesh"] = "pcolormesh",
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
+    permuting: Literal["x", "y"] = "x",
+    xmin: Optional[float] = None,
+    xmax: Optional[float] = None,
+    ymin: Optional[float] = None,
+    ymax: Optional[float] = None,
+    **loadtxt_kwargs
+) -> _misc.PcolormeshData: ...
+
+
+@overload
+def load_2d_from_txt(
+    fname: str,
+    output_format: Literal["imshow"] = "pcolormesh",  # type: ignore
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
+    permuting: Literal["x", "y"] = "x",
+    xmin: Optional[float] = None,
+    xmax: Optional[float] = None,
+    ymin: Optional[float] = None,
+    ymax: Optional[float] = None,
+    **loadtxt_kwargs
+) -> _misc.ImshowData: ...
+
+
+@overload
+def load_2d_from_txt(
+    fname: str,
+    output_format: Literal["Hist2d"] = "pcolormesh",  # type: ignore
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
+    permuting: Literal["x", "y"] = "x",
+    xmin: Optional[float] = None,
+    xmax: Optional[float] = None,
+    ymin: Optional[float] = None,
+    ymax: Optional[float] = None,
+    **loadtxt_kwargs
+) -> _histogram.Hist2d: ...
+
 
 def load_2d_from_txt(
-        fname: str,
-        output_format: Literal["imshow", "pcolormesh", "Hist2d"] = "pcolormesh",
-        xyz_indices: tuple[int, int , int] = (1, 0, 2),
-        permuting: Literal["x", "y"] = "x",
-        xmin: Optional[float] = None,
-        xmax: Optional[float] = None,
-        ymin: Optional[float] = None,
-        ymax: Optional[float] = None,
-        **loadtxt_kwargs
-) -> Union[_misc.ImshowData, _misc.PcolormeshData, _histogram.Hist2d]:
+    fname: str,
+    output_format: Literal["imshow",
+                           "pcolormesh", "Hist2d"] = "pcolormesh",
+    xyz_indices: tuple[int, int, int] = (1, 0, 2),
+    permuting: Literal["x", "y"] = "x",
+    xmin: Optional[float] = None,
+    xmax: Optional[float] = None,
+    ymin: Optional[float] = None,
+    ymax: Optional[float] = None,
+    **loadtxt_kwargs
+) -> Union[_misc.PcolormeshData, _misc.ImshowData, _histogram.Hist2d]:
+    """
+    Load 2D data stored in a text file.
+
+    Three columns in the file should specify the x, y, and corresponding z
+    values of the data. E.g.,
+
+    ::
+
+        y0 x0 z00
+        y0 x1 z01
+        y0 x2 z02
+        ...
+        y0 xN z0N
+        y1 x0 z10
+        ...
+        yM xN zMN
+
+    You can specify which value is permuting first (in the example above ``x``)
+    with the `permuting` keyword. The assignment of the columns (here, y, x, z)
+    is specified by the `xyz_indices` keyword.
+
+    Parameters
+    ----------
+    fname : str
+        Filename, including filetype.
+
+    output_format : {``"imshow"``, ``"pcolormesh"``, ``"Hist2d"`` }, default ``"pcolormesh"``
+        Change output format. See `Returns`.
+
+    xyz_indices : (int, int, int), default (1, 0, 2)
+        Specify which column in the file corresponds to x, y, z.
+
+        The default corresponds to the output format of the default
+        ROOT macro of the Atomic Physics group that exports 2D data to a
+        text file (``hist2ascii``).
+
+    permuting : {``"x"``, ``"y"``}, default ``"x"``
+        Specify if the x- or y-column permutes through the values first.
+
+    xmin, ymin : float, optional
+        Specify the lower x (y) limit of the data in `fname`. Only necessary if
+        the x (y) values in `fname` are not equally spaced. Alternatively,
+        specify `xmax` (`ymax`.
+
+    xmax, ymax : float, optional
+        Specify the upper x (y) limit of the data in `fname`. Only necessary if
+        the x (y) values in `fname` are not equally spaced. Alternatively,
+        specify `xmin` (`ymin`). If `xmin` (`ymin`) *and* `xmax` (`ymin`) are
+        specified, `xmax` (`ymax`) is not used.
+
+    **loadtxt_kwargs
+        Other :func:`numpy.loadtxt` keyword arguments. Useful if, e.g., you want
+        to skip a certain number of lines in the text file.
+
+    Returns
+    -------
+    output : :class:`.PcolormeshData`, :class:`.ImshowData` or :class:`.Hist2d` 
+        Depends on `output_format`.
+
+        - ``output_format == "pcolormesh"``: Return :class:`.PcolormeshData`.
+        - ``output_format == "imshow"``: Return :class:`.Imshow`.
+        - ``output_format == "Hist2d"``: Return a :class:`.Hist2d`.
+
+    Examples
+    --------
+    Load data such that it can be plotted using
+    :meth:`matplotlib.pyplot.pcolormesh`.
+
+    .. code-block:: python
+
+        data = ap.load_2d_from_txt("data.txt", output_format="pcolormesh")
+        plt.pcolormesh(data.x, data.y, data.z)
+
+    Load data such that it can be plotted using
+    :meth:`matplotlib.pyplot.imshow`.
+
+    .. code-block:: python
+
+        data = ap.load_2d_from_txt("data.txt", output_format="imshow")
+        plt.imshow(data.image, extent=data.extent)
+
+    Load data as a :class:`.Hist2d"`.
+
+    .. code-block:: python
+
+        hist = ap.load_2d_from_txt("data.txt", output_format="Hist2d")
+        data = hist.column_normalized_to_sum.for_pcolormesh
+        plt.pcolormesh(data.x, data.y, data.z)
+
+
+    """
     valid_output_formats = ["imshow", "pcolormesh", "Hist2d"]
     if output_format not in valid_output_formats:
         errmsg = (
@@ -394,8 +527,106 @@ def load_2d_from_txt(
         return output.for_pcolormesh
 
 
+@overload
+def load_2d_from_root(
+    fname: str,
+    hname: str,
+    output_format: Literal["pcolormesh"] = "pcolormesh"
+) -> _misc.PcolormeshData: ...
 
 
+@overload
+def load_2d_from_root(
+    fname: str,
+    hname: str,
+    output_format: Literal["imshow"] = "pcolormesh"  # type: ignore
+) -> _misc.ImshowData: ...
+
+
+@overload
+def load_2d_from_root(
+    fname: str,
+    hname: str,
+    output_format: Literal["Hist2d"] = "pcolormesh"  # type: ignore
+) -> _histogram.Hist2d: ...
+
+
+def load_2d_from_root(
+    fname: str,
+    hname: str,
+    output_format: Literal["pcolormesh", "imshow", "Hist2d"] = "pcolormesh"
+) -> Union[_misc.PcolormeshData, _misc.ImshowData, _histogram.Hist2d]:
+    """
+    Load 2D data stored in a `ROOT <https://root.cern.ch/>`_ file.
+
+    Parameters
+    ----------
+    fname : str
+        Filename, e.g., ``"my_root_file.root"``.
+
+    hname : str
+        Histogram name in the root file, e.g.,
+        ``"path/to/histogram"``.
+
+    output_format : {``"imshow"``, ``"pcolormesh"``, ``"Hist2d"`` }, default ``"pcolormesh"``
+        Change output format. See `Returns`.
+
+    Returns
+    -------
+    output : :class:`.PcolormeshData`, :class:`.ImshowData` or :class:`.Hist2d` 
+        Depends on `output_format`.
+
+        - ``output_format == "pcolormesh"``: Return :class:`.PcolormeshData`.
+        - ``output_format == "imshow"``: Return :class:`.Imshow`.
+        - ``output_format == "Hist2d"``: Return a :class:`.Hist2d`.
+
+    Examples
+    --------
+    Load data such that it can be plotted using
+    :meth:`matplotlib.pyplot.pcolormesh`.
+
+    .. code-block:: python
+
+        data = ap.load_2d_from_txt("rootfile.root", "path/to/hist",
+                                   output_format="pcolormesh")
+        plt.pcolormesh(data.x, data.y, data.z)
+
+    Load data such that it can be plotted using
+    :meth:`matplotlib.pyplot.imshow`.
+
+    .. code-block:: python
+
+        data = ap.load_2d_from_txt("rootfile.root", "path/to/hist",
+                                   output_format="imshow")
+        plt.imshow(data.image, extent=data.extent)
+
+    Load data as a :class:`.Hist2d"`.
+
+    .. code-block:: python
+
+        data = ap.load_2d_from_txt("rootfile.root", "path/to/hist",
+                                   output_format="Hist2d")
+        data = hist.column_normalized_to_sum.for_pcolormesh
+        plt.pcolormesh(data.x, data.y, data.z)
+
+
+    """
+    valid_output_formats = ["imshow", "pcolormesh", "Hist2d"]
+    if output_format not in valid_output_formats:
+        errmsg = (
+            f"{output_format=}, but it must be one of {valid_output_formats}"
+        )
+        raise ValueError(errmsg)
+
+    with uproot.open(fname) as file:  # type: ignore
+        output = _histogram.Hist2d(*file[hname].to_numpy())  # type: ignore
+
+    if output_format == "Hist2d":
+        return output
+    if output_format == "imshow":
+        return output.for_imshow
+    if output_format == "pcolormesh":
+        return output.for_pcolormesh
 
 if __name__ == "__main__":
     print("Hi")

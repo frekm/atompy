@@ -152,6 +152,14 @@ class Hist1d:
 
     @property
     def integral(self) -> float:
+        """
+        Calculate integral of histogram.
+
+        Returns
+        -------
+        integral : float
+            integral = sum(binsizes * histogram_values)
+        """
         return np.sum(np.diff(self.edges) * self.histogram) # type: ignore
 
     @property
@@ -166,7 +174,6 @@ class Hist1d:
         hist1d : :class:`.Hist1d`
             New, normalized histogram.
         """
-        bin_widths = np.diff(self.edges)
         return Hist1d(self.histogram / self.integral, self.edges)
 
     def within_range(

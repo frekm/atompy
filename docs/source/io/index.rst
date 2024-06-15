@@ -25,9 +25,9 @@ Load data
 
 You can either load data from a text or a `ROOT <https://root.cern.ch/>`_ file.
 You can either load it as a histogram, i.e., as an instance of :class:`.Hist1D` 
-or :class:`.Hist2d`, or as NumPy ndarray.
+or :class:`.Hist2d`, or as NumPy :class:`numpy.ndarray`.
 
-When loading 2D data as ndarray, they are wrapped in a
+When loading 2D data as ``ndarray``, they are wrapped in a
 :class:`.PcolormeshData` (or :class:`.ImshowData`). These are basically
 wrapper functions providing some convenience. See documentation of 
 :func:`.load_2d_from_txt` and :func:`.load_2d_from_root` for more information.

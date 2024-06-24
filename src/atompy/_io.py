@@ -1,5 +1,6 @@
 import uproot
 import numpy as np
+import matplotlib as mpl
 from numpy.typing import NDArray
 from typing import Optional, Union, Literal, overload
 from . import _histogram
@@ -7,15 +8,10 @@ from . import _miscellaneous as _misc
 
 
 class UnderdeterminedBinsizeError(Exception):
-    def __init__(self, fname: str, axis: Literal["x", "y"]):
-        self._fname = fname
-        self._axis = axis
-
     def __str__(self) -> str:
         return (
-            f"Distance between {self._axis}-points in '{self._fname}' "
-            f"is not constant and no lower or upper {self._axis}-"
-            "limits are provided. Provide at least one limit so I can "
+            "Distance between points is not constant and no lower or upper "
+            "limit is provided. Provide at least one limit so I can "
             "determine the binsizes."
         )
 
@@ -109,12 +105,10 @@ def save_2d_as_txt(
     np.savetxt(fname, out, **savetxt_kwargs)
 
 
-def _work_out_bin_edges(
+def work_out_bin_edges(
     centers: NDArray,
-    lower: Optional[float],
-    upper: Optional[float],
-    fname: str,
-    which: Literal["x", "y"]
+    lower: Optional[float] = None,
+    upper: Optional[float] = None,
 ) -> NDArray:
     """
     Work out bin edges from bin centers.
@@ -156,7 +150,7 @@ def _work_out_bin_edges(
                 edges[i] = 2.0 * centers[i] - edges[i+1]
         else:
             # cannot determine binsize, throw exception
-            raise UnderdeterminedBinsizeError(fname, which)
+            raise UnderdeterminedBinsizeError
     else:  # bins have equal size
         edges[:-1] = centers - 0.5 * binsize
         edges[-1] = centers[-1] + 0.5 * binsize
@@ -264,7 +258,7 @@ def load_1d_from_txt(
         return output  # type: ignore
 
     if output_format == "Hist1d":
-        xedges = _work_out_bin_edges(output[0], xmin, xmax, fname, "x")
+        xedges = work_out_bin_edges(output[0], xmin, xmax, fname, "x")
         return _histogram.Hist1d(output[1], xedges)
 
 
@@ -347,6 +341,60 @@ def load_1d_from_root(
         return _histogram.Hist1d(histogram, edges)
 
 
+def for_pcolormesh(
+        x: NDArray[np.float_],
+        y: NDArray[np.float_],
+        z: NDArray[np.float_],
+        permuting: str = "x",
+        xmin: Optional[float] = None,
+        xmax: Optional[float] = None,
+        ymin: Optional[float] = None,
+        ymax: Optional[float] = None,
+) -> _misc.PcolormeshData:
+    x_ = np.unique(x)
+    y_ = np.unique(y)
+
+    xedges = work_out_bin_edges(x_, xmin, xmax)
+    yedges = work_out_bin_edges(y_, ymin, ymax)
+
+    if permuting == "x":
+        z_ = z.reshape(y_.size, x_.size).T
+    elif permuting == "y":
+        z_ = z.reshape(x_.size, y_.size)
+    else:
+        msg = f"'{permuting=}', but should be 'x' or 'y'"
+        raise ValueError(msg)
+
+    return _misc.PcolormeshData(xedges, yedges, z_)
+
+
+def for_imshow(
+        x: NDArray[np.float_],
+        y: NDArray[np.float_],
+        z: NDArray[np.float_],
+        permuting: str = "x",
+        origin: Optional[Literal["lower", "upper"]] = None
+) -> _misc.ImshowData:
+    try:
+        xedges, yedges, H = for_pcolormesh(x, y, z, permuting)
+    except UnderdeterminedBinsizeError:
+        msg = "Non-constant binsize, use for_pcolormesh instead"
+        raise ValueError(msg)
+
+    origin = origin or mpl.rcParams["image.origin"]
+    if origin == "lower":
+        H = H.T
+    elif origin == "upper":
+        H = np.flip(H.T, axis=0)
+    else:
+        msg = f"{origin=}, but it needs to be 'upper' or 'lower'"
+        raise ValueError(msg)
+
+    edges = np.array([xedges.min(), xedges.max(), yedges.min(), yedges.max()])
+    return _misc.ImshowData(H, edges)
+
+
+
 @overload
 def load_2d_from_txt(
     fname: str,
@@ -357,6 +405,7 @@ def load_2d_from_txt(
     xmax: Optional[float] = None,
     ymin: Optional[float] = None,
     ymax: Optional[float] = None,
+    origin: Optional[Literal["lower", "upper"]] = None,
     **loadtxt_kwargs
 ) -> _misc.PcolormeshData: ...
 
@@ -371,6 +420,7 @@ def load_2d_from_txt(
     xmax: Optional[float] = None,
     ymin: Optional[float] = None,
     ymax: Optional[float] = None,
+    origin: Optional[Literal["lower", "upper"]] = None,
     **loadtxt_kwargs
 ) -> _misc.ImshowData: ...
 
@@ -385,6 +435,7 @@ def load_2d_from_txt(
     xmax: Optional[float] = None,
     ymin: Optional[float] = None,
     ymax: Optional[float] = None,
+    origin: Optional[Literal["lower", "upper"]] = None,
     **loadtxt_kwargs
 ) -> _histogram.Hist2d: ...
 
@@ -399,6 +450,7 @@ def load_2d_from_txt(
     xmax: Optional[float] = None,
     ymin: Optional[float] = None,
     ymax: Optional[float] = None,
+    origin: Optional[Literal["lower", "upper"]] = None,
     **loadtxt_kwargs
 ) -> Union[_misc.PcolormeshData, _misc.ImshowData, _histogram.Hist2d]:
     """
@@ -492,40 +544,27 @@ def load_2d_from_txt(
 
 
     """
-    valid_output_formats = ["imshow", "pcolormesh", "Hist2d"]
-    if output_format not in valid_output_formats:
+
+    data = np.loadtxt(fname, **loadtxt_kwargs)
+    x = data[:, xyz_indices[0]]
+    y = data[:, xyz_indices[1]]
+    z = data[:, xyz_indices[2]]
+
+    if output_format == "Hist2d":
+        xedges, yedges, H = for_pcolormesh(
+            x, y, z, permuting, xmin, xmax, ymin, ymax)
+        return _histogram.Hist2d(H, xedges, yedges)
+    elif output_format == "imshow":
+        return for_imshow(x, y, z, permuting, origin)
+    elif output_format == "pcolormesh":
+        return for_pcolormesh(
+            x, y, z, permuting, xmin, xmax, ymin, ymax)
+    else:
+        valid_output_formats = ["imshow", "pcolormesh", "Hist2d"]
         errmsg = (
             f"{output_format=}, but it must be one of {valid_output_formats}"
         )
         raise ValueError(errmsg)
-
-    idx_x, idx_y, idx_z = xyz_indices
-
-    data = np.loadtxt(fname, **loadtxt_kwargs)
-
-    x = np.unique(data[:, idx_x])
-    y = np.unique(data[:, idx_y])
-
-    xedges = _work_out_bin_edges(x, xmin, xmax, fname, "x")
-    yedges = _work_out_bin_edges(y, ymin, ymax, fname, "y")
-
-    if permuting == "x":
-        z = data[:, idx_z].reshape(y.size, x.size).T
-    elif permuting == "y":
-        z = data[:, idx_z].reshape(x.size, y.size)
-    else:
-        msg = f"'{permuting=}', but should be 'x' or 'y'"
-        raise ValueError(msg)
-
-    output = _histogram.Hist2d(z, xedges, yedges)
-
-    if output_format == "Hist2d":
-        return output
-    if output_format == "imshow":
-        return output.for_imshow
-    if output_format == "pcolormesh":
-        return output.for_pcolormesh
-
 
 @overload
 def load_2d_from_root(
@@ -627,6 +666,7 @@ def load_2d_from_root(
         return output.for_imshow
     if output_format == "pcolormesh":
         return output.for_pcolormesh
+
 
 if __name__ == "__main__":
     print("Hi")

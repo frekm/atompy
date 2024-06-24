@@ -5,6 +5,8 @@ from ._io import (
     load_2d_from_txt,
     load_1d_from_root,
     load_2d_from_root,
+    for_pcolormesh,
+    for_imshow,
 )
 
 from ._miscellaneous import (

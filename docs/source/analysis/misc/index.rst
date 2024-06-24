@@ -13,3 +13,4 @@ Miscellaneous
     integral_polyfit
     sample_distribution
     get_all_dividers
+    work_out_bin_edges

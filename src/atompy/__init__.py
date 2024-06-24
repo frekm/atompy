@@ -7,6 +7,7 @@ from ._io import (
     load_2d_from_root,
     for_pcolormesh,
     for_imshow,
+    work_out_bin_edges,
 )
 
 from ._miscellaneous import (

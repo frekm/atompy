@@ -258,7 +258,7 @@ def load_1d_from_txt(
         return output  # type: ignore
 
     if output_format == "Hist1d":
-        xedges = work_out_bin_edges(output[0], xmin, xmax, fname, "x")
+        xedges = work_out_bin_edges(output[0], xmin, xmax)
         return _histogram.Hist1d(output[1], xedges)
 
 
@@ -351,6 +351,58 @@ def for_pcolormesh(
         ymin: Optional[float] = None,
         ymax: Optional[float] = None,
 ) -> _misc.PcolormeshData:
+    """
+    Convert xyz-data such that it can be plotted with
+    :func:`matplotlib.pyplot.imshow`.
+
+    Data should look like
+
+    ::
+
+        x0 y0 z00
+        x1 y0 z10
+        x2 y0 z20
+        ...
+        xM yN zM0
+        x0 y1 z01
+        x1 y1 z11
+        ...
+        xM yN zMN
+
+    Alternatively, `y` could be permuting before `x` does (see
+    `permuting` keyword).
+
+    Parameters
+    ----------
+    x, y, z : ndarray
+        x, y, and z data.
+
+    permuting : {``"x"``, ``"y"``}, default ``"x"``
+        Specify which if `x` or `y` data permutes first (see example above).
+
+    xmin, ymin : float, optional
+        Specify the lower x (y) limit of the data in `fname`. Only necessary if
+        the x (y) values in `fname` are not equally spaced. Alternatively,
+        specify `xmax` (`ymax`.
+
+    xmax, ymax : float, optional
+        Specify the upper x (y) limit of the data in `fname`. Only necessary if
+        the x (y) values in `fname` are not equally spaced. Alternatively,
+        specify `xmin` (`ymin`). If `xmin` (`ymin`) *and* `xmax` (`ymin`) are
+        specified, `xmax` (`ymax`) is not used.
+
+    Returns
+    -------
+    output : :class:`.PcolormeshData`
+
+    Examples
+    --------
+    
+    .. code-block:: python
+
+        xedges, yedges, counts = ap.for_pcolormesh(x, y, z)
+        plt.pcoloremesh(xedges, yedges, counts)
+    """
     x_ = np.unique(x)
     y_ = np.unique(y)
 
@@ -372,9 +424,54 @@ def for_imshow(
         x: NDArray[np.float_],
         y: NDArray[np.float_],
         z: NDArray[np.float_],
-        permuting: str = "x",
+        permuting: Literal["x", "y"] = "x",
         origin: Optional[Literal["lower", "upper"]] = None
 ) -> _misc.ImshowData:
+    """
+    Convert xyz-data such that it can be plotted with
+    :func:`matplotlib.pyplot.imshow`.
+
+    Data should look like
+
+    ::
+
+        x0 y0 z00
+        x1 y0 z10
+        x2 y0 z20
+        ...
+        xM yN zM0
+        x0 y1 z01
+        x1 y1 z11
+        ...
+        xM yN zMN
+
+    Alternatively, `y` could be permuting before `x` does (see
+    `permuting` keyword).
+
+    Parameters
+    ----------
+    x, y, z : ndarray
+        x, y, and z data.
+
+    permuting : {``"x"``, ``"y"``}, default ``"x"``
+        Specify which if `x` or `y` data permutes first (see example above).
+
+    origin : {``"lower"``, ``"upper"``}, optional
+        Specify the origin of the imshow-image.
+        If ``None``, use ``plt.rcParams["image.origin"]``.
+
+    Returns
+    -------
+    output : :class:`.ImshowData`
+
+    Examples
+    --------
+    
+    .. code-block:: python
+
+        image, extent = ap.for_imshow(x, y, z)
+        plt.imshow(image, extent=extent)
+    """
     try:
         xedges, yedges, H = for_pcolormesh(x, y, z, permuting)
     except UnderdeterminedBinsizeError:
@@ -502,6 +599,11 @@ def load_2d_from_txt(
         the x (y) values in `fname` are not equally spaced. Alternatively,
         specify `xmin` (`ymin`). If `xmin` (`ymin`) *and* `xmax` (`ymin`) are
         specified, `xmax` (`ymax`) is not used.
+
+    origin : {``"lower"``, ``"upper"``}, optional
+        Specify the origin of the imshow-image.
+        If ``None``, use ``plt.rcParams["image.origin"]``.
+
 
     **loadtxt_kwargs
         Other :func:`numpy.loadtxt` keyword arguments. Useful if, e.g., you want

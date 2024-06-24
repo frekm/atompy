@@ -358,9 +358,9 @@ def for_pcolormesh(
     yedges = work_out_bin_edges(y_, ymin, ymax)
 
     if permuting == "x":
-        z_ = z.reshape(y_.size, x_.size).T
+        z_ = z.reshape(y_.size, x_.size)
     elif permuting == "y":
-        z_ = z.reshape(x_.size, y_.size)
+        z_ = z.reshape(x_.size, y_.size).T
     else:
         msg = f"'{permuting=}', but should be 'x' or 'y'"
         raise ValueError(msg)
@@ -383,9 +383,9 @@ def for_imshow(
 
     origin = origin or mpl.rcParams["image.origin"]
     if origin == "lower":
-        H = H.T
+        pass
     elif origin == "upper":
-        H = np.flip(H.T, axis=0)
+        H = np.flip(H, axis=0)
     else:
         msg = f"{origin=}, but it needs to be 'upper' or 'lower'"
         raise ValueError(msg)
@@ -565,7 +565,7 @@ def load_2d_from_txt(
     if output_format == "Hist2d":
         xedges, yedges, H = for_pcolormesh(
             x, y, z, permuting, xmin, xmax, ymin, ymax)
-        return _histogram.Hist2d(H, xedges, yedges)
+        return _histogram.Hist2d(H.T, xedges, yedges)
     elif output_format == "imshow":
         return for_imshow(x, y, z, permuting, origin)
     elif output_format == "pcolormesh":

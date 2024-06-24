@@ -14,3 +14,5 @@ Miscellaneous
     sample_distribution
     get_all_dividers
     work_out_bin_edges
+    for_pcolormesh
+    for_imshow

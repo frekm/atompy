@@ -39,30 +39,3 @@ wrapper functions providing some convenience. See documentation of
     load_1d_from_root
     load_2d_from_txt
     load_2d_from_root
-
-Convert 2D data
-^^^^^^^^^^^^^^^
-
-If you have a set of ``x``, ``y``, and ``z`` data of the following layout
-
-
-.. code-block::
-
-    x0 y0 z00
-    x1 y0 z10
-    x2 y0 z20
-    ...
-    xM yN zM0
-    x0 y1 z01
-    x1 y1 z11
-    ...
-    xM yN zMN
-
-you can convert it into a format suitable for
-:func:`matplotlib.pyplot.pcolormesh` or :func:`matplotlib.pyplot.imshow`:
-
-.. autosummary::
-    :toctree: _autogen
-
-    for_pcolormesh
-    for_imshow

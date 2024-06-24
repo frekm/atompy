@@ -466,7 +466,7 @@ class PcolormeshData:
         plt.pcolormesh(X, Y, C)
         plt.pcolormesh(pcolormesh_data.x,
                        pcolormesh_data.y,
-                       pcolormesh_data.z)
+                       pcolormesh_data.c)
         plt.pcolormesh(pcolormesh_data[0],
                        pcolormesh_data[1],
                        pcolormesh_data[2])

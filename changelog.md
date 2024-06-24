@@ -8,14 +8,7 @@
   Documentation->Plotting for an exhaustive list.
 
 ## Changes for data loading
-- Dropped support for `origin` keyword in imshow imports. These functions
-  now always use `plt.rcParams["image.origin"]` as the image's origin.
-- 2D histograms with non-constant bin sizes can now be imported and plotted
-  with pcolormesh
-- `import_ascii_for_imshow` and `import_root_for_imshow` now return
-  `ImshowData` (or a tuple thereof)
-- `import_ascii_for_pcolormesh` and `import_root_for_pcolormesh` now return
-  `PcolormeshData` (or a tuple thereof)
+- See documentation->Input/Output for more information.
 
 ## Miscellaneous
 - General improvements to documentation

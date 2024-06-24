@@ -40,6 +40,7 @@ from ._plotting import (
     dashed,
     dashed,
     add_colorbar,
+    clear_colorbars,
     add_abc,
     update_colorbars,
     get_renderer,

@@ -10,40 +10,32 @@ Navigation
 Save histograms
 ^^^^^^^^^^^^^^^
 
-Save histograms created by `np.histogram <https://numpy.org/doc/stable/
-reference/generated/numpy.histogram.html>`_ or `np.histogram2d <https://
-numpy.org/doc/stable/reference/generated/numpy.histogram2d.html>`_ as 
-ASCII-files.
+Save histograms created by :func:`numpy.histogram` or :func:`np.histogram2d` as 
+text files.
 
 .. autosummary::
     :toctree: _autogen
 
-    save_ascii_hist1d
-    save_ascii_hist2d
+    save_1d_as_txt
+    save_2d_as_txt
 
 
-Load 1d data
-^^^^^^^^^^^^
+Load data
+^^^^^^^^^
 
-.. autosummary::
-    :toctree: _autogen
+You can either load data from a text or a `ROOT <https://root.cern.ch/>`_ file.
+You can either load it as a histogram, i.e., as an instance of :class:`.Hist1D` 
+or :class:`.Hist2d`, or as NumPy :class:`numpy.ndarray`.
 
-    _io2.load_1d_from_txt
-    _io2.load_1d_from_root
-
-Import 2d data for plotting
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-2D-data can be displayed using either `imshow <https://matplotlib.org/stable/
-api/_as_gen/matplotlib.pyplot.imshow.html>`_ or `pcolormesh <https://
-matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.pcolormesh.html>`_ (or
-using some other method that I don't know of). **atompy** provides
-methods to import ASCII data such that it can be plotted with either.
+When loading 2D data as ``ndarray``, they are wrapped in a
+:class:`.PcolormeshData` (or :class:`.ImshowData`). These are basically
+wrapper functions providing some convenience. See documentation of 
+:func:`.load_2d_from_txt` and :func:`.load_2d_from_root` for more information.
 
 .. autosummary::
     :toctree: _autogen
 
-    import_ascii_for_imshow
-    import_root_for_imshow
-    import_ascii_for_pcolormesh
-    import_root_for_pcolormesh
+    load_1d_from_txt
+    load_1d_from_root
+    load_2d_from_txt
+    load_2d_from_root

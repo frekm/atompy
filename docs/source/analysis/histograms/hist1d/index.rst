@@ -15,4 +15,6 @@ Hist1d
     methods/atompy.Hist1d.for_step
     methods/atompy.Hist1d.rebinned
     methods/atompy.Hist1d.save_to_file
+    methods/atompy.Hist1d.integral
+    methods/atompy.Hist1d.normalized_to_integral
 

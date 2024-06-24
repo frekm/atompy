@@ -4,6 +4,7 @@ import numpy.typing as npt
 from numpy.typing import NDArray
 from dataclasses import dataclass
 from . import _io as apio
+from . import _miscellaneous as _misc
 from ._miscellaneous import get_all_dividers, ImshowData, PcolormeshData
 from typing import Literal
 
@@ -98,7 +99,7 @@ class Hist1d:
         kwargs
             Additional keyword arguments for :obj:`numpy.savetxt`.
         """
-        apio.save_ascii_hist1d(self.histogram, self.edges, fname, **kwargs)
+        apio.save_1d_as_txt(self.histogram, self.edges, fname, **kwargs)
 
     @property
     def for_step(self) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
@@ -148,6 +149,67 @@ class Hist1d:
             plt.plot(hist.centers, hist.histogram)
         """
         return self.centers, self.histogram
+
+    @property
+    def integral(self) -> float:
+        """
+        Calculate integral of histogram.
+
+        Returns
+        -------
+        integral : float
+            integral = sum(binsizes * histogram_values)
+        """
+        return np.sum(np.diff(self.edges) * self.histogram) # type: ignore
+
+    @property
+    def normalized_to_integral(self) -> "Hist1d":
+        """
+        Returns the histogram normalized to its integral.
+
+        Calculates integral as bin-width * histogram.
+
+        Returns
+        -------
+        hist1d : :class:`.Hist1d`
+            New, normalized histogram.
+        """
+        return Hist1d(self.histogram / self.integral, self.edges)
+
+    def within_range(
+        self,
+        range_: tuple[float, float],
+        keepdims: bool = False
+    ) -> "Hist1d":
+        """
+        Return a :class:`.Hist1d` only within `range_[0]` and `range_[1]`.
+
+        Parameters
+        ----------
+        range_ : (float, float)
+            left/right edge to be included in the final histogram. Edges
+            are included.
+
+        keepdims : bool, default False
+            If *True*, keep original dimensions, i.e., the length of xedges
+            won't change
+
+        Returns
+        -------
+        hist1d : :class:`.Hist1d`
+        """
+        idx = np.flatnonzero(np.logical_and(
+            self.edges >= range_[0], self.edges <= range_[1]))
+        if keepdims:
+            _H = np.zeros_like(self.histogram)
+            _H[idx[0]:idx[-1]] = self.histogram[idx[0]:idx[-1]]
+            rtn = Hist1d(_H, self.edges)
+
+        else:
+            rtn = Hist1d(
+                self.histogram[idx[0]:idx[-1]],
+                self.edges[idx[0]:idx[-1] + 1])
+        return rtn
 
 
 @dataclass
@@ -501,7 +563,7 @@ class Hist2d:
         hist1d : :class:`.Hist1d`
             A 1D histogram where the *bins* are the x-bins of the original
             2D histogram, and the *bin-values* are the projection.
-        
+
         Examples
         --------
 
@@ -739,7 +801,7 @@ class Hist2d:
         **kwargs
             keyword arguments for :func:`numpy.savetxt`
         """
-        apio.save_ascii_hist2d(
+        apio.save_2d_as_txt(
             self.H, self.xedges, self.yedges, fname, **kwargs)
 
     @property

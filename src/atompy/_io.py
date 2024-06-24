@@ -513,7 +513,7 @@ def load_2d_from_txt(
         Depends on `output_format`.
 
         - ``output_format == "pcolormesh"``: Return :class:`.PcolormeshData`.
-        - ``output_format == "imshow"``: Return :class:`.Imshow`.
+        - ``output_format == "imshow"``: Return :class:`.ImshowData`.
         - ``output_format == "Hist2d"``: Return a :class:`.Hist2d`.
 
     Examples
@@ -533,6 +533,18 @@ def load_2d_from_txt(
 
         data = ap.load_2d_from_txt("data.txt", output_format="imshow")
         plt.imshow(data.image, extent=data.extent)
+
+    Alternatively, immediately unpack the loaded data into their respective
+    :class:`numpy.ndarray`.
+
+    .. code-block:: python
+
+        x, y, z = ap.load_2d_from_txt("data.txt", output_format="pcolormesh")
+        plt.pcolormesh(x, y, z)
+
+        image, extent = ap.load_2d_from_txt("data.txt", output_format="imshow")
+        plt.imshow(image, extent=extent)
+
 
     Load data as a :class:`.Hist2d"`.
 
@@ -616,7 +628,7 @@ def load_2d_from_root(
         Depends on `output_format`.
 
         - ``output_format == "pcolormesh"``: Return :class:`.PcolormeshData`.
-        - ``output_format == "imshow"``: Return :class:`.Imshow`.
+        - ``output_format == "imshow"``: Return :class:`.ImshowData`.
         - ``output_format == "Hist2d"``: Return a :class:`.Hist2d`.
 
     Examples
@@ -638,6 +650,19 @@ def load_2d_from_root(
         data = ap.load_2d_from_txt("rootfile.root", "path/to/hist",
                                    output_format="imshow")
         plt.imshow(data.image, extent=data.extent)
+    
+    Alternatively, immediately unpack the loaded data into their respective
+    :class:`numpy.ndarray`.
+
+    .. code-block:: python
+
+        x, y, z = ap.load_2d_from_txt("rootfile.root", "path/to/hist",
+                                      output_format="pcolormesh")
+        plt.pcolormesh(x, y, z)
+
+        image, extent = ap.load_2d_from_txt("rootfile.root", "path/to/hist",
+                                            output_format="imshow")
+        plt.imshow(image, extent=extent)
 
     Load data as a :class:`.Hist2d"`.
 

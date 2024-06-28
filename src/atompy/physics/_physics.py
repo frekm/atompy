@@ -55,17 +55,17 @@ def rho_p_microcanonical(
 
 @overload
 def rho_p_microcanonical(
-    pmag: npt.NDArray[np.float_],
+    pmag: npt.NDArray[np.float64],
     E_bind: float,
     normalize: bool = True
-) -> npt.NDArray[np.float_]: ...
+) -> npt.NDArray[np.float64]: ...
 
 
 def rho_p_microcanonical(
-    pmag: Union[float, npt.NDArray[np.float_]],
+    pmag: Union[float, npt.NDArray[np.float64]],
     E_bind: float,
     normalize: bool = True
-) -> Union[float, npt.NDArray[np.float_]]:
+) -> Union[float, npt.NDArray[np.float64]]:
     """
     Momentum distribution of one component in hydrogen-like system
     from Abrines Proc Phys. Soc 88 861 (1966)

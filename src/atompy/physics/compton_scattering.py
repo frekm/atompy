@@ -15,15 +15,15 @@ def thomson_cross_section(
 
 @overload
 def thomson_cross_section(
-    thetas: npt.NDArray[np.float_],
+    thetas: npt.NDArray[np.float64],
     normalize: bool = False
-) -> npt.NDArray[np.float_]: ...
+) -> npt.NDArray[np.float64]: ...
 
 
 def thomson_cross_section(
-    thetas: Union[float, npt.NDArray[np.float_]],
+    thetas: Union[float, npt.NDArray[np.float64]],
     normalize: bool = False
-) -> Union[float, npt.NDArray[np.float_]]:
+) -> Union[float, npt.NDArray[np.float64]]:
     r"""Calculate the differential thomson cross section.
 
     Parameters
@@ -55,14 +55,14 @@ def compton_photon_energy_out(
 @overload
 def compton_photon_energy_out(
     Ein: float,
-    cos_theta: npt.NDArray[np.float_]
-) -> npt.NDArray[np.float_]: ...
+    cos_theta: npt.NDArray[np.float64]
+) -> npt.NDArray[np.float64]: ...
 
 
 def compton_photon_energy_out(
     Ein: float,
-    cos_theta: Union[float, npt.NDArray[np.float_]]
-) -> Union[float, npt.NDArray[np.float_]]:
+    cos_theta: Union[float, npt.NDArray[np.float64]]
+) -> Union[float, npt.NDArray[np.float64]]:
     """Energy of an outgoing Compton photon
 
     Parameters
@@ -88,15 +88,15 @@ def klein_nishina_cross_section(
 
 @overload
 def klein_nishina_cross_section(
-    Ein: float, cos_theta: npt.NDArray[np.float_], normalize: bool = False
-) -> npt.NDArray[np.float_]: ...
+    Ein: float, cos_theta: npt.NDArray[np.float64], normalize: bool = False
+) -> npt.NDArray[np.float64]: ...
 
 
 def klein_nishina_cross_section(
     Ein: float,
-    cos_theta: Union[float, npt.NDArray[np.float_]],
+    cos_theta: Union[float, npt.NDArray[np.float64]],
     normalize: bool = False
-) -> Union[npt.NDArray[np.float_], float]:
+) -> Union[npt.NDArray[np.float64], float]:
     r"""Calculate Klein Nishina cross section
 
     Parameters
@@ -121,7 +121,7 @@ def klein_nishina_cross_section(
 def scattering_angle_distr(
     N: int,
     k1_mag_au: float
-) -> npt.NDArray[np.float_]:
+) -> npt.NDArray[np.float64]:
     """
     Get distribution of N scattering angles following Klein Nishina cross
     section
@@ -251,14 +251,14 @@ def mom_transfer_approx(
 @overload
 def mom_transfer_approx(
     kin_au: float,
-    scattering_angles_rad: npt.NDArray[np.float_],
-) -> npt.NDArray[np.float_]: ...
+    scattering_angles_rad: npt.NDArray[np.float64],
+) -> npt.NDArray[np.float64]: ...
 
 
 def mom_transfer_approx(
     kin_au: float,
-    scattering_angles_rad: Union[float, npt.NDArray[np.float_]],
-) -> Union[float, npt.NDArray[np.float_]]:
+    scattering_angles_rad: Union[float, npt.NDArray[np.float64]],
+) -> Union[float, npt.NDArray[np.float64]]:
     r"""
     Calculate momentum transfer assuming in and outgoing photon momentum
     is unchanged.

@@ -1,11 +1,11 @@
 """
-Plot a single 2D-Histogram
+Plot a single 2D-Histogram from a ROOT file.
 """
 import atompy as ap
 import matplotlib.pyplot as plt
 
 # load 2D histogram from root file to plot it with imshow
-image, extents = ap.import_root_for_imshow(
+image, extents = ap.load_1d_from_root(
     "example.root", "He_Compton/electrons/momenta/px_vs_py")
 
 # format figure

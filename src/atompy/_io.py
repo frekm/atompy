@@ -17,8 +17,8 @@ class UnderdeterminedBinsizeError(Exception):
 
 
 def save_1d_as_txt(
-    histogram: NDArray[np.float_],
-    edges: NDArray[np.float_],
+    histogram: NDArray[np.float64],
+    edges: NDArray[np.float64],
     fname: str,
     **savetxt_kwargs
 ) -> None:
@@ -56,9 +56,9 @@ def save_1d_as_txt(
 
 
 def save_2d_as_txt(
-    H: NDArray[np.float_],
-    xedges: NDArray[np.float_],
-    yedges: NDArray[np.float_],
+    H: NDArray[np.float64],
+    xedges: NDArray[np.float64],
+    yedges: NDArray[np.float64],
     fname: str,
     **savetxt_kwargs
 ) -> None:
@@ -342,9 +342,9 @@ def load_1d_from_root(
 
 
 def for_pcolormesh(
-        x: NDArray[np.float_],
-        y: NDArray[np.float_],
-        z: NDArray[np.float_],
+        x: NDArray[np.float64],
+        y: NDArray[np.float64],
+        z: NDArray[np.float64],
         permuting: str = "x",
         xmin: Optional[float] = None,
         xmax: Optional[float] = None,
@@ -421,9 +421,9 @@ def for_pcolormesh(
 
 
 def for_imshow(
-        x: NDArray[np.float_],
-        y: NDArray[np.float_],
-        z: NDArray[np.float_],
+        x: NDArray[np.float64],
+        y: NDArray[np.float64],
+        z: NDArray[np.float64],
         permuting: Literal["x", "y"] = "x",
         origin: Optional[Literal["lower", "upper"]] = None
 ) -> _misc.ImshowData:

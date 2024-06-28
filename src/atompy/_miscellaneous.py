@@ -109,7 +109,7 @@ def convert_cosine_to_angles(
     cos_angles: npt.ArrayLike,
     y_data: npt.ArrayLike,
     full_range: bool = False
-) -> tuple[npt.NDArray[np.float_], npt.NDArray[Any]]:
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[Any]]:
     """
     Convert data given as a cosine to radians
 

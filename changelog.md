@@ -1,3 +1,6 @@
+# v4.0.1
+- Replaced `np.float_` with `np.float64`
+
 # v4.0.0
 ## Changes to plotting
 - Removed `atompy.subplots` as it became obsolete. No need to create axes

@@ -689,7 +689,7 @@ class Hist2d:
     def get_profile_along_y(
         self,
         option: Literal["", "s", "i", "g"] = ""
-    ) -> tuple[NDArray[np.float_], NDArray[np.float_]]:
+    ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
         r"""
         Get the y-profile.
 

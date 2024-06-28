@@ -997,7 +997,7 @@ def get_sorted_axes_grid(fig: Optional[Figure] = None) -> NDArray:
     return axs
 
 
-def get_column_pads_inches(fig: Optional[Figure] = None) -> NDArray[np.float_]:
+def get_column_pads_inches(fig: Optional[Figure] = None) -> NDArray[np.float64]:
     """
     Get distance between columns of axes in inches.
 

@@ -60,4 +60,6 @@ from ._plotting import (
     get_axes_margins_inches,
 )
 
+from . import physics
+
 from ._version import __version__

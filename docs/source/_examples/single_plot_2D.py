@@ -15,7 +15,7 @@ plt.rcParams["image.interpolation"] = "none"
 
 # create a Figure with a single Axes
 ax = plt.subplot()
-ap.set_axes_size(3.0, 3.0)
+ax.set_box_aspect(1.0)
 
 # plot 
 cmap_image = ax.imshow(image, extent=extents)
@@ -28,4 +28,4 @@ cb.set_label("Yield (counts)", rotation=270, va="baseline")
 ax.set_xlabel(r"$p_x$ (a.u.)")
 ax.set_ylabel(r"$p_y$ (a.u.)")
 
-ap.make_me_nice(fix_figwidth=False)
+ap.make_me_nice()

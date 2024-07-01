@@ -1,3 +1,6 @@
+# v4.0.2
+- Add examples to documentation
+
 # v4.0.1
 - Replaced `np.float_` with `np.float64`
 - Fixed missing import of `physics` submodule

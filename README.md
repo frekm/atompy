@@ -62,9 +62,3 @@ The documentaion is avaiable online at
    └── docs/
      └── source/             (documentation source files)
 ``` 
-
-
-## License
-[atompy](https://github.com/crono-kircher/atompy) by
-[Max Kircher](https://github.com/crono-kircher) is licensed under
-[CC BY-NC 4.0!](http://creativecommons.org/licenses/by-nc/4.0/?ref=chooser-v1)

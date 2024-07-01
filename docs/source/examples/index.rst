@@ -5,5 +5,10 @@ Examples
 Plotting
 ========
 
-.. plot:: _examples/single_plot_1d.py
-    :include-source:
+.. toctree::
+    :glob:
+    :maxdepth: 2
+
+    plotting/*
+
+

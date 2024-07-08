@@ -5,11 +5,11 @@ Examples & Tutorials
 Plotting
 ========
 
+
 .. toctree::
-    :glob:
     :maxdepth: 2
 
-    plotting/*
+    plotting/index
 
 
 Histograms

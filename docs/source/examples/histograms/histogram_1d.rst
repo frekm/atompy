@@ -91,6 +91,6 @@ all in one line:
 .. toctree::
     :glob:
 
-    hist1d/*
+    examples_hist1d/*
 
     

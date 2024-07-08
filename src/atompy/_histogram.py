@@ -540,7 +540,7 @@ class Hist2d:
         Examples
         --------
 
-        .. plot:: _examples/projection_x.py
+        .. plot:: _examples/histogram/projection_x.py
             :include-source:
         """
         return Hist1d(np.sum(self.H, axis=1), self.xedges)
@@ -566,7 +566,7 @@ class Hist2d:
         Examples
         --------
 
-        .. plot:: _examples/projection_y.py
+        .. plot:: _examples/histogram/projection_y.py
             :include-source:
         """
         return Hist1d(np.sum(self.H, axis=0), self.yedges)
@@ -663,7 +663,7 @@ class Hist2d:
         Examples
         --------
 
-        .. plot:: _examples/profile_x.py
+        .. plot:: _examples/histogram/profile_x.py
             :include-source:
 
         """
@@ -741,7 +741,7 @@ class Hist2d:
         Examples
         --------
 
-        .. plot:: _examples/profile_y.py
+        .. plot:: _examples/histogram/profile_y.py
             :include-source:
 
         """
@@ -773,7 +773,7 @@ class Hist2d:
         Examples
         --------
 
-        .. plot:: _examples/without_zeros.py
+        .. plot:: _examples/histogram/without_zeros.py
             :include-source:
 
         """

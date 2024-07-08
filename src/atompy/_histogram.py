@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import numpy.typing as npt
 from numpy.typing import NDArray
 from dataclasses import dataclass
 from . import _io as apio

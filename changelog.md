@@ -1,3 +1,6 @@
+# v4.2.0
+- Added examples to documentation
+
 # v4.1.0
 - Add examples to documentation
 

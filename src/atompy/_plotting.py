@@ -175,8 +175,7 @@ def textwithbox(
     **text_kwargs
 ) -> Text:
     """
-    Plot text with matplotlib surrounded by a box. Only works with a
-    latex backend
+    Plot text with matplotlib surrounded by a box using LaTeX commands.
 
     Parameters
     ----------
@@ -206,13 +205,14 @@ def textwithbox(
         only used if boxbackground != None
 
     boxedgewidth : float, default :code:`0.5` (in pts)
-        edgelinewidth of the box
+        Linewidth of the box' edges.
 
-    **text_kwargs : ``matpotlib.text.Text``
+    **text_kwargs
+     Additional :class:`matpotlib.text.Text` keyword arguments.
 
     Returns
     -------
-    text :class:`matplotlib.text.Text`
+    text : :class:`matplotlib.text.Text`
         The text artist.
 
     Other Parameters

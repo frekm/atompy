@@ -337,8 +337,8 @@ class ImshowData:
     --------
     ::
 
-        # "image_data" is an ImshowData object
-        image, extent = image_data
+        # "imdata" is an ImshowData object
+        image, extent = imdata
         plt.imshow(image, extent=extent)
         plt.imshow(imdata.image, extent=imdata.extent)
         plt.imshow(imdata(0), extent=imdata(1))

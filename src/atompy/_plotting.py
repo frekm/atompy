@@ -14,6 +14,7 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from typing import Optional, Literal, Union, Any, NamedTuple
 from dataclasses import dataclass
+from . import _errors
 
 
 PTS_PER_INCH = 72.0
@@ -75,23 +76,7 @@ _font_scalings = {
     'smaller': 0.833}
 
 
-class AliasError(Exception):
-    def __init__(self,
-                 keyword_arg: str,
-                 alias: str):
-        self.keyword_arg = keyword_arg
-        self.alias = alias
 
-    def __str__(self):
-        return (f"Both '{self.keyword_arg}' and '{self.alias}' have been "
-                "provided, but they are aliases")
-
-
-class FigureWidthTooLargeError(Exception):
-    def __str__(self):
-        return (
-            "New figure width exceeds maximum allowed figure width"
-        )
 
 
 @dataclass
@@ -190,8 +175,7 @@ def textwithbox(
     **text_kwargs
 ) -> Text:
     """
-    Plot text with matplotlib surrounded by a box. Only works with a
-    latex backend
+    Plot text with matplotlib surrounded by a box using LaTeX commands.
 
     Parameters
     ----------
@@ -221,13 +205,14 @@ def textwithbox(
         only used if boxbackground != None
 
     boxedgewidth : float, default :code:`0.5` (in pts)
-        edgelinewidth of the box
+        Linewidth of the box' edges.
 
-    **text_kwargs : ``matpotlib.text.Text``
+    **text_kwargs
+     Additional :class:`matpotlib.text.Text` keyword arguments.
 
     Returns
     -------
-    text :class:`matplotlib.text.Text`
+    text : :class:`matplotlib.text.Text`
         The text artist.
 
     Other Parameters
@@ -254,9 +239,9 @@ def _set_lw_fs_lh(
     """ Process parameters for dashed/dotted/... """
     # check if aliases are doubled
     if "lw" in aliases and linewidth is not None:
-        raise AliasError("linewidth", "lw")
+        raise _errors.AliasError("linewidth", "lw")
     if "lh" in aliases and legend_handlelength is not None:
-        raise AliasError("legend_handlelength", "lh")
+        raise _errors.AliasError("legend_handlelength", "lh")
 
     lw = linewidth if linewidth else \
         aliases.get("lw", plt.rcParams["lines.linewidth"])
@@ -1568,7 +1553,7 @@ def make_me_nice(
         )
 
     if new_fw_inch > max_figwidth:
-        raise FigureWidthTooLargeError
+        raise _errors.FigureWidthTooLargeError
 
     new_fh_inch = (
         (np.max([t.y1 for t in tbboxes_inch[0]])

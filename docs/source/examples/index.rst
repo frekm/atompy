@@ -2,23 +2,30 @@
 Examples & Tutorials
 ====================
 
-Plotting
-========
+:doc:`plotting/index`
+=====================
 
 
 .. toctree::
-    :maxdepth: 2
+    :hidden:
 
     plotting/index
 
 
-Histograms
-==========
+:doc:`histograms/histogram_1d`
+==============================
 
 .. toctree::
-    :maxdepth: 1
+    :hidden:
 
     histograms/histogram_1d
+
+:doc:`histograms/histogram_2d`
+==============================
+
+.. toctree::
+    :hidden:
+
     histograms/histogram_2d
 
 

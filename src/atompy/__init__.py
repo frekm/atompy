@@ -29,10 +29,10 @@ from ._errors import(
     AliasError,
     NonconstantBinsizeError,
     UnderdeterminedBinsizeError,
+    FigureWidthTooLargeError,
 )
 
 from ._plotting import (
-    FigureWidthTooLargeError,
     Edges,
     PTS_PER_INCH,
     MM_PER_INCH,

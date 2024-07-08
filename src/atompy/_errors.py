@@ -34,3 +34,9 @@ class AliasError(Exception):
     def __str__(self):
         return (f"Both '{self.keyword_arg}' and '{self.alias}' have been "
                 "provided, but they are aliases")
+
+class FigureWidthTooLargeError(Exception):
+    def __str__(self):
+        return (
+            "New figure width exceeds maximum allowed figure width"
+        )

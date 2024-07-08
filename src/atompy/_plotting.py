@@ -78,12 +78,6 @@ _font_scalings = {
 
 
 
-class FigureWidthTooLargeError(Exception):
-    def __str__(self):
-        return (
-            "New figure width exceeds maximum allowed figure width"
-        )
-
 
 @dataclass
 class _Colorbar:
@@ -1559,7 +1553,7 @@ def make_me_nice(
         )
 
     if new_fw_inch > max_figwidth:
-        raise FigureWidthTooLargeError
+        raise _errors.FigureWidthTooLargeError
 
     new_fh_inch = (
         (np.max([t.y1 for t in tbboxes_inch[0]])

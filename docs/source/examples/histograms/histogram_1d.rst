@@ -28,13 +28,13 @@ instantiate it with the output from :func:`numpy.histogram`.
     hist = ap.Hist1d(*np.histogram(some_data))
 
 After you loaded a histogram, you can do a number of operations on it
-(for a full list, see :class:`.Hist1d`).
+(for a full list, see :class:`here <.Hist1d>`).
 
-Reformat for ``matplotlib.pyplot.plot`` and ``matplotlib.pyplot.step``
-======================================================================
+Reformat for ``plot`` and ``step``
+==================================
 
-A histogram is stored as bin-edges and histogram-values, where the _edges_ array
-is one larger than the _values_ array. When plotting a histogram, this has to
+A histogram is stored as bin-edges and histogram-values, where the *edges* array
+is one larger than the *values* array. When plotting a histogram, this has to
 be considered (otherwise, the plotted data may be shifted)
 
 :meth:`.Hist1d.for_plot` and :meth:`.Hist1d.for_step` are two convenience

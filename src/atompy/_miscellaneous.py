@@ -4,7 +4,6 @@ from typing import Any, Literal, overload, Optional, Union
 import matplotlib.pyplot as plt
 import time
 from dataclasses import dataclass
-from ._histogram import Hist1d, Hist2d
 
 
 def get_all_dividers(

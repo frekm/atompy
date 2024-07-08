@@ -5,15 +5,8 @@ from numpy.typing import NDArray
 from typing import Optional, Union, Literal, overload
 from . import _histogram
 from . import _miscellaneous as _misc
+from . import _errors
 
-
-class UnderdeterminedBinsizeError(Exception):
-    def __str__(self) -> str:
-        return (
-            "Distance between points is not constant and no lower or upper "
-            "limit is provided. Provide at least one limit so I can "
-            "determine the binsizes."
-        )
 
 
 def save_1d_as_txt(
@@ -150,7 +143,7 @@ def work_out_bin_edges(
                 edges[i] = 2.0 * centers[i] - edges[i+1]
         else:
             # cannot determine binsize, throw exception
-            raise UnderdeterminedBinsizeError
+            raise _errors.UnderdeterminedBinsizeError
     else:  # bins have equal size
         edges[:-1] = centers - 0.5 * binsize
         edges[-1] = centers[-1] + 0.5 * binsize
@@ -474,7 +467,7 @@ def for_imshow(
     """
     try:
         xedges, yedges, H = for_pcolormesh(x, y, z, permuting)
-    except UnderdeterminedBinsizeError:
+    except _errors.UnderdeterminedBinsizeError:
         msg = "Non-constant binsize, use for_pcolormesh instead"
         raise ValueError(msg)
 

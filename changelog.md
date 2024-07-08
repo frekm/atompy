@@ -1,5 +1,6 @@
 # v4.1.0
 - Add examples to documentation
+- Code refactoring
 
 # v4.0.1
 - Replaced `np.float_` with `np.float64`

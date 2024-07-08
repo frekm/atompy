@@ -14,6 +14,7 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from typing import Optional, Literal, Union, Any, NamedTuple
 from dataclasses import dataclass
+from . import _errors
 
 
 PTS_PER_INCH = 72.0
@@ -75,16 +76,6 @@ _font_scalings = {
     'smaller': 0.833}
 
 
-class AliasError(Exception):
-    def __init__(self,
-                 keyword_arg: str,
-                 alias: str):
-        self.keyword_arg = keyword_arg
-        self.alias = alias
-
-    def __str__(self):
-        return (f"Both '{self.keyword_arg}' and '{self.alias}' have been "
-                "provided, but they are aliases")
 
 
 class FigureWidthTooLargeError(Exception):
@@ -254,9 +245,9 @@ def _set_lw_fs_lh(
     """ Process parameters for dashed/dotted/... """
     # check if aliases are doubled
     if "lw" in aliases and linewidth is not None:
-        raise AliasError("linewidth", "lw")
+        raise _errors.AliasError("linewidth", "lw")
     if "lh" in aliases and legend_handlelength is not None:
-        raise AliasError("legend_handlelength", "lh")
+        raise _errors.AliasError("legend_handlelength", "lh")
 
     lw = linewidth if linewidth else \
         aliases.get("lw", plt.rcParams["lines.linewidth"])

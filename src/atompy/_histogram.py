@@ -171,6 +171,13 @@ class Hist1d:
         -------
         hist1d : :class:`.Hist1d`
             New, normalized histogram.
+
+        Examples
+        --------
+
+        .. plot:: _examples/histogram/norm_to_int_1d.py
+            :include-source:
+
         """
         return Hist1d(self.histogram / self.integral, self.edges)
 

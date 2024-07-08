@@ -12,3 +12,13 @@ Plotting
     plotting/*
 
 
+Histograms
+==========
+
+.. toctree::
+    :maxdepth: 1
+
+    histograms/histogram_1d
+    histograms/histogram_2d
+
+

@@ -16,7 +16,7 @@ most notably `numpy`, `matplotlib`, and `uproot`.
 
 ## Documentation
 The documentation is available online at
-[ReadTheDocs](https://atomicphysics-atompy.readthedocs.io/en/latest/).
+[ReadTheDocs](https://atomphys-atompy.readthedocs.io/en/latest/).
 
 ## Installation
-See [documentation](https://atomicphysics-atompy.readthedocs.io/en/latest/#installation).
+See [documentation](https://atomphys-atompy.readthedocs.io/en/latest/#installation).

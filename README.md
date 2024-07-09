@@ -6,7 +6,7 @@ A collection of utility functions to create plots and do analysis.
 
 If you don't want to install the package, you can simply download 
 `atompy.zip` from the latest
-release (see [Release Page](https://github.com/crono-kircher/atompy/releases))
+release (see [Release Page](https://github.com/atomphys-ffm/atompy/releases))
 and unpack it into your working directory.
 
 Then you can import just as you import any other Python module.

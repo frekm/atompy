@@ -1,5 +1,6 @@
 # v4.2.0
-- Added examples to documentation
+- Added "Examples & Tutorials" to documentation
+- Add "atom" colormap (same as existing "lmf2root" colormap")
 - Code refactoring
 
 # v4.1.0

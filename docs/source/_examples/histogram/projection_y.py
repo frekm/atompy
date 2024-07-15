@@ -3,7 +3,7 @@ import numpy as np
 import atompy as ap
 
 # config and create a figure
-plt.rcParams["image.cmap"] = "lmf2root"
+plt.rcParams["image.cmap"] = "atom"
 plt.rcParams["image.interpolation"] = "none"
 plt.rcParams["image.aspect"] = "auto"
 

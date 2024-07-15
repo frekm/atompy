@@ -14,7 +14,7 @@ mean, mean_errors = hist.get_profile_along_y()
 _, standard_deviation = hist.get_profile_along_y("s")
 
 # configure plots
-plt.rcParams["image.cmap"] = "lmf2root"  # works only if atompy is imported
+plt.rcParams["image.cmap"] = "atom"  # works only if atompy is imported
 plt.rcParams["image.interpolation"] = "none"
 plt.rcParams["image.aspect"] = "auto"
 

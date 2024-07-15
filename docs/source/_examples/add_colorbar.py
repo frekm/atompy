@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # configure standard image parameters
-plt.rcParams["image.cmap"] = "lmf2root"  # works only if atompy is imported
+plt.rcParams["image.cmap"] = "atom"  # works only if atompy is imported
 plt.rcParams["image.interpolation"] = "none"
 plt.rcParams["image.aspect"] = "auto"
 

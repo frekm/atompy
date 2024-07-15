@@ -161,6 +161,23 @@ cm_lmf2root_from_white = LinearSegmentedColormap.from_list(
      (1.0, (1.0, 1.0, 0.0))]
 )
 matplotlib.colormaps.register(cm_lmf2root_from_white, force=True)
+cm_atom = LinearSegmentedColormap.from_list(
+    "atom",
+    [(0.0, (0.5, 1.0, 1.0)),
+     (0.3, (0.0, 0.0, 1.0)),
+     (0.7, (1.0, 0.0, 0.0)),
+     (1.0, (1.0, 1.0, 0.0))]
+)
+matplotlib.colormaps.register(cm_atom, force=True)
+cm_atom_from_white = LinearSegmentedColormap.from_list(
+    "atom_from_white",
+    [(0.0, (1.0, 1.0, 1.0)),
+     (0.65, (0.5, 1.0, 1.0)),
+     (0.3, (0.0, 0.0, 1.0)),
+     (0.7, (1.0, 0.0, 0.0)),
+     (1.0, (1.0, 1.0, 0.0))]
+)
+matplotlib.colormaps.register(cm_atom_from_white, force=True)
 
 
 def textwithbox(

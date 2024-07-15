@@ -13,7 +13,7 @@ x, y, z = ap.load_2d_from_root(
     output_format="pcolormesh")
 
 # format figure
-plt.rcParams["image.cmap"] = "lmf2root"
+plt.rcParams["image.cmap"] = "atom"
 plt.rcParams["image.aspect"] = "auto"
 plt.rcParams["image.interpolation"] = "none"
 

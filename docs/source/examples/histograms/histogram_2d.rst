@@ -46,7 +46,8 @@ For convenience, :class:`.Hist2d` has two properties
 :meth:`.Hist2d.for_pcolormesh` and :meth:`.Hist2d.for_imshow`, the result
 in appropriate output that can be used for plotting.
 
-Basic usage:
+Basic usage
+-----------
 
 .. code:: python
 
@@ -70,3 +71,87 @@ This way, the above lines can be compressed to one-liners each
 
 For details on the possible syntax, see the documentation pages of
 :class:`.PcolormeshData` and :class:`.ImshowData`.
+
+Change colormap
+===============
+
+There are multiple ways to change the colormap that is used for 2D plots in 
+``matplotlib``. My favorite one is to configure ``rcParams`` to use the desired
+colormap.
+
+.. code:: python
+
+    plt.rcParams["image.cmap"] = "atom"
+
+With the above method, one can use any _registered_ colormap. When loading
+``atompy``, an “atomic physics” colormap is registered, which then is used
+by the above method.
+
+Instead, one could also use a keyword argument in the plotting call:
+
+.. code:: python
+
+    plt.imshow(**hist.for_imshow(), cmap="atom")
+
+In these examples, zeros are included in the colormap. If this is unwanted,
+one can conveniently remove them with the :meth:`.Hist2d.without_zeros`
+method (see also :doc:`here <examples_hist2d/without_zeros>`):
+
+.. code:: python
+
+    plt.imshow(**hist.without_zeros.for_imshow())
+
+
+Common histogram operations
+===========================
+
+For an exhaustive overview of the provided methods, see the documentation pages
+of :class:`.Hist2d`.
+
+.. _example projections:
+
+Projections
+-----------
+See also :doc:`here <examples_hist2d/prox>` (x) and
+:doc:`here <examples_hist2d/proy>` (y).
+
+Methods :meth:`.Hist2d.projected_onto_x` and :meth:`.Hist2d.projected_onto_y` 
+project the 2D histogram onto the _x_ and _y_ axis, respectively, returning
+a :class:`.Hist1d` object.
+
+For example
+
+.. code:: python
+
+    hist1d = hist2d.projected_onto_x
+    plt.step(*hist1d.for_step)
+
+If one wants to only project the histogram within a specific region, one can
+first apply a gate, then project. For example
+
+.. code:: python
+
+    hist1d = hist2d.within_yrange(ymin, ymax).projected_onto_y
+    plt.step(*hist1d.for_step)
+
+
+Applying gates
+--------------
+
+As seen in the :ref:`above example <example projections>`, one can apply gates
+using :meth:`.Hist2d.within_xrange` or :meth:`.Hist2d.within_yrange`.
+
+For example
+
+.. code:: python
+
+    gated_hist = hist2d.within_xrange(xmin, xmax).within_yrange(ymin.ymax)
+
+
+All examples
+============
+
+.. toctree::
+    :glob:
+
+    examples_hist2d/*

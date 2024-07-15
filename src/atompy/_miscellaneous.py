@@ -4,24 +4,6 @@ from typing import Any, Literal, overload, Optional, Union
 import matplotlib.pyplot as plt
 import time
 from dataclasses import dataclass
-from ._histogram import *
-
-
-class NonconstantBinsizeError(Exception):
-    def __init__(
-        self,
-        fname: str,
-        which: Literal["x", "y", ""]
-    ) -> None:
-        self.fname = fname
-        self.which = which
-
-    def __str__(self):
-        return (
-            f"{self.which}binsizes from {self.fname} are not constant and "
-            f"no {self.which}-limits are provided. Provide either "
-            f"{self.which}lim[0] or {self.which}lim[1]"
-        )
 
 
 def get_all_dividers(
@@ -320,8 +302,8 @@ def sample_distribution(
 
 @dataclass
 class _ImshowDataIter:
-    image: NDArray[np.float64]
-    extent: NDArray[np.float64]
+    image: npt.NDArray[np.float64]
+    extent: npt.NDArray[np.float64]
 
     def __post_init__(self):
         self.index = 0
@@ -329,7 +311,7 @@ class _ImshowDataIter:
     def __iter__(self) -> "_ImshowDataIter":
         return self
 
-    def __next__(self) -> NDArray[np.float64]:
+    def __next__(self) -> npt.NDArray[np.float64]:
         self.index += 1
         if self.index == 1:
             return self.image
@@ -355,16 +337,16 @@ class ImshowData:
     --------
     ::
 
-        # "image_data" is an ImshowData object
-        image, extent = image_data
+        # "imdata" is an ImshowData object
+        image, extent = imdata
         plt.imshow(image, extent=extent)
         plt.imshow(imdata.image, extent=imdata.extent)
         plt.imshow(imdata(0), extent=imdata(1))
         plt.imshow(imdata[0], extent=imdata[1])
         plt.imshow(**imdata())
     """
-    image: NDArray[np.float64]
-    extent: NDArray[np.float64]
+    image: npt.NDArray[np.float64]
+    extent: npt.NDArray[np.float64]
 
     def __iter__(self) -> _ImshowDataIter:
         return _ImshowDataIter(self.image, self.extent)
@@ -372,7 +354,7 @@ class ImshowData:
     def __getitem__(
         self,
         index: Literal[0, 1]
-    ) -> NDArray[np.float64]:
+    ) -> npt.NDArray[np.float64]:
         if index == 0:
             return self.image
         elif index == 1:
@@ -382,7 +364,7 @@ class ImshowData:
             raise IndexError(msg)
 
     @overload
-    def __call__(self, index: Literal[0, 1]) -> NDArray[np.float64]: ...
+    def __call__(self, index: Literal[0, 1]) -> npt.NDArray[np.float64]: ...
 
     @overload
     def __call__(self, index: None = None) -> dict: ...
@@ -390,7 +372,7 @@ class ImshowData:
     def __call__(
         self,
         index: Optional[Literal[0, 1]] = None
-    ) -> Union[NDArray[np.float64], dict]:
+    ) -> Union[npt.NDArray[np.float64], dict]:
         """ Get image, extent, or a dictionary of both.
 
         The dictionary can be unpacked to conveniently call `plt.imshow 
@@ -420,9 +402,9 @@ class ImshowData:
 
 @dataclass
 class _PcolormeshDataIter:
-    x: NDArray[np.float64]
-    y: NDArray[np.float64]
-    c: NDArray[np.float64]
+    x: npt.NDArray[np.float64]
+    y: npt.NDArray[np.float64]
+    c: npt.NDArray[np.float64]
 
     def __post_init__(self):
         self.index = 0
@@ -430,7 +412,7 @@ class _PcolormeshDataIter:
     def __iter__(self) -> "_PcolormeshDataIter":
         return self
 
-    def __next__(self) -> NDArray[np.float64]:
+    def __next__(self) -> npt.NDArray[np.float64]:
         self.index += 1
         if self.index == 1:
             return self.x
@@ -476,14 +458,14 @@ class PcolormeshData:
         plt.pcolormesh(*pcolormesh_data)
         plt.pcolormesh(**pcolormesh_data())
     """
-    x: NDArray[np.float64]
-    y: NDArray[np.float64]
-    c: NDArray[np.float64]
+    x: npt.NDArray[np.float64]
+    y: npt.NDArray[np.float64]
+    c: npt.NDArray[np.float64]
 
     def __getitem__(
         self,
         index
-    ) -> NDArray[np.float64]:
+    ) -> npt.NDArray[np.float64]:
         if index == 0:
             return self.x
         if index == 1:
@@ -495,7 +477,7 @@ class PcolormeshData:
     def __call__(
         self,
         index: Optional[Literal[0, 1, 2]] = None
-    ) -> Union[NDArray[np.float64], dict]:
+    ) -> Union[npt.NDArray[np.float64], dict]:
         """ Return x, y, c or a dictionary of all three.
 
         The dictionary can be unpacked to conveniently call

@@ -2,7 +2,7 @@ import numpy as np
 import atompy as ap
 import matplotlib.pyplot as plt
 
-plt.rcParams["image.cmap"] = "lmf2root"
+plt.rcParams["image.cmap"] = "atom"
 plt.rcParams["image.aspect"] = "auto"
 
 gen = np.random.default_rng(42)

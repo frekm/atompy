@@ -1,11 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import numpy.typing as npt
 from numpy.typing import NDArray
 from dataclasses import dataclass
 from . import _io as apio
 from . import _miscellaneous as _misc
-from ._miscellaneous import get_all_dividers, ImshowData, PcolormeshData
 from typing import Literal
 
 
@@ -67,7 +65,7 @@ class Hist1d:
         if old_n % factor != 0:
             raise ValueError(
                 f"Invalid {factor=}. Possible factors for this "
-                f"histogram are {get_all_dividers(old_n)}."
+                f"histogram are {_misc.get_all_dividers(old_n)}."
             )
 
         new_hist = np.empty(self.histogram.size // factor)
@@ -173,6 +171,13 @@ class Hist1d:
         -------
         hist1d : :class:`.Hist1d`
             New, normalized histogram.
+
+        Examples
+        --------
+
+        .. plot:: _examples/histogram/norm_to_int_1d.py
+            :include-source:
+
         """
         return Hist1d(self.histogram / self.integral, self.edges)
 
@@ -329,7 +334,7 @@ class Hist2d:
         if old_n % factor != 0:
             raise ValueError(
                 f"Invalid {factor=}. Possible factors for this "
-                f"histogram are {get_all_dividers(old_n)}."
+                f"histogram are {_misc.get_all_dividers(old_n)}."
             )
         new_hist = np.empty((self.H.shape[0] // factor, self.H.shape[1]))
         for i in range(new_hist.shape[0]):
@@ -362,7 +367,7 @@ class Hist2d:
         if old_n % factor != 0:
             raise ValueError(
                 f"Invalid {factor=}. Possible factors for this "
-                f"histogram are {get_all_dividers(old_n)}."
+                f"histogram are {_misc.get_all_dividers(old_n)}."
             )
         new_hist = np.empty((self.H.shape[0], self.H.shape[1] // factor))
         for i in range(new_hist.shape[1]):
@@ -376,7 +381,7 @@ class Hist2d:
     @property
     def for_pcolormesh(
         self
-    ) -> PcolormeshData:
+    ) -> _misc.PcolormeshData:
         """
         Return such that it can be plotted using
         :obj:`matplotlib.pyplot.pcolormesh`
@@ -399,12 +404,12 @@ class Hist2d:
             hist = Hist2d(*np.histogram2d(xsamples, ysamples))
             plt.pcolormesh(*hist.for_pcolormesh)
         """
-        return PcolormeshData(self.xedges, self.yedges, self.H.T)
+        return _misc.PcolormeshData(self.xedges, self.yedges, self.H.T)
 
     @property
     def for_imshow(
         self,
-    ) -> ImshowData:
+    ) -> _misc.ImshowData:
         """
         Return corresponding :class:`.ImshowData` object.
 
@@ -449,7 +454,7 @@ class Hist2d:
                  self.xedges.max(),
                  self.yedges.min(),
                  self.yedges.max()]
-        return ImshowData(H_, np.array(edges))
+        return _misc.ImshowData(H_, np.array(edges))
 
     def within_xrange(
         self,
@@ -541,7 +546,7 @@ class Hist2d:
         Examples
         --------
 
-        .. plot:: _examples/projection_x.py
+        .. plot:: _examples/histogram/projection_x.py
             :include-source:
         """
         return Hist1d(np.sum(self.H, axis=1), self.xedges)
@@ -567,7 +572,7 @@ class Hist2d:
         Examples
         --------
 
-        .. plot:: _examples/projection_y.py
+        .. plot:: _examples/histogram/projection_y.py
             :include-source:
         """
         return Hist1d(np.sum(self.H, axis=0), self.yedges)
@@ -664,7 +669,7 @@ class Hist2d:
         Examples
         --------
 
-        .. plot:: _examples/profile_x.py
+        .. plot:: _examples/histogram/profile_x.py
             :include-source:
 
         """
@@ -742,7 +747,7 @@ class Hist2d:
         Examples
         --------
 
-        .. plot:: _examples/profile_y.py
+        .. plot:: _examples/histogram/profile_y.py
             :include-source:
 
         """
@@ -774,7 +779,7 @@ class Hist2d:
         Examples
         --------
 
-        .. plot:: _examples/without_zeros.py
+        .. plot:: _examples/histogram/without_zeros.py
             :include-source:
 
         """

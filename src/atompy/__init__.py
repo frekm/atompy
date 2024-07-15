@@ -11,7 +11,6 @@ from ._io import (
 )
 
 from ._miscellaneous import (
-    NonconstantBinsizeError,
     ImshowData,
     PcolormeshData,
     get_all_dividers,
@@ -26,9 +25,14 @@ from ._histogram import Hist1d, Hist2d
 
 from ._vector import Vector
 
-from ._plotting import (
+from ._errors import(
     AliasError,
+    NonconstantBinsizeError,
+    UnderdeterminedBinsizeError,
     FigureWidthTooLargeError,
+)
+
+from ._plotting import (
     Edges,
     PTS_PER_INCH,
     MM_PER_INCH,

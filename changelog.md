@@ -1,5 +1,9 @@
+# v4.2.0
+- Added "Examples & Tutorials" to documentation
+- Add "atom" colormap (same as existing "lmf2root" colormap")
+- Code refactoring
+
 # v4.1.0
-- Add examples to documentation
 
 # v4.0.1
 - Replaced `np.float_` with `np.float64`

@@ -29,11 +29,57 @@ class _Hist1dIterator:
 
 @dataclass
 class Hist1d:
-    histogram: NDArray[np.float64]
-    edges: NDArray[np.float64]
+    _histogram: NDArray[np.float64]
+    _edges: NDArray[np.float64]
 
     def __iter__(self) -> _Hist1dIterator:
         return _Hist1dIterator(self.histogram, self.edges)
+
+    @property
+    def histogram(self) -> NDArray[np.float64]:
+        """
+        The values of the histogram.
+
+        Returns
+        -------
+        histogram : ndarray
+        """
+        return self._histogram
+
+    @histogram.setter
+    def histogram(self, _histogram) -> None:
+        """
+        Set the values of the histogram.
+
+        Parameters
+        ----------
+        _histogram : ndarray
+            Must be of length ``(len(Hist1d.edges) - 1)``
+        """
+        self._histogram = _histogram
+
+    @property
+    def edges(self) -> NDArray[np.float64]:
+        """
+        Return the bin edges.
+
+        Returns
+        -------
+        edges : ndarray
+        """
+        return self._edges
+
+    @edges.setter
+    def edges(self, _edges) -> None:
+        """
+        Set the bin edges.
+
+        Parameters
+        ----------
+        _edges : ndarray
+            Must be of length ``(len(Hist1d.histogram) + 1)``
+        """
+        self._edges = _edges
 
     @property
     def centers(
@@ -283,12 +329,78 @@ class Hist2d:
         plt.pcolormesh(*hist2d.rebinned_x(2).for_pcolormesh)
 
     """
-    H: NDArray[np.float64]
-    xedges: NDArray[np.float64]
-    yedges: NDArray[np.float64]
+    _H: NDArray[np.float64]
+    _xedges: NDArray[np.float64]
+    _yedges: NDArray[np.float64]
 
     def __iter__(self) -> _Hist2dIterator:
         return _Hist2dIterator(self.H, self.xedges, self.yedges)
+
+    @property
+    def H(self) -> NDArray[np.float64]:
+        """
+        The bi-dimensional histogram.
+
+        Returns
+        -------
+        H : ndarray
+        """
+        return self._H
+
+    @H.setter
+    def H(self, _H: NDArray[np.float64]) -> NDArray[np.float64]:
+        """
+        Set the bi-dimensional histogram to `_H`.
+
+        Parameters
+        ----------
+        _H : ndarray
+        """
+        self._H = _H
+
+    @property
+    def xedges(self) -> NDArray[np.float64]:
+        """
+        The bin edges along the first dimension of *Hist2d.H*
+
+        Returns
+        -------
+        xedges : ndarray
+        """
+        return self._xedges
+
+    @xedges.setter
+    def xedges(self, _xedges: NDArray[np.float64]) -> None:
+        """
+        Set the bin edges along the first dimension of *Hist2d.H*
+
+        Parameters
+        ----------
+        _xedges : ndarray
+        """
+        self._xedges = _xedges
+
+    @property
+    def yedges(self) -> NDArray[np.float64]:
+        """
+        The bin edges along the second dimension of *Hist2d.H*
+
+        Returns
+        -------
+        yedges : ndarray
+        """
+        return self._yedges
+
+    @yedges.setter
+    def yedges(self, _yedges: NDArray[np.float64]) -> None:
+        """
+        Set the bin edges along the second dimension of *Hist2d.H*
+
+        Parameters
+        ----------
+        _yedges : ndarray
+        """
+        self._yedges = _yedges
 
     @property
     def xcenters(self) -> NDArray[np.float64]:

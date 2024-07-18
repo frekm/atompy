@@ -1,8 +1,10 @@
 # v4.2.1-dev
+- Added explicit properties for `Hist2d.H`, `Hist2d.xedges`, `Hist2d.yedges`,
+  `Hist1d.histogram` and `Hist1d.edges`
 
 # v4.2.0
 - Added "Examples & Tutorials" to documentation
-- Add "atom" colormap (same as existing "lmf2root" colormap")
+- Added "atom" colormap (same as existing "lmf2root" colormap)
 - Code refactoring
 
 # v4.1.0

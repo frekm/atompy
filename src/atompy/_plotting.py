@@ -899,7 +899,6 @@ def set_axes_size(
 
     fw_inch, fh_inch = plt.gcf().get_size_inches()
     ax = ax or plt.gca()
-    ax.set_adjustable("datalim")
 
     old_pos = ax.get_position()
     new_pos = Position(old_pos.x0, old_pos.y0,

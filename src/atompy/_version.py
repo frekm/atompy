@@ -1,1 +1,1 @@
-__version__ = "4.2.1" # also update pyproject.toml
+__version__ = "4.3.0" # also update pyproject.toml

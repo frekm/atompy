@@ -39,6 +39,8 @@ Manipulate Figures and Axes
 
   get_renderer
 
+  square_polar_axes
+
 
 Colorbars
 ^^^^^^^^^

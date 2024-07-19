@@ -62,6 +62,7 @@ from ._plotting import (
     align_axes_vertically,
     align_axes_horizontally,
     get_axes_margins_inches,
+    square_polar_axes,
 )
 
 from . import physics

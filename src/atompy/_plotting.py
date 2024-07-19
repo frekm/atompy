@@ -24,6 +24,7 @@ MM_PER_INCH = 25.4
 """float: 25.4 mm = 1 inch"""
 
 _COLORBAR_LABEL = "atompy colorbar axes"
+_SQUARE_POLAR_AXES_LABEL = "atompy square polar axes"
 
 RED = "#AE1117"
 TEAL = "#008081"
@@ -76,9 +77,6 @@ _font_scalings = {
     'smaller': 0.833}
 
 
-
-
-
 @dataclass
 class _Colorbar:
     colorbar: matplotlib.colorbar.Colorbar
@@ -98,6 +96,17 @@ class _ColorbarManager:
 
 
 _colorbar_manager = _ColorbarManager()
+
+@dataclass
+class _SquarePolarAxes:
+    polar_axes: Axes
+    square_axes: Axes
+
+class _SquarePolarAxesManager:
+    def __init__(self) -> None:
+        self.square_polar_axes: list[_SquarePolarAxes] = []
+        
+_square_polar_axes_manager = _SquarePolarAxesManager()
 
 
 @dataclass
@@ -142,6 +151,15 @@ def clear_colorbars() -> None:
     Calling ``clear_colorbars`` clears that list.
     """
     del _colorbar_manager.colorbars[:]
+
+def clear_square_polar_axes() -> None:
+    """
+    Clear reference to all square polar axes that were created by
+    :func:`.square_polar_axes`.
+
+    You probably never have to call this.
+    """
+    del _square_polar_axes_manager.square_polar_axes[:]
 
 
 cm_lmf2root = LinearSegmentedColormap.from_list(
@@ -770,6 +788,24 @@ def add_abc(
 
     return out
 
+def update_square_polar_axes(fig: Optional[Figure] = None) -> None:
+    """
+    Re-align square frames to their parent polar axes.
+
+    Parameters
+    ----------
+    fig : :class:`matplotlib.figure.Figure`, optional
+        If ``None``, use last active figure.
+    """
+    fig = fig or plt.gcf()
+    axs = fig.get_axes()
+
+    for spa in _square_polar_axes_manager.square_polar_axes:
+        if spa.polar_axes not in axs:
+            continue
+        spa.square_axes.set_position(spa.polar_axes.get_position())
+
+
 
 def update_colorbars(fig: Optional[Figure] = None) -> None:
     """
@@ -935,6 +971,7 @@ def set_axes_size(
                      new_pos.width, new_pos.height))
 
     update_colorbars()
+    update_square_polar_axes()
 
 
 def get_sorted_axes_grid(fig: Optional[Figure] = None) -> NDArray:
@@ -964,7 +1001,10 @@ def get_sorted_axes_grid(fig: Optional[Figure] = None) -> NDArray:
 
     axs_unordered: list[Axes] = []
     for ax in fig.get_axes():
-        if ax.get_label() != _COLORBAR_LABEL:
+        if (
+            ax.get_label() != _COLORBAR_LABEL and
+            ax.get_label() != _SQUARE_POLAR_AXES_LABEL
+        ):
             axs_unordered.append(ax)
 
     # get subplotspecs, ensureing that it is not None
@@ -1085,6 +1125,7 @@ def set_min_column_pads(
             ))
 
     update_colorbars()
+    update_square_polar_axes()
 
 
 def get_row_pads_inches(fig: Optional[Figure] = None) -> NDArray:
@@ -1175,6 +1216,7 @@ def set_min_row_pads(
             ))
 
     update_colorbars()
+    update_square_polar_axes()
 
 
 def get_figure_margins_inches(fig: Optional[Figure] = None) -> Edges:
@@ -1603,6 +1645,7 @@ def make_me_nice(
             ))
 
     update_colorbars()
+    update_square_polar_axes()
 
 
 def align_axes_vertically(
@@ -1639,7 +1682,9 @@ def align_axes_vertically(
         msg = f"{alignment=}, but it should be one of {valid_anchors}"
         raise ValueError(msg)
     ax.set_position((bbox_ax.x0, y0, bbox_ax.width, bbox_ax.height))
+
     update_colorbars()
+    update_square_polar_axes()
 
 
 def align_axes_horizontally(
@@ -1713,6 +1758,77 @@ def get_axes_margins_inches(
         tbbox.y1 - bbox.y1,
         bbox.y0 - tbbox.y0
     )
+
+
+def square_polar_axes(
+    ax: Optional[Axes] = None,
+    n_gridlines: int = 12,
+    mark_zero: bool = True,
+    **plot_kwargs
+) -> Axes:
+    """
+    Format polar axes to be squared.
+
+    Hide original axes, then overlay another axes that is squared.
+
+    Parameters
+    ----------
+    ax : :class:`matplotlib.axes.Axes`, optional
+        If ``None``, use currently active axes.
+
+    n_gridlines : int, default 12
+        Number of gridlines to add. 360 should probably be dividable by this.
+
+    mark_zero : bool, default ``True``
+        If ``True``, draw a crosshair at 0.
+
+    Returns
+    -------
+    frame : :class:`matplotlib.axes.Axes`
+        The frame axes. The zorder of `frame` is one less than that of `ax`.
+    """
+    fig = plt.gcf()
+    ax = ax or plt.gca()
+
+    pos = ax.get_position()
+    zorder = ax.get_zorder()
+    ax.axis("off")
+
+    ax_frame = fig.add_axes(pos, label=_SQUARE_POLAR_AXES_LABEL) # type: ignore
+    _square_polar_axes_manager.square_polar_axes.append(
+        _SquarePolarAxes(ax, ax_frame))
+    ax_frame.set_zorder(zorder - 1)
+    ax_frame.set_xlim(-1, 1)
+    ax_frame.set_ylim(-1, 1)
+    ax_frame.set_xticks([])
+    ax_frame.set_yticks([])
+
+    if not ("linewidth" in plot_kwargs or "lw" in plot_kwargs):
+        plot_kwargs["linewidth"] = plt.rcParams["axes.linewidth"]
+    if not ("color" in plot_kwargs or "c" in plot_kwargs):
+        plot_kwargs["color"] = plt.rcParams["axes.edgecolor"]
+    plot_kwargs.setdefault("zorder", zorder)
+
+    if n_gridlines > 0:
+        if 360 % n_gridlines:
+            print(f"WARNING: {360%n_gridlines=} != 0, "
+                  "by. Should that be the case?")
+        angles = [x * 2.0 * np.pi / n_gridlines
+                    for x in range(n_gridlines)]
+
+        for angle in angles:
+            a, b = 0.95, 1.5
+            ax_frame.plot([a * np.cos(angle), b * np.cos(angle)],
+                                [a * np.sin(angle), b * np.sin(angle)],
+                                **plot_kwargs)
+
+    if mark_zero:
+        ax_frame.axvline(0, **plot_kwargs)
+        ax_frame.axhline(0, **plot_kwargs)
+
+    return ax_frame
+
+
 
 
 if __name__ == "__main__":

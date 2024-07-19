@@ -1,4 +1,4 @@
-# v4.2.1-dev
+# v4.2.1
 - Added explicit properties for `Hist2d.H`, `Hist2d.xedges`, `Hist2d.yedges`,
   `Hist1d.histogram` and `Hist1d.edges`
 

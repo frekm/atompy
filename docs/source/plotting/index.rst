@@ -51,6 +51,7 @@ Colorbars
   add_colorbar
   update_colorbars
   clear_colorbars
+  cmap_from_x_to_y
 
 
 Plotting

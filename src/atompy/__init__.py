@@ -39,6 +39,7 @@ from ._plotting import (
     colors,
     cm_lmf2root,
     cm_lmf2root_from_white,
+    cmap_from_x_to_y,
     textwithbox,
     dotted,
     dash_dotted,

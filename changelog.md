@@ -1,3 +1,6 @@
+# v4.4.0
+- Added `cmap_from_x_to_x`
+
 # v4.3.0
 - Added `square_polar_axes`
 - Fixed `set_axes_size` not working with polar axes

@@ -198,6 +198,93 @@ cm_atom_from_white = LinearSegmentedColormap.from_list(
 matplotlib.colormaps.register(cm_atom_from_white, force=True)
 
 
+def cmap_from_x_to_y(
+        cmap,
+        x: float=0.0,
+        y: float=1.0,
+        new_cmap_name: Optional[str] = None,
+        register: bool=False) -> LinearSegmentedColormap:
+
+    """
+    Return a colormap within (x,y) range
+
+    Parameters
+    ----------
+    cmap
+        A matplotlib colormap, as returned by
+        ``matplotlib.colormaps["colormap_name"]``.
+
+    x : float, default = 0.0
+        Lower limit of the colorbar in percent.
+
+    y : float, default = 1.0
+        Upper limit of the colorbar in percent.
+
+    new_cmap_name : str, optional
+        Optionally, give the colormap a name.
+
+        If ``None``, colormap will be called ``"_new_colormap"``.
+
+    register : bool, default ``False``
+        Register the colormap.
+
+        If it is registered, one can call it simply by it's name
+        (i.e., ``new_cmap_name``).
+
+    Returns
+    -------
+    new_cmap : :obj:`matplotlib.colors.LinearSegementedColormap`.
+        The new colormap.
+
+    Examples
+    --------
+
+    .. code-block:: python 
+
+        import matplotlib.pyplot as plt
+        import matplotlib as mpl
+
+        cmap = mpl.colormaps["viridis"]
+        cmap_from_middle = cmap_from_x_to_y(
+            cmap,
+            x = 0.5,
+            new_cmap_name = "viridis_from_middle",
+            register = True
+        )
+
+        # pass colormap as keyword argument
+        plt.imshow(image, cmap=cmap_from_middle)
+        
+        # or, since it is registered, refer to it by name
+        plt.imshow(image, cmap="viridis_from_middle")
+    """
+
+    if x < 0.0 or x > 1.0:
+        raise ValueError(
+            f"{x=}, but it must be within [0.0, 1.0]"
+        )
+    if y < 0.0 or y > 1.0:
+        raise ValueError(
+            f"{y=}, but it must be within [0.0, 1.0]"
+        )
+
+    length = len(cmap.colors)
+    index_low = int(x * length)
+    index_high = int(y * length)
+    new_cmap_name = new_cmap_name or "_new_colormap"
+    try:
+        new_cmap = LinearSegmentedColormap.from_list(
+            new_cmap_name,
+            cmap.colors[index_low:index_high]
+        )
+    except AttributeError as e:
+        raise ValueError("cmap has wrong type")
+    if register:
+        matplotlib.colormaps.register(new_cmap)
+
+    return new_cmap
+
+
 def textwithbox(
     axes: Axes,
     x: float,

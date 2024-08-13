@@ -1,5 +1,5 @@
 # v4.4.0
-- Added `cmap_from_x_to_x`
+- Added `cmap_from_x_to_y`
 
 # v4.3.0
 - Added `square_polar_axes`

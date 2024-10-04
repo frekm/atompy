@@ -1,9 +1,10 @@
 import numpy as np
-from typing import Callable, Literal
+from typing import Literal
+from collections.abc import Callable
 
 
 def sample_analytic_distribution(
-    f: Callable,
+    f: Callable[[np.ndarray], np.ndarray],
     xlim: tuple[float, float],
     size: int,
     ylim: Literal['auto'] | tuple[float, float] = 'auto'

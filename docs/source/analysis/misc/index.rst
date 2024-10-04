@@ -13,6 +13,7 @@ Miscellaneous
     integral_polyfit
     edges_to_centers
     centers_to_edges
+    work_out_bin_edges
     sample_distribution
     get_all_dividers
     for_pcolormesh

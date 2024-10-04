@@ -12,7 +12,7 @@ and unpack it into your working directory.
 Then you can import just as you import any other Python module.
 
 If you use this method, you'll need to install the dependencies manually,
-most notably `numpy`, `matplotlib`, and `uproot`.
+most notably `numpy`, `matplotlib`, `scipy`, and `uproot`.
 
 ## Documentation
 The documentation is available online at

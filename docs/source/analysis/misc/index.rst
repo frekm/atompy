@@ -12,8 +12,8 @@ Miscellaneous
     integral_sum
     integral_polyfit
     edges_to_centers
+    centers_to_edges
     sample_distribution
     get_all_dividers
-    work_out_bin_edges
     for_pcolormesh
     for_imshow

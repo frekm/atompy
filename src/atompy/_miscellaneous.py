@@ -4,6 +4,7 @@ from typing import Any, Literal, overload, Optional, Union
 import matplotlib.pyplot as plt
 import time
 from dataclasses import dataclass
+from . import _errors
 
 
 def get_all_dividers(
@@ -261,6 +262,74 @@ def edges_to_centers(
     centers : ndarray, shape(n,)
     """
     return edges[:-1] + 0.5 * np.diff(edges)
+
+
+def centers_to_edges(
+    centers: npt.NDArray[np.float64],
+    lower: Optional[float] = None,
+    upper: Optional[float] = None,
+) -> npt.NDArray[np.float64]:
+    """
+    Work out bin edges from bin centers.
+
+    If the bins don't have constant size, at least one limit has to be
+    provided, from which the edges can be determined
+
+    Parameters
+    ----------
+    centers : ndarray, shape(n)
+        centers of the bins
+
+    lower, uppper : float, optional
+        Lower and upper limits of the bins.
+
+        At least one limit must be provided if bins don't have a constant 
+        size. If both lower and upper limits are provided, the lower one
+        will be prioritized.
+
+    Returns
+    -------
+    edges : ndarray, shape(n+1)
+        Edges of the bins.
+
+    See also
+    --------
+    work_out_bin_edges
+    """
+    # if bins don't have a constant size, determine xbinedges differently
+    edges = np.empty(centers.size + 1)
+    binsize = centers[1] - centers[0]
+    if np.any(np.abs(np.diff(centers) - binsize) > binsize * 0.001):
+        if lower is not None:
+            # take lower edge and work out binsize forward
+            edges[0] = lower
+            for i in range(len(centers)):
+                edges[i+1] = 2.0 * centers[i] - edges[i]
+
+        elif upper is not None:
+            # take upper edge and work out binsize backward
+            edges[-1] = upper
+            for i in reversed(range(len(centers))):
+                edges[i] = 2.0 * centers[i] - edges[i+1]
+        else:
+            # cannot determine binsize, throw exception
+            raise _errors.UnderdeterminedBinsizeError
+    else:  # bins have equal size
+        edges[:-1] = centers - 0.5 * binsize
+        edges[-1] = centers[-1] + 0.5 * binsize
+
+    return edges
+
+
+def work_out_bin_edges(
+    centers: npt.NDArray[np.float64],
+    lower: Optional[float] = None,
+    upper: Optional[float] = None,
+) -> npt.NDArray[np.float64]:
+    """
+    Alias for :func:`.centers_to_edges`.
+    """
+    return centers_to_edges(centers, lower, upper)
 
 
 def sample_distribution(

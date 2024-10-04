@@ -98,59 +98,6 @@ def save_2d_as_txt(
     np.savetxt(fname, out, **savetxt_kwargs)
 
 
-def work_out_bin_edges(
-    centers: NDArray,
-    lower: Optional[float] = None,
-    upper: Optional[float] = None,
-) -> NDArray:
-    """
-    Work out bin edges from bin centers.
-
-    If the bins don't have constant size, at least one limit has to be
-    provided, from which the edges can be determined
-
-    Parameters
-    ----------
-    centers : ndarray, shape(n)
-        centers of the bins
-
-    lower, uppper : float, optional
-        Lower and upper limits of the bins.
-
-        At least one limit must be provided if bins don't have a constant 
-        size. If both lower and upper limits are provided, the lower one
-        will be prioritized.
-
-    Returns
-    -------
-    edges : ndarray, shape(n+1)
-        Edges of the bins.
-    """
-    # if bins don't have a constant size, determine xbinedges differently
-    edges = np.empty(centers.size + 1)
-    binsize = centers[1] - centers[0]
-    if np.any(np.abs(np.diff(centers) - binsize) > binsize * 0.001):
-        if lower is not None:
-            # take lower edge and work out binsize forward
-            edges[0] = lower
-            for i in range(len(centers)):
-                edges[i+1] = 2.0 * centers[i] - edges[i]
-
-        elif upper is not None:
-            # take upper edge and work out binsize backward
-            edges[-1] = upper
-            for i in reversed(range(len(centers))):
-                edges[i] = 2.0 * centers[i] - edges[i+1]
-        else:
-            # cannot determine binsize, throw exception
-            raise _errors.UnderdeterminedBinsizeError
-    else:  # bins have equal size
-        edges[:-1] = centers - 0.5 * binsize
-        edges[-1] = centers[-1] + 0.5 * binsize
-
-    return edges
-
-
 @overload
 def load_1d_from_txt(
     fname: str,
@@ -251,7 +198,7 @@ def load_1d_from_txt(
         return output  # type: ignore
 
     if output_format == "Hist1d":
-        xedges = work_out_bin_edges(output[0], xmin, xmax)
+        xedges = _misc.centers_to_edges(output[0], xmin, xmax)
         return _histogram.Hist1d(output[1], xedges)
 
 
@@ -399,8 +346,8 @@ def for_pcolormesh(
     x_ = np.unique(x)
     y_ = np.unique(y)
 
-    xedges = work_out_bin_edges(x_, xmin, xmax)
-    yedges = work_out_bin_edges(y_, ymin, ymax)
+    xedges = _misc.centers_to_edges(x_, xmin, xmax)
+    yedges = _misc.centers_to_edges(y_, ymin, ymax)
 
     if permuting == "x":
         z_ = z.reshape(y_.size, x_.size)

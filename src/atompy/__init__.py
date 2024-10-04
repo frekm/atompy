@@ -7,7 +7,6 @@ from ._io import (
     load_2d_from_root,
     for_pcolormesh,
     for_imshow,
-    work_out_bin_edges,
 )
 
 from ._miscellaneous import (
@@ -20,6 +19,8 @@ from ._miscellaneous import (
     integral_polyfit,
     sample_distribution,
     edges_to_centers,
+    centers_to_edges,
+    work_out_bin_edges,
 )
 
 from ._histogram import Hist1d, Hist2d

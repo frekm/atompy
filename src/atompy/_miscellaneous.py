@@ -287,6 +287,10 @@ def sample_distribution(
     sample : ndarray, shape(size,)
         A sample ranging from ``edges[0]`` to ``edges[-1]`` with 
         a distribution corresponding to ``values``.
+
+    Notes
+    -----
+    See also :doc:`/examples/tutorials/rand_distr`
     """
 
     output = np.empty(size)

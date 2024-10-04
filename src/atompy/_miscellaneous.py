@@ -247,7 +247,7 @@ def integral_polyfit(
         
 
 def edges_to_centers(
-        edges: npt.NDArray
+        edges: npt.NDArray[np.float64]
 ) -> npt.NDArray:
     """
     Return centers of bins discribed by ``edges``.

@@ -264,8 +264,8 @@ def edges_to_centers(
 
 
 def sample_distribution(
-    edges: npt.NDArray,
-    values: npt.NDArray,
+    edges: npt.NDArray[np.float64],
+    values: npt.NDArray[np.float64],
     size: int
 ) -> npt.NDArray:
     """ 
@@ -273,15 +273,14 @@ def sample_distribution(
 
     Parameters
     ----------
-    edges : ndarray, shape(n,)
-        The left edges of the bins from the input distribution. Monotonically
-        increasing.
+    edges : ndarray, shape(n+1,)
+        The bin edges from the input distribution. Monotonically increasing.
 
     values : ndarray, shape(n,)
-        The correpsonding values. Must be >=0 everywhere
+        The correpsonding values. Must be >=0 everywhere.
 
     size : int
-        size of the output sample distribution
+        Size of the output sample distribution.
 
     Returns
     -------
@@ -303,7 +302,7 @@ def sample_distribution(
         sample = np.random.uniform(edges[0], edges[-1], buffer)
         test = np.random.uniform(0.0, np.max(values), buffer)
 
-        edges_index = np.digitize(sample, edges[1:-1])
+        edges_index = np.digitize(sample, edges[1:-2])
 
         sample = np.ma.compressed(np.ma.masked_array(
             sample, test > values[edges_index]))

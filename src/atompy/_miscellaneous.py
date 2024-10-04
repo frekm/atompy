@@ -257,7 +257,7 @@ def sample_distribution(
     Parameters
     ----------
     edges : ndarray, shape(n,)
-        The eft edges of the bins from the input distribution. Monotnoically
+        The left edges of the bins from the input distribution. Monotonically
         increasing.
 
     values : ndarray, shape(n,)
@@ -268,9 +268,9 @@ def sample_distribution(
 
     Returns
     -------
-    sample: ndarray, shape(size,)
-        A sample ranging from ``distr_edges[0]`` to ``distr_edges[-1]`` with 
-        a distribution corresponding to ``distr_values``.
+    sample : ndarray, shape(size,)
+        A sample ranging from ``edges[0]`` to ``edges[-1]`` with 
+        a distribution corresponding to ``values``.
     """
 
     output = np.empty(size)

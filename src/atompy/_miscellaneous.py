@@ -244,6 +244,23 @@ def integral_polyfit(
         plt.xlim(lower, upper)
         plt.show()
     return integral
+        
+
+def edges_to_centers(
+        edges: npt.NDArray
+) -> npt.NDArray:
+    """
+    Return centers of bins discribed by ``edges``.
+
+    Parameters
+    ----------
+    edges : ndarray, shape(n+1,)
+
+    Returns
+    -------
+    centers : ndarray, shape(n,)
+    """
+    return edges[:-1] + 0.5 * np.diff(edges)
 
 
 def sample_distribution(

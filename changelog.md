@@ -1,5 +1,6 @@
 # v4.5.0
 - Added "Sample a random distribution" Tutorial
+- Added `edges_to_centers`
 
 # v4.4.0
 - Added `cmap_from_x_to_y`

@@ -11,6 +11,7 @@ Miscellaneous
     convert_cosine_to_angles
     integral_sum
     integral_polyfit
+    edges_to_centers
     sample_distribution
     get_all_dividers
     work_out_bin_edges

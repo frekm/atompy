@@ -19,6 +19,7 @@ from ._miscellaneous import (
     integral_sum,
     integral_polyfit,
     sample_distribution,
+    edges_to_centers,
 )
 
 from ._histogram import Hist1d, Hist2d

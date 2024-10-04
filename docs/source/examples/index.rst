@@ -28,4 +28,12 @@ Examples & Tutorials
 
     histograms/histogram_2d
 
+:doc:`tutorials/rand_distr`
+===========================
+
+.. toctree::
+    :hidden:
+
+    tutorials/rand_distr
+
 

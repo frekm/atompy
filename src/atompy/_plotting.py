@@ -1531,7 +1531,7 @@ def make_me_nice(
             accordingly.
         ``False``:
             Keep axes widths constant and scale figure width accordingly. 
-            Also note `fail_if_figwidth_exceeds` parameter.
+            Also note the `max_figwidth` parameter.
 
     margin_pad_pts : array_like, default ``5.0``
         Extra padding for the figure edges in pts.

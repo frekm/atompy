@@ -1,4 +1,5 @@
 - Added "Colormaps and Colorbars" tutorial
+- Fixed some docstrings
 
 # v4.5.0
 - Added "Sample a random distribution" Tutorial

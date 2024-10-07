@@ -35,5 +35,3 @@ Examples & Tutorials
     :hidden:
 
     tutorials/rand_distr
-
-

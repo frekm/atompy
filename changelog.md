@@ -1,3 +1,5 @@
+- Added "Colormaps and Colorbars" tutorial
+
 # v4.5.0
 - Added "Sample a random distribution" Tutorial
 - Added `edges_to_centers` and `centers_to_edges`.

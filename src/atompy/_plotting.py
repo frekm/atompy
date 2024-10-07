@@ -629,21 +629,10 @@ def add_colorbar(
 
     Examples
     --------
-    .. code-block:: python
 
-        im = plt.imshow()
-        ap.add_colorbar(im)
+    .. plot:: _examples/colorbars/add_colorbar.py
+        :include-source:
 
-        fig, axs = plt.subplots(1, 2)
-
-        im0 = axs[0].imshow()
-        im1 = axs[1].imshow()
-
-        cb0 = ap.add_colorbar(im0, axs[0], location="top")
-        cb1 = ap.add_colorbar(im1, axs[1], location="bottom")
-
-        for cb in [cb0, cb1]:
-            cb.set_label("Colorbar Label")
     """
     valid_positions = ["left", "right", "top", "bottom"]
     if location not in valid_positions:
@@ -1542,7 +1531,7 @@ def make_me_nice(
             accordingly.
         ``False``:
             Keep axes widths constant and scale figure width accordingly. 
-            Also note `fail_if_figwidth_exceeds` parameter.
+            Also note the `max_figwidth` parameter.
 
     margin_pad_pts : array_like, default ``5.0``
         Extra padding for the figure edges in pts.

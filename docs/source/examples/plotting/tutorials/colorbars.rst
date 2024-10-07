@@ -26,10 +26,14 @@ the figure. Adding ``ap.make_me_nice()`` to the above code yields:
 
 .. plot:: _examples/colorbars/cbar_atompy_2.py
 
+For a better overview of the provided functionality, see the documentation page
+of :func:`add_colorbar`.
+
 .. note::
 
     If you plan to use :func:`.make_me_nice`, you **must** add colorbars
     using :func:`.add_colorbar`.
+
 
 
 Creating custom colormaps

@@ -629,21 +629,10 @@ def add_colorbar(
 
     Examples
     --------
-    .. code-block:: python
 
-        im = plt.imshow()
-        ap.add_colorbar(im)
+    .. plot:: _examples/colorbars/add_colorbar.py
+        :include-source:
 
-        fig, axs = plt.subplots(1, 2)
-
-        im0 = axs[0].imshow()
-        im1 = axs[1].imshow()
-
-        cb0 = ap.add_colorbar(im0, axs[0], location="top")
-        cb1 = ap.add_colorbar(im1, axs[1], location="bottom")
-
-        for cb in [cb0, cb1]:
-            cb.set_label("Colorbar Label")
     """
     valid_positions = ["left", "right", "top", "bottom"]
     if location not in valid_positions:

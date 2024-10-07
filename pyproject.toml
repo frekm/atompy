@@ -23,5 +23,5 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/crono-kircher/atompy"
+"Homepage" = "https://github.com/frekm/atompy"
 

@@ -574,7 +574,7 @@ class Hist2d:
         keepdims: bool = False
     ) -> "Hist2d":
         """
-        Apply a gate along x.
+        Apply an inclusive gate along x.
 
         Return a histogram where *xrange[0]* <= xedges <= *xrange[1]*
 
@@ -612,7 +612,7 @@ class Hist2d:
         keepdims: bool = False
     ) -> "Hist2d":
         """
-        Apply a gate along y.
+        Apply an inclusive gate along y.
 
         Return a histogram where *yrange[0]* <= yedges <= *yrange[1]*
 

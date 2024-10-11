@@ -6,7 +6,7 @@ Add colorbar to plots
 
 Attaching a colorbar to a plot in ``matplotlib`` is quite flexible and,
 hence, quite cumbersome. While adding a basic colorbar is quite easy (see
-`here <https://matplotlib.org/stable/users/explain/axes/colorbar_placement.html>`_
+`here <https://matplotlib.org/stable/users/explain/axes/colorbar_placement.html>`__
 for a ``matplotlib`` tutorial),
 scaling the colorbar correctly can become challenging. The following example
 hopefully showcases this:
@@ -41,7 +41,7 @@ Creating custom colormaps
 
 Sometimes it's useful to create custom colormaps that aren't already available
 (you can go through the build in colormaps from ``matplotlib``
-`here <https://matplotlib.org/stable/users/explain/colors/colormaps.html>`_).
+`here <https://matplotlib.org/stable/users/explain/colors/colormaps.html>`__).
 
 Yo create custom colormaps using 
 :obj:`matplotlib.colors.LinearSegmentedColormap`.

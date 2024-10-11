@@ -204,7 +204,7 @@ class Hist1d:
         integral : float
             integral = sum(binsizes * histogram_values)
         """
-        return np.sum(np.diff(self.edges) * self.histogram) # type: ignore
+        return np.sum(np.diff(self.edges) * self.histogram)  # type: ignore
 
     @property
     def normalized_to_integral(self) -> "Hist1d":
@@ -248,6 +248,12 @@ class Hist1d:
         Returns
         -------
         hist1d : :class:`.Hist1d`
+
+        Examples
+        --------
+
+        .. plot:: _examples/histogram/within_range.py
+            :include-source:
         """
         idx = np.flatnonzero(np.logical_and(
             self.edges >= range_[0], self.edges <= range_[1]))
@@ -261,6 +267,41 @@ class Hist1d:
                 self.histogram[idx[0]:idx[-1]],
                 self.edges[idx[0]:idx[-1] + 1])
         return rtn
+
+    def without_range(
+            self,
+            range_: tuple[float, float]
+    ) -> "Hist1d":
+        """
+        Return a :class:`.Hist1d` excluding everything within `range_[0]`
+        and `range_[1]`.
+
+        Parameters
+        ----------
+        range_ : (float, float)
+            left/right edge of region to be excluded in the final histogram.
+            Edges are also excluded.
+
+        keepdims : bool, default False
+            If *True*, keep original dimensions, i.e., the length of xedges
+            won't change
+
+        Returns
+        -------
+        hist1d : :class:`.Hist1d`
+
+        Examples
+        --------
+
+        .. plot:: _examples/histogram/without_range.py
+            :include-source:
+        """
+        idx = np.flatnonzero(np.logical_and(
+            self.edges >= range_[0], self.edges <= range_[1]))
+        _H = self.histogram.copy()
+        _H[idx[0]:idx[-1]] = np.nan
+        return Hist1d(_H, self.edges)
+
 
 
 @dataclass
@@ -574,7 +615,7 @@ class Hist2d:
         keepdims: bool = False
     ) -> "Hist2d":
         """
-        Apply a gate along x.
+        Apply an inclusive gate along x.
 
         Return a histogram where *xrange[0]* <= xedges <= *xrange[1]*
 
@@ -590,7 +631,7 @@ class Hist2d:
 
         Returns
         -------
-        new_histogram : Hist2d
+        new_histogram : :class:`Hist2d`
         """
         idx = np.flatnonzero(np.logical_and(
             self.xedges >= xrange[0], self.xedges <= xrange[1]))
@@ -612,7 +653,7 @@ class Hist2d:
         keepdims: bool = False
     ) -> "Hist2d":
         """
-        Apply a gate along y.
+        Apply an inclusive gate along y.
 
         Return a histogram where *yrange[0]* <= yedges <= *yrange[1]*
 
@@ -628,7 +669,7 @@ class Hist2d:
 
         Returns
         -------
-        new_histogram : Hist2d
+        new_histogram : :class:`.Hist2d`
         """
         idx = np.flatnonzero(np.logical_and(
             self.yedges >= yrange[0], self.yedges <= yrange[1]))
@@ -643,6 +684,68 @@ class Hist2d:
                 self.xedges,
                 self.yedges[idx[0]:idx[-1] + 1])
         return rtn
+
+    def without_xrange(
+            self,
+            xrange: tuple[float, float],
+    ) -> "Hist2d":
+        """
+        Apply an exclusive gate along x.
+
+        Return a histogram where every bin with
+        *xedges[0]* <= bin xedges <= *xedges[1]* is numpy.nan.
+
+        Parameters
+        ----------
+        xrange : (float, float)
+            lower/upper xedge to be excluded from the final histogram. Edges
+            are excluded.
+
+        Returns
+        -------
+        new_histogram : :class:`Hist2d`
+
+        Examples
+        --------
+        .. plot:: _examples/histogram/without_xrange.py
+            :include-source:
+        """
+        idx = np.flatnonzero(np.logical_and(
+            self.xedges >= xrange[0], self.xedges <= xrange[1]))
+        _H = self.H.copy()
+        _H[idx[0]:idx[-1], :] = np.nan
+        return Hist2d(_H, self.xedges, self.yedges)
+
+    def without_yrange(
+            self,
+            yrange: tuple[float, float],
+    ) -> "Hist2d":
+        """
+        Apply an exclusive gate along y.
+
+        Return a histogram where every bin with
+        yxedges[0]* <= bin yedges <= *yedges[1]* is numpy.nan.
+
+        Parameters
+        ----------
+        yrange : (float, float)
+            lower/upper yedge to be excluded from the final histogram. Edges
+            are excluded.
+
+        Returns
+        -------
+        new_histogram : :class:`.Hist2d`
+
+        Examples
+        --------
+        .. plot:: _examples/histogram/without_yrange.py
+            :include-source:
+        """
+        idx = np.flatnonzero(np.logical_and(
+            self.yedges >= yrange[0], self.yedges <= yrange[1]))
+        _H = self.H.copy()
+        _H[:, idx[0]:idx[-1]] = np.nan
+        return Hist2d(_H, self.xedges, self.yedges)
 
     @property
     def projected_onto_x(self) -> "Hist1d":

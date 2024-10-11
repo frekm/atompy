@@ -392,7 +392,9 @@ def dotted(
 ) -> tuple[float, tuple[float, float]]:
     """
     Return a tuple to create a dotted line that fits perfectly into a
-    legend. For that to work properly you may need to provide the linewidth of
+    legend.
+
+    For that to work properly you may need to provide the linewidth of
     the graph and the fontsize of the legend.
 
     Parameters
@@ -447,6 +449,9 @@ def dotted(
         plt.rcParams["legend.fontsize"] = "x-small"
         plt.plot([0., 1.], linestyle=ap.dotted())
         plt.legend()
+    
+    .. plot:: _examples/legend_dotted.py
+        :include-source:
     """
     lw_, fs_, lh_ = _set_lw_fs_lh(
         linewidth, fontsize, legend_handlelength, **aliases)
@@ -506,6 +511,11 @@ def dash_dotted(
     --------
     :func:`.dotted` : Create dotted-line linestyle.
     :func:`.dashed` : Create dash-dotted-line linestyle.
+    
+    Examples
+    --------
+    .. plot:: _examples/legend_dash_dotted.py
+        :include-source:
     """
     lw_, fs_, lh_ = _set_lw_fs_lh(
         linewidth, fontsize, legend_handlelength, **aliases)
@@ -567,6 +577,11 @@ def dashed(
     --------
     :func:`.dotted` : Create dotted-line linestyle.
     :func:`.dash_dotted` : Create dash-dotted-line linestyle.
+    
+    Examples
+    --------
+    .. plot:: _examples/legend_dashed.py
+        :include-source:
     """
     lw_, fs_, lh_ = _set_lw_fs_lh(
         linewidth, fontsize, legend_handlelength, **aliases)

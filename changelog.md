@@ -1,3 +1,5 @@
+- Added more examples
+
 # v4.6.0
 - Added `Hist1d.without_range`, `Hist2d.without_xrange`, `Hist2d.without_yrange`
 - Added "Colormaps and Colorbars" tutorial

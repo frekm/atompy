@@ -1,5 +1,5 @@
-﻿atompy.Hist1d.centers
-=====================
+﻿atompy.Hist1d.within_range
+==========================
 
 .. currentmodule:: atompy
 

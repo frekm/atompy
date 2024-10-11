@@ -348,7 +348,7 @@ class Hist2d:
         return self._H
 
     @H.setter
-    def H(self, _H: NDArray[np.float64]) -> NDArray[np.float64]:
+    def H(self, _H: NDArray[np.float64]) -> None:
         """
         Set the bi-dimensional histogram to `_H`.
 

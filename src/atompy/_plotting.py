@@ -1636,7 +1636,7 @@ def make_me_nice(
         if row_pad_pts.size == 1:
             value = row_pad_pts[0] if row_pad_pts.shape else row_pad_pts
             row_pad_pts = np.array([value] * (nrows-1))
-        elif row_pad_pts.shape != (ncols-1,):
+        elif row_pad_pts.shape != (nrows-1,):
             raise ValueError(f"{row_pad_pts.shape=} is invalid")
         row_pads_inch = row_pad_pts / PTS_PER_INCH
     else:

@@ -1,3 +1,4 @@
+- Fixed bugged keyword `row_pad_pts` of `make_me_nice()`
 - Added more examples
 
 # v4.6.0

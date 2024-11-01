@@ -168,6 +168,37 @@ def scattering_angle_distr(
     return rtn
 
 
+def mom_final_distr_photon_var(
+    k1_mags_au: npt.NDArray[np.float64],
+    theta_min: float = 0.0
+) -> Vector:
+    """
+    Scatter photons randomly with Klein Nishina cross section.
+
+    Photons have a momentum magnitude as given by ``k1_mags_au``.
+    This is slow, if all photons have the same momentum magnitude, use
+    :func:`.mom_final_distr_photon` instead.
+
+    Parameters
+    ----------
+    k1_mag : ndarray
+        Incoming photon vector interpreted as (k1_mag, 0, 0) in a.u.
+
+    theta_min : float, default = 0.0
+        minimum scattering angle in rad
+
+    Returns
+    -------
+    vectors : :class:`.Vector`
+        Photon momentum vectors
+
+    See also
+    --------
+    mom_final_distr_photon
+    """
+    ...
+
+
 def mom_final_distr_photon(
     N: int,
     k1_mag: float,

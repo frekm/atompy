@@ -45,24 +45,10 @@ def thomson_cross_section(
             else cross_section * 0.5292**2 * 10**-16)
 
 
-@overload
 def compton_photon_energy_out(
-    Ein: float,
-    cos_theta: float
-) -> float: ...
-
-
-@overload
-def compton_photon_energy_out(
-    Ein: float,
-    cos_theta: npt.NDArray[np.float64]
-) -> npt.NDArray[np.float64]: ...
-
-
-def compton_photon_energy_out(
-    Ein: float,
-    cos_theta: Union[float, npt.NDArray[np.float64]]
-) -> Union[float, npt.NDArray[np.float64]]:
+    Ein: npt.ArrayLike,
+    cos_theta: npt.ArrayLike
+) -> npt.NDArray[np.float64]:
     """Energy of an outgoing Compton photon
 
     Parameters
@@ -77,7 +63,7 @@ def compton_photon_energy_out(
     energy : float or `np.ndarray`
         The energy of the scattered photon in a.u.
     """
-    return Ein / (1.0 + Ein / 137.0**2 * (1.0 - cos_theta))
+    return Ein / (1.0 + Ein / 137.0**2 * (1.0 - cos_theta))  # type: ignore
 
 
 @overload

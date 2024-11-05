@@ -1,4 +1,4 @@
-from typing import overload, Union
+from typing import overload, Union, Optional
 import numpy as np
 import numpy.typing as npt
 import time
@@ -66,42 +66,32 @@ def compton_photon_energy_out(
     return Ein / (1.0 + Ein / 137.0**2 * (1.0 - cos_theta))  # type: ignore
 
 
-@overload
 def klein_nishina_cross_section(
-    Ein: float, cos_theta: float, normalize: bool = False
-) -> float: ...
-
-
-@overload
-def klein_nishina_cross_section(
-    Ein: float, cos_theta: npt.NDArray[np.float64], normalize: bool = False
-) -> npt.NDArray[np.float64]: ...
-
-
-def klein_nishina_cross_section(
-    Ein: float,
-    cos_theta: Union[float, npt.NDArray[np.float64]],
+    Ein: npt.ArrayLike,
+    cos_theta: npt.ArrayLike,
     normalize: bool = False
-) -> Union[npt.NDArray[np.float64], float]:
+) -> npt.NDArray[np.float64]:
     r"""Calculate Klein Nishina cross section
 
     Parameters
     ----------
-    E1 : float
+    E1 : ArrayLike
         energy of incoming photon in a.u.
-    cos_theta : float or `np.ndarray`
+    cos_theta : ArrayLike
         cosine of the scattering angles
 
     Returns
     -------
-    cross_section : float or `np.ndarray`
+    cross_section : ndarray
         The differential cross section $d\sigma/d\Omega$ in cm^2 or,
         if *normalize* is True, normalized to its maximum
     """
-    ratio = compton_photon_energy_out(Ein, cos_theta) / Ein
+    ratio = compton_photon_energy_out(Ein, cos_theta) / Ein # type: ignore
     out = 0.5 / 137.0**4 * ratio**2 \
-        * (1. / ratio + ratio - (1.0 - cos_theta**2))
-    return out / np.amax(out) if normalize else out * 0.5292**2 * 10**-16
+        * (1. / ratio + ratio - (1.0 - cos_theta**2)) # type: ignore
+    return (
+        out / np.amax(out) if normalize else out * 0.5292**2 * 10**-16
+    ) # type: ignore
 
 
 def scattering_angle_distr(
@@ -156,7 +146,8 @@ def scattering_angle_distr(
 
 def mom_final_distr_photon_var(
     k1_mags_au: npt.NDArray[np.float64],
-    theta_min: float = 0.0
+    theta_min: float = 0.0,
+    rng_seed: Optional[float] = None
 ) -> Vector:
     """
     Scatter photons randomly with Klein Nishina cross section.
@@ -173,6 +164,9 @@ def mom_final_distr_photon_var(
     theta_min : float, default = 0.0
         minimum scattering angle in rad
 
+    rng_seed : float, optional
+        Seed value for random number generator
+
     Returns
     -------
     vectors : :class:`.Vector`
@@ -182,7 +176,60 @@ def mom_final_distr_photon_var(
     --------
     mom_final_distr_photon
     """
-    ...
+    incoming_energies = k1_mags_au * 137.0
+
+    if rng_seed is None:
+        rng = np.random.default_rng()
+    else:
+        rng = np.random.default_rng(rng_seed) # type: ignore
+
+    n_samples = 0
+    output_costhetas = np.empty(incoming_energies.shape)
+
+    kn_max = np.max(klein_nishina_cross_section(incoming_energies, 1))
+
+    t0 = time.time()
+    line0 = f"Randomly sampling {len(k1_mags_au)} Compton photon momenta... "
+
+    while n_samples < len(k1_mags_au):
+        line = (
+            "\r" + line0 + 
+            "%.0lf percent done." % ((100.0 * n_samples / len(k1_mags_au)))
+        )
+        print(line, end="")
+        rand_costheta = rng.uniform(-1, np.cos(theta_min))
+        rand_klein_nishina = rng.uniform(0, kn_max*1.001)
+
+        if rand_klein_nishina > klein_nishina_cross_section(
+                incoming_energies[n_samples], rand_costheta):
+            continue
+
+        output_costhetas[n_samples] = rand_costheta
+
+        n_samples += 1
+
+
+    output = np.empty((len(k1_mags_au), 3))
+    output_phis = rng.uniform(0, 2*np.pi, size=len(k1_mags_au))
+    output_thetas = np.arccos(output_costhetas)
+    magnitudes = compton_photon_energy_out(
+        incoming_energies, output_costhetas) / 137.0
+
+    output[:, 0] = magnitudes * output_costhetas
+    output[:, 1] = magnitudes * np.sin(output_thetas) * np.cos(output_phis)
+    output[:, 2] = magnitudes * np.sin(output_thetas) * np.sin(output_phis)
+
+    t1 = time.time()
+    print(f"\nTotal runtime: {t1-t0:.2f}s")
+
+    return Vector(output)
+
+
+            
+
+
+
+
 
 
 def mom_final_distr_photon(
@@ -208,13 +255,13 @@ def mom_final_distr_photon(
     vectors : :class:`.Vector`
         Photon momentum vectors
     """
-    E1 = 137.0 * k1_mag
+    phot_ener_in = 137.0 * k1_mag
 
     succesful_throws = 0
 
     phi = 2 * np.pi * np.random.random(N)
     rtn = np.zeros((N, 3))
-    max = klein_nishina_cross_section(E1, 1)
+    max = klein_nishina_cross_section(phot_ener_in, 1)
 
     t0 = time.time()
     line0 = "Dice-throwing %d Compton photon momenta... " % (N)
@@ -231,12 +278,12 @@ def mom_final_distr_photon(
         b = np.cos(theta_min)
         cos_theta_throw = (b - a) * np.random.random(buffer) + a
         second_throw = np.random.random(buffer)
-        kn = klein_nishina_cross_section(E1, cos_theta_throw) / max
+        kn = klein_nishina_cross_section(phot_ener_in, cos_theta_throw) / max
 
         cos_theta_throw = np.ma.compressed(np.ma.masked_array(
             cos_theta_throw, mask=second_throw >= kn))
 
-        mag = compton_photon_energy_out(E1, cos_theta_throw) / 137.0
+        mag = compton_photon_energy_out(phot_ener_in, cos_theta_throw) / 137.0
         theta = np.arccos(cos_theta_throw)
 
         rtn[succesful_throws:succesful_throws + theta.size, 0] = (

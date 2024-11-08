@@ -1,3 +1,6 @@
+# v4.7.0
+- Added `mom_final_distr_photon_var`
+
 # v4.6.1
 - Fixed bugged keyword `row_pad_pts` of `make_me_nice()`
 - Added more examples

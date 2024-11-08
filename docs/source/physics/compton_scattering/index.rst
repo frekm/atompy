@@ -21,6 +21,7 @@ Navigation
     compton_photon_energy_out
     scattering_angle_distr
     mom_final_distr_photon
+    mom_final_distr_photon_var
     mom_final_distr_elec
     mom_transfer_approx
     stretch_Compton_electron_onto_sphere

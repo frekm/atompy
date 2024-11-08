@@ -1,3 +1,5 @@
+- Fixed docstring of `for_pcolormesh`
+
 # v4.7.0
 - Added `mom_final_distr_photon_var`
 

@@ -293,7 +293,7 @@ def for_pcolormesh(
 ) -> _misc.PcolormeshData:
     """
     Convert xyz-data such that it can be plotted with
-    :func:`matplotlib.pyplot.imshow`.
+    :func:`matplotlib.pyplot.pcolormesh`.
 
     Data should look like
 

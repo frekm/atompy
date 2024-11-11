@@ -1,1 +1,1 @@
-__version__ = "4.7.1-dev1" # also update pyproject.toml
+__version__ = "4.8.0" # also update pyproject.toml

@@ -7,4 +7,5 @@ Data Analysis
 
     histograms/index
     vector/index
+    singlevector/index
     misc/index

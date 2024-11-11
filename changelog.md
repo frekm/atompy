@@ -1,4 +1,5 @@
 - Fixed docstring of `for_pcolormesh`
+- Added `SingleVector`
 
 # v4.7.0
 - Added `mom_final_distr_photon_var`

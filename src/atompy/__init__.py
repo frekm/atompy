@@ -25,7 +25,8 @@ from ._miscellaneous import (
 
 from ._histogram import Hist1d, Hist2d
 
-from ._vector import Vector
+from ._vector import Vector, SingleVector
+
 
 from ._errors import(
     AliasError,

@@ -1,6 +1,7 @@
+import math
 import numpy as np
 import numpy.typing as npt
-from typing import Any, Optional
+from typing import Any, Optional, Iterator
 
 
 class _VectorIterator:
@@ -407,6 +408,238 @@ class Vector:
             [[1. 2. 3.]]
         """
         return self.remove_where(np.logical_not(mask))
+
+
+class SingleVector:
+    """
+    Data type representing a single vector.
+
+    If you want to work with multiple vectors, consider using
+    :class:`.Vector`.
+
+    Parameters
+    ----------
+    x, y, z : float
+        Components of the vector
+
+    Examples
+    --------
+    ::
+
+        >>> vec  = Vector(1, 2, 3)
+        >>> vec.x
+        1.0
+    """
+    def __init__(self, x: float, y: float, z:float) -> None:
+        self._data = Vector([x, y, z])
+
+    def __getitem__(self, key) -> float:
+        return float(self._data[key])
+
+    def __setitem__(self, key, value) -> None:
+        self._data[key] = value
+
+    def __repr__(self):
+        return self._data.__repr__()
+
+    def __str__(self):
+        return self._data.__str__()
+
+    def __add__(self, other: "SingleVector") -> "SingleVector":
+        if not isinstance(other, SingleVector):
+            return NotImplemented
+        return SingleVector(self.x + other.x,
+                            self.y + other.y,
+                            self.z + other.z)
+
+    def __sub__(self, other: "SingleVector") -> "SingleVector":
+        if not isinstance(other, "SingleVector"):
+            return NotImplemented
+        else:
+            return SingleVector(self.x - other.x,
+                                self.y - other.y,
+                                self.z - other.z)
+
+    def __mul__(self, scale: float) -> "SingleVector":
+        if not isinstance(scale, float):
+            return NotImplemented
+        return SingleVector(self.x * scale, self.y * scale, self.z * scale)
+
+    def __rmul__(self, scale: float) -> "SingleVector":
+        if not isinstance(scale, float):
+            return NotImplemented
+        return SingleVector(self.x * scale, self.y * scale, self.z * scale)
+
+    def __truediv__(self, scale: float) -> "SingleVector":
+        if not isinstance(scale, float):
+            return NotImplemented
+        return SingleVector(self.x / scale, self.y / scale, self.z / scale)
+
+    def __floordiv__(self, scale: float) -> "SingleVector":
+        if not isinstance(scale, float):
+            return NotImplemented
+        return SingleVector(self.x // scale, self.y // scale, self.z // scale)
+
+    def __neg__(self) -> "SingleVector":
+        return SingleVector(-self.x, -self.y, -self.z)
+
+    def __len__(self) -> int:
+        return 3
+
+    def __iter__(self) -> Iterator[float]:
+        return [self.x, self.y, self.z].__iter__()
+
+
+    @property
+    def x(self) -> float:
+        """ x-Component of Vector """
+        return self.x
+
+    @x.setter
+    def x(self, value: float) -> None:
+        self.x = float(value)
+
+    @property
+    def y(self) -> float:
+        """ y-Component of Vector """
+        return self.y
+
+    @y.setter
+    def y(self, value: float) -> None:
+        self.y = float(value)
+
+    @property
+    def z(self) -> float:
+        """ z-Component of Vector """
+        return self.z
+
+    @z.setter
+    def z(self, value: float) -> None:
+        self.z = float(value)
+
+    @property
+    def magnitude(self) -> float:
+        """ Return magnitude of vector """
+        return math.sqrt(self.x**2 + self.y**2 + self.z**2)
+
+    @property
+    def mag(self) -> float:
+        """ Alias for :attr:`.SingleVector.magnitude` """
+        return self.magnitude
+
+    @property
+    def norm(self) -> "SingleVector":
+        """ Return normalized Vector """
+        mag = self.mag
+        return SingleVector(self.x/mag, self.y/mag, self.z/mag)
+
+    @property
+    def phi(self) -> float:
+        """ Return azimuth angle in rad from -PI to PI """
+        return np.arctan2(self.y, self.x)
+
+    @property
+    def phi_deg(self) -> float:
+        """ Return azimuth angle in degree from -180 to 180 """
+        return self.phi * 180.0 / np.pi
+
+    @property
+    def cos_theta(self) -> float:
+        """ Return cosine of polar angle from -1 to 1 """
+        return self.z / self.mag
+
+    @property
+    def theta(self) -> float:
+        """ Return polar angle in rad from 0 to PI e"""
+        return np.arccos(self.cos_theta)
+
+    @property
+    def theta_deg(self) -> float:
+        """ Return polar angle in degree from 0 to 180 """
+        return self.theta * 180.0 / np.pi
+
+    def dot(self, other: "SingleVector") -> float:
+        """ Returrn dot product of Vector with *other*"""
+        return self.x * other.x + self.y * other.y + self.z * other.z
+
+    def cross(self, other: "SingleVector") -> "SingleVector":
+        """ 
+        Return cross product between *self* and *other*
+        """
+        result_x = self.y * other.z - self.z * other.y
+        result_y = self.z * other.x - self.x * other.z
+        result_z = self.x * other.y - self.y * other.x
+        return SingleVector(result_x, result_y, result_z)
+
+    def angle_between(self, other: "SingleVector"):
+        """
+        Return the angle between Vector and *other*
+
+        Parameters
+        ----------
+        other : :class:`.SingleVector`
+            The other Vector
+
+        Returns
+        -------
+        angle : float
+            The angle between *self* and *other*
+        """
+        return np.arccos(self.dot(other) / self.mag / other.mag)
+
+    def rotated_around_x(self, angle: float) -> "SingleVector":
+        """
+        Return a new vector which is rotated around the x-axis by *angle*
+
+        Parameters
+        ----------
+        angle : float
+            angle in rad
+
+        Returns
+        -------
+        rotated_vector: :class:`.SingleVector`
+        """
+        output_x = self.x
+        output_y = np.cos(angle) * self.y - np.sin(angle) * self.z
+        output_z = np.sin(angle) * self.y + np.cos(angle) * self.z
+        return SingleVector(output_x, output_y, output_z)
+
+    def rotated_around_y(self, angle: float) -> "SingleVector":
+        """
+        Return a new vector which is rotated around the y-axis by *angle*
+
+        Parameters
+        ----------
+        angle : float
+            angle in rad
+
+        Returns
+        -------
+        rotated_vector: :class`.SingleVector`
+        """
+        output_x = np.cos(angle) * self.x + np.sin(angle) * self.z
+        output_y = self.y
+        output_z = - np.sin(angle) * self.x + np.cos(angle) * self.z
+        return SingleVector(output_x, output_y, output_z)
+
+    def rotated_around_z(self, angle: float) -> "SingleVector":
+        """
+        Return a new vector which is rotated around the z-axis by *angle*
+
+        Parameters
+        ----------
+        angle : float
+            angle in rad
+
+        Returns
+        -------
+        rotated_vector: :class:`.SingleVector`
+        """
+        output_x = np.cos(angle) * self.x - np.sin(angle) * self.y
+        output_y = np.sin(angle) * self.x + np.cos(angle) * self.y
+        output_z = self.z
+        return SingleVector(output_x, output_y, output_z)
 
 
 class CoordinateSystem:

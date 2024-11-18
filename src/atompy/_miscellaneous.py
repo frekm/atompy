@@ -364,6 +364,7 @@ def sample_distribution(
     See also
     --------
     sample_distribution_func
+    sample_distribution_discrete
     """
 
     output = np.empty(size)
@@ -447,6 +448,7 @@ def sample_distribution_func(
     See also
     --------
     sample_distribution
+    sample_distribution_discrete
     """
     if xlimits[0] > xlimits[1]:
         xlimits = xlimits[1], xlimits[0]
@@ -483,6 +485,47 @@ def sample_distribution_func(
     print(f"\r{line0}. Total runtime: {t1-t0:.2f}s                           ")
 
     return output
+
+
+def sample_distribution_discrete(
+    values: npt.NDArray[np.float64],
+    probabilities: npt.NDArray[np.float64],
+    size: int
+) -> npt.NDArray[np.float64]:
+    """
+    Sample a discrete distribution of ``values``, where the probability is
+    given by  ``probabilities``.
+
+    Parameters
+    ----------
+    values : ndarray
+        Values that the samples can take.
+
+    probabilities : ndarray
+        Corresponding probabilities.
+
+    size : int
+        Size of the distribution
+
+    Returns
+    -------
+    samples : ndarray
+
+    See also
+    --------
+    sample_distribution
+    sample_distribution_func
+
+    Notes
+    -----
+    Be aware of `Moiré patterns <https://en.wikipedia.org/wiki/Moir%C3%A9_pattern>`_
+    when resampling/rebinning the output.
+
+    See also :doc:`/examples/tutorials/rand_distr`.
+    """
+    probabilities_ = probabilities / np.sum(probabilities)
+    rng = np.random.default_rng()
+    return rng.choice(values, size, p=probabilities_)
 
 
 @dataclass

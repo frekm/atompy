@@ -34,6 +34,8 @@ Overview
 | :doc:`Examples <examples/index>`       | Examples on how to use ``atompy`` functionality.  |
 +----------------------------------------+---------------------------------------------------+
 
+.. _installation:
+
 Installation
 ============
 There are multiple ways of installing ``atompy``.

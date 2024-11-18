@@ -1,4 +1,5 @@
-- Added `sample_distribution_func`
+- Added `sample_distribution_func` and `sample_distribution_discrete`
+- Added tutorial `Set up Visual Studio Code for Python`
 
 # v4.8.0
 - Fixed docstring of `for_pcolormesh`

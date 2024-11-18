@@ -35,3 +35,11 @@ Examples & Tutorials
     :hidden:
 
     tutorials/rand_distr
+
+:doc:`tutorials/vscode`
+===========================
+
+.. toctree::
+    :hidden:
+
+    tutorials/vscode

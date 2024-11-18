@@ -18,6 +18,7 @@ from ._miscellaneous import (
     integral_sum,
     integral_polyfit,
     sample_distribution,
+    sample_distribution_func,
     edges_to_centers,
     centers_to_edges,
     work_out_bin_edges,

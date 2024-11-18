@@ -1,6 +1,6 @@
 import numpy as np
 import numpy.typing as npt
-from typing import Any, Literal, overload, Optional, Union
+from typing import Any, Optional, Callable, Union, Literal, overload
 import matplotlib.pyplot as plt
 import time
 from dataclasses import dataclass
@@ -338,7 +338,7 @@ def sample_distribution(
     size: int
 ) -> npt.NDArray:
     """ 
-    Create a sample of `size` that follows a discrete distribution.
+    Sample a distribution described by ``edges`` and ``values``.
 
     Parameters
     ----------
@@ -360,6 +360,10 @@ def sample_distribution(
     Notes
     -----
     See also :doc:`/examples/tutorials/rand_distr`
+
+    See also
+    --------
+    sample_distribution_func
     """
 
     output = np.empty(size)
@@ -379,6 +383,94 @@ def sample_distribution(
 
         sample = np.ma.compressed(np.ma.masked_array(
             sample, test > values[edges_index]))
+
+        output[output_size:output_size + sample.size] = sample
+        output_size += sample.size
+
+    t1 = time.time()
+    print(f"\r{line0}. Total runtime: {t1-t0:.2f}s                           ")
+
+    return output
+
+
+def sample_distribution_func(
+    f: Callable,
+    size: int,
+    xlimits: tuple[float, float],
+    ylimits: Union[tuple[float, float], Literal["auto"]],
+    *args,
+    **kwargs,
+) -> npt.NDArray[np.float64]:
+    """
+    Sample a distribution described by ``f``.
+
+    Parameters
+    ----------
+    f : Callable
+        Function which shape the distribution should follow. Call signature
+        is ``f(x, *args, **kwargs)``.
+
+    size : int
+        Size of the distribution.
+
+    xlimits : tuple[int, int]
+        Lower and upper limits in-between which to sample the distribution.
+
+    ylimits : tuple[int, int] or ``"auto"``
+        Maximum and minimum value of ``f(x)``. Return should be larger zero
+        in-between ``xlimits``.
+
+        If ``"auto"``, calculate 100 steps of ``f(x)``, where
+        ``xlimits[0] <= x < xlimits[1]`` and set
+        ``ylimtis = (0.0, max(f(x)))``.
+
+    Other parameters
+    ----------------
+    *args
+        Additional positional arguements of ``f``.
+
+    **kwargs
+        Additional keyword arguments of ``f``.
+
+    Returns
+    -------
+    sample : ndarray, shape(size,)
+        A sample ranging from ``xlimits[0]`` to ``xlimits[1]`` with 
+        a distribution corresponding to ``f``.
+
+    Notes
+    -----
+    See also :doc:`/examples/tutorials/rand_distr`
+
+    See also
+    --------
+    sample_distribution
+    """
+    if xlimits[0] > xlimits[1]:
+        xlimits = xlimits[1], xlimits[0]
+
+    if ylimits == "auto":
+        xtmp = np.linspace(xlimits[0], xlimits[1], 100)
+        ytmp = f(xtmp, *args, **kwargs)
+        ylimits = (0.0, float(np.max(ytmp)))
+    elif ylimits[0] > ylimits[1]:
+        ylimits = ylimits[1], ylimits[0]
+
+    output = np.empty(size)
+    output_size = 0
+
+    line0 = f"Creating a distribution of {size} samples"
+
+    t0 = time.time()
+    while output_size < size:
+        line = f"\r{line0}: {100 * output_size/size} percent done."
+        print(line, end="")
+        buffer = size - output_size
+        sample = np.random.uniform(xlimits[0], xlimits[-1], buffer)
+        test = np.random.uniform(ylimits[0], ylimits[1], buffer)
+
+        sample = np.ma.compressed(np.ma.masked_array(
+            sample, test > f(sample, *args, **kwargs)))
 
         output[output_size:output_size + sample.size] = sample
         output_size += sample.size

@@ -371,13 +371,15 @@ def sample_distribution(
 
     line0 = f"Creating a distribution of {size} samples"
 
+    rng = np.random.default_rng()
+
     t0 = time.time()
     while output_size < size:
         line = f"\r{line0}: {100 * output_size/size} percent done."
         print(line, end="")
         buffer = size - output_size
-        sample = np.random.uniform(edges[0], edges[-1], buffer)
-        test = np.random.uniform(0.0, np.max(values), buffer)
+        sample = rng.uniform(edges[0], edges[-1], buffer)
+        test = rng.uniform(0.0, np.max(values), buffer)
 
         edges_index = np.digitize(sample, edges[1:-2])
 
@@ -459,6 +461,8 @@ def sample_distribution_func(
     output = np.empty(size)
     output_size = 0
 
+    rng = np.random.default_rng()
+
     line0 = f"Creating a distribution of {size} samples"
 
     t0 = time.time()
@@ -466,8 +470,8 @@ def sample_distribution_func(
         line = f"\r{line0}: {100 * output_size/size} percent done."
         print(line, end="")
         buffer = size - output_size
-        sample = np.random.uniform(xlimits[0], xlimits[-1], buffer)
-        test = np.random.uniform(ylimits[0], ylimits[1], buffer)
+        sample = rng.uniform(xlimits[0], xlimits[-1], buffer)
+        test = rng.uniform(ylimits[0], ylimits[1], buffer)
 
         sample = np.ma.compressed(np.ma.masked_array(
             sample, test > f(sample, *args, **kwargs)))

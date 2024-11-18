@@ -47,6 +47,11 @@ The next section will go into that.
 Sample arbitrary distribution
 -----------------------------
 
+.. note::
+    
+    This method is provided by ``atompy``, see 
+    :func:`.sample_distribution`.
+
 .. literalinclude:: _code/rand_distr_arb_distr.py
     :language: python
     :caption: Example 3
@@ -57,6 +62,11 @@ Sampling an arbitrary distribution comes at the cost of runtime!
 
 Sample arbitrary analytic function
 ----------------------------------
+
+.. note::
+    
+    This method is provided by ``atompy``, see 
+    :func:`.sample_distribution_func`.
 
 What if we combine the first examples (sampling a parabola, i.e., an analytic
 function) and the previous example (sampling a completely arbitrary 
@@ -72,6 +82,11 @@ flexibility.
 
 Sample discrete arbitrary distribution
 --------------------------------------
+
+.. note::
+    
+    This method is provided by ``atompy``, see 
+    :func:`.sample_distribution_discrete`.
 
 Sometimes it is not necessary to get a continuous distribution of values.
 In this case, one can use :func:`numpy.random.choice`.

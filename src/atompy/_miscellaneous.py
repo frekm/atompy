@@ -359,7 +359,7 @@ def sample_distribution(
 
     Notes
     -----
-    See also :doc:`/examples/tutorials/rand_distr`
+    See also :doc:`/examples/tutorials/rand_distr`.
 
     See also
     --------
@@ -442,7 +442,7 @@ def sample_distribution_func(
 
     Notes
     -----
-    See also :doc:`/examples/tutorials/rand_distr`
+    See also :doc:`/examples/tutorials/rand_distr`.
 
     See also
     --------

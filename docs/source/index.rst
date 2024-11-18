@@ -66,7 +66,7 @@ Simple drop-in
 The easiest way is to download ``atompy.zip`` from GitHub and drop it into
 your working directory.
 
-1. Navigate to the GitHub `Release Page <`https://github.com/crono-kircher/atompy/releases>`_.
+1. Navigate to the GitHub `Release Page <`https://github.com/frekm/atompy/releases>`_.
 2. Download ``atompy.zip`` from the assets list.
 3. Extract its contents to your working directory.
 

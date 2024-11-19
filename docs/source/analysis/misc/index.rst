@@ -20,3 +20,6 @@ Miscellaneous
     get_all_dividers
     for_pcolormesh
     for_imshow
+    fit_polar
+    eval_polarfit
+    eval_polarfit_even

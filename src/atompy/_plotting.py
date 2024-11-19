@@ -15,6 +15,7 @@ from numpy.typing import ArrayLike, NDArray
 from typing import Optional, Literal, Union, Any, NamedTuple
 from dataclasses import dataclass
 from . import _errors
+from . import _miscellaneous as misc
 
 
 PTS_PER_INCH = 72.0
@@ -97,15 +98,18 @@ class _ColorbarManager:
 
 _colorbar_manager = _ColorbarManager()
 
+
 @dataclass
 class _SquarePolarAxes:
     polar_axes: Axes
     square_axes: Axes
 
+
 class _SquarePolarAxesManager:
     def __init__(self) -> None:
         self.square_polar_axes: list[_SquarePolarAxes] = []
-        
+
+
 _square_polar_axes_manager = _SquarePolarAxesManager()
 
 
@@ -151,6 +155,7 @@ def clear_colorbars() -> None:
     Calling ``clear_colorbars`` clears that list.
     """
     del _colorbar_manager.colorbars[:]
+
 
 def clear_square_polar_axes() -> None:
     """
@@ -200,11 +205,10 @@ matplotlib.colormaps.register(cm_atom_from_white, force=True)
 
 def cmap_from_x_to_y(
         cmap,
-        x: float=0.0,
-        y: float=1.0,
+        x: float = 0.0,
+        y: float = 1.0,
         new_cmap_name: Optional[str] = None,
-        register: bool=False) -> LinearSegmentedColormap:
-
+        register: bool = False) -> LinearSegmentedColormap:
     """
     Return a colormap within (x,y) range
 
@@ -254,7 +258,7 @@ def cmap_from_x_to_y(
 
         # pass colormap as keyword argument
         plt.imshow(image, cmap=cmap_from_middle)
-        
+
         # or, since it is registered, refer to it by name
         plt.imshow(image, cmap="viridis_from_middle")
     """
@@ -449,7 +453,7 @@ def dotted(
         plt.rcParams["legend.fontsize"] = "x-small"
         plt.plot([0., 1.], linestyle=ap.dotted())
         plt.legend()
-    
+
     .. plot:: _examples/legend_dotted.py
         :include-source:
     """
@@ -511,7 +515,7 @@ def dash_dotted(
     --------
     :func:`.dotted` : Create dotted-line linestyle.
     :func:`.dashed` : Create dash-dotted-line linestyle.
-    
+
     Examples
     --------
     .. plot:: _examples/legend_dash_dotted.py
@@ -577,7 +581,7 @@ def dashed(
     --------
     :func:`.dotted` : Create dotted-line linestyle.
     :func:`.dash_dotted` : Create dash-dotted-line linestyle.
-    
+
     Examples
     --------
     .. plot:: _examples/legend_dashed.py
@@ -879,6 +883,7 @@ def add_abc(
 
     return out
 
+
 def update_square_polar_axes(fig: Optional[Figure] = None) -> None:
     """
     Re-align square frames to their parent polar axes.
@@ -895,7 +900,6 @@ def update_square_polar_axes(fig: Optional[Figure] = None) -> None:
         if spa.polar_axes not in axs:
             continue
         spa.square_axes.set_position(spa.polar_axes.get_position())
-
 
 
 def update_colorbars(fig: Optional[Figure] = None) -> None:
@@ -1885,7 +1889,8 @@ def square_polar_axes(
     zorder = ax.get_zorder()
     ax.axis("off")
 
-    ax_frame = fig.add_axes(pos, label=_SQUARE_POLAR_AXES_LABEL) # type: ignore
+    ax_frame = fig.add_axes(
+        pos, label=_SQUARE_POLAR_AXES_LABEL)  # type: ignore
     _square_polar_axes_manager.square_polar_axes.append(
         _SquarePolarAxes(ax, ax_frame))
     ax_frame.set_zorder(zorder - 1)
@@ -1902,22 +1907,127 @@ def square_polar_axes(
 
     if n_gridlines > 0:
         if 360 % n_gridlines:
-            print(f"WARNING: {360%n_gridlines=} != 0, "
+            print(f"WARNING: {360 % n_gridlines=} != 0, "
                   "by. Should that be the case?")
         angles = [x * 2.0 * np.pi / n_gridlines
-                    for x in range(n_gridlines)]
+                  for x in range(n_gridlines)]
 
         for angle in angles:
             a, b = 0.95, 1.5
             ax_frame.plot([a * np.cos(angle), b * np.cos(angle)],
-                                [a * np.sin(angle), b * np.sin(angle)],
-                                **plot_kwargs)
+                          [a * np.sin(angle), b * np.sin(angle)],
+                          **plot_kwargs)
 
     if mark_zero:
         ax_frame.axvline(0, **plot_kwargs)
         ax_frame.axhline(0, **plot_kwargs)
 
     return ax_frame
+
+
+def get_lines_data(
+        ax: Optional[Axes] = None
+) -> tuple[tuple[NDArray[np.float64], ...],
+           tuple[NDArray[np.float64], ...]]:
+    """
+    Get lines data from ``ax``.
+
+    That is, data plotted using, e.g., :meth:`matplotlib.pyplot.plot`.
+
+    Parameters
+    ----------
+    ax : :class:`matplotlib.axes.Axes`, optional
+        If ``None``, use currently active axes.
+
+    Returns
+    -------
+    xdata : tuple[ndarray]
+        x data contained in ``ax``. The length of the tuple is the number of
+        different datasets in ``ax``.
+
+    ydata : tuple[ndarray]
+        y data corresponding to x.
+    """
+    if ax is None:
+        ax = plt.gca()
+
+    xdata, ydata = [], []
+
+    for line in ax.get_lines():
+        xdata.append(line.get_xdata())
+        ydata.append(line.get_ydata())
+
+    return tuple(xdata), tuple(ydata)
+
+
+def add_polar_guideline(
+        ax: Optional[Axes] = None,
+        datapoints: Optional[tuple[NDArray[np.float64],
+                                   NDArray[np.float64]]] = None,
+        fit_degree: int = 6,
+        odd_terms: bool = True,
+        fit_steps: int = 200,
+        **plot_kwargs
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    """
+    Add a visual guideline to polar plots based on Legendre fits.
+
+    Parameters
+    ----------
+    ax : :class:`matplotlib.axes.Axes`, optional
+        If ``None``, use currently active axes.
+
+    datapoints : tuple[ndarray, ndarray], optional
+        Tuple of x and y data.  If not provided, use first data that is
+        found as part of ``ax``.
+
+    fit_degree : int, default 6
+        Degree of the underlying Legendre fit
+
+    odd_terms : bool, default ``True``
+        Control whether to include odd terms in the Legendre fit or not.
+
+    fit_steps : int, default 200,
+        Number of steps of the guideline.
+
+    **plot_kwargs
+        Dictionary of keyword arguments used in :meth:`matplotlib.pyplot.plot`
+        for plotting the guideline.
+
+    Returns
+    -------
+    xfit_data : ndarray
+
+    yfit_data : ndarray
+
+    See also
+    --------
+    fit_polar
+    eval_polarfit
+    eval_polarfit_even
+    """
+    if ax is None:
+        ax = plt.gca()
+
+    if datapoints is None:
+        xdata, ydata = get_lines_data(ax)
+        xdata = xdata[0]
+        ydata = ydata[0]
+    else:
+        xdata, ydata = datapoints[0], datapoints[1]
+
+    xfit = np.linspace(0, 2*np.pi, fit_steps)
+    if odd_terms:
+        yfit = misc.eval_polarfit(
+            xfit, *misc.fit_polar(xdata, ydata, fit_degree, odd_terms=True))
+    else:
+        yfit = misc.eval_polarfit_even(
+            xfit, *misc.fit_polar(xdata, ydata, fit_degree, odd_terms=False))
+
+    ax.plot(xfit, yfit, **plot_kwargs)
+
+    return xfit, yfit  # type: ignore
+
 
 
 

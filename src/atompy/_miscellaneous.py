@@ -3,6 +3,8 @@ import numpy.typing as npt
 from typing import Any, Optional, Callable, Union, Literal, overload
 import matplotlib.pyplot as plt
 import time
+from scipy.optimize import curve_fit
+from scipy.special import legendre
 from dataclasses import dataclass
 from . import _errors
 
@@ -245,7 +247,7 @@ def integral_polyfit(
         plt.xlim(lower, upper)
         plt.show()
     return integral
-        
+
 
 def edges_to_centers(
         edges: npt.NDArray[np.float64]
@@ -730,3 +732,95 @@ class PcolormeshData:
             return dict(X=self.x, Y=self.y, C=self.c)
         else:
             return self[index]
+
+
+def eval_polarfit(
+    theta: npt.ArrayLike,
+    *coeffs
+) -> npt.ArrayLike:
+    """
+    Evaluate legendre polyomial with coefficients ``coeffs``.
+
+    See ``scipy.special.legendre``.
+
+    Parameters
+    ----------
+    theta : ArrayLike
+        angle(s) in rad
+
+    *coeffs
+        Coefficients of the Legendre polynomial
+
+    Returns
+    -------
+    output : ArrayLike
+        Evaluate Legendre polynomial squared.
+    """
+    rtn = 0.0
+    for i, coeff in enumerate(coeffs):
+        rtn += coeff * legendre(i)(np.cos(theta))
+    return rtn**2
+
+
+def eval_polarfit_even(
+    theta: npt.ArrayLike,
+    *coeffs
+) -> npt.ArrayLike:
+    """
+    Evaluate legendre polyomial with coefficients ``coeffs`` of only even terms.
+
+    See ``scipy.special.legendre``.
+
+    Parameters
+    ----------
+    theta : ArrayLike
+        angle(s) in rad
+
+    *coeffs
+        Coefficients of the Legendre polynomial
+
+    Returns
+    -------
+    output : ArrayLike
+        Evaluate Legendre polynomial squared.
+    """
+    rtn = 0.0
+    for i, coeff in enumerate(coeffs):
+        rtn += coeff * legendre(i*2)(np.cos(theta))
+    return rtn**2
+
+
+def fit_polar(
+        x: npt.NDArray[np.float64],
+        y: npt.NDArray[np.float64],
+        deg: int,
+        odd_terms: bool = True
+) -> npt.NDArray[np.float64]:
+    """
+    Fit polarplot data to a Legendre polynomial of degree ``deg``.
+
+    Parameters
+    ----------
+    x, y : ndarray
+        data
+
+    deg : int
+        degree of the fit
+
+    odd_terms : bool, default ``True``
+        if ``True`` use even and odd terms in the Legendre polynomial.
+    """
+    deg += 1
+    params = []
+
+    if odd_terms:
+        p0 = np.full(deg, 1)
+        params, _ = curve_fit(eval_polarfit, x, y, p0=p0)
+    else:
+        p0 = np.full(int((deg+1)/2), 1)
+        params_, _ = curve_fit(eval_polarfit_even, x, y, p0=p0)
+        for param in params_:
+            params.append(param)
+            params.append(0.0)
+
+    return np.array(params)

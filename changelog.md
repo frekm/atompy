@@ -1,3 +1,6 @@
+- Added `fit_polar`, `eval_polarfit`, `eval_polarfit_even`, 
+  and `add_polar_guideline`.
+
 # v4.9.1
 - Fix hyperlink on documentation index page.
 

@@ -41,6 +41,8 @@ Manipulate Figures and Axes
 
   square_polar_axes
 
+  add_polar_guideline
+
 
 Colorbars
 ^^^^^^^^^

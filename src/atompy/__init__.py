@@ -23,6 +23,9 @@ from ._miscellaneous import (
     edges_to_centers,
     centers_to_edges,
     work_out_bin_edges,
+    fit_polar,
+    eval_polarfit,
+    eval_polarfit_even,
 )
 
 from ._histogram import Hist1d, Hist2d
@@ -69,6 +72,7 @@ from ._plotting import (
     align_axes_horizontally,
     get_axes_margins_inches,
     square_polar_axes,
+    add_polar_guideline
 )
 
 from . import physics

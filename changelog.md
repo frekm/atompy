@@ -1,3 +1,4 @@
+# v4.10.0
 - Added `fit_polar`, `eval_polarfit`, `eval_polarfit_even`, 
   and `add_polar_guideline`.
 

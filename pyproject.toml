@@ -1,6 +1,6 @@
 [project]
 name = "atompy"
-version = "4.10.0" # also update _version.py
+version = "4.11.0" # also update _version.py
 authors = [
     {name="Max Kircher", email="kircher@atom.uni-frankfurt.de"},
 ]

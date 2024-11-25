@@ -3,6 +3,7 @@ import numpy.typing as npt
 import time
 from typing import overload, Union
 from .._vector import Vector
+from .._histogram import Hist1d
 
 
 def subtract_binding_energy(
@@ -220,3 +221,11 @@ def mom_init_distr_elec_mol(
     print(f"Done. Total runtime: {t1-t0:.2f}s")
 
     return distr_molecular, Vector(molecular_orientation)
+
+
+def get_ffunction_histos(
+        theta_e,
+        phi_e,
+        theta_mol
+) -> tuple[Hist1d, Hist1d, Hist1d, Hist1d]:
+    ...

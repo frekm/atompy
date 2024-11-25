@@ -1970,7 +1970,7 @@ def add_polar_guideline(
         **plot_kwargs
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     """
-    Add a visual guideline to polar plots based on Legendre fits.
+    Add a visual guideline to polar plots based on Ylm fits.
 
     Parameters
     ----------
@@ -2002,9 +2002,11 @@ def add_polar_guideline(
 
     See also
     --------
-    fit_polar
-    eval_polarfit
-    eval_polarfit_even
+    eval_yl0_polynomial
+    fit_yl0_polynomial
+
+    Notes
+    -----
     """
     if ax is None:
         ax = plt.gca()
@@ -2017,12 +2019,8 @@ def add_polar_guideline(
         xdata, ydata = datapoints[0], datapoints[1]
 
     xfit = np.linspace(0, 2*np.pi, fit_steps)
-    if odd_terms:
-        yfit = misc.eval_polarfit(
-            xfit, *misc.fit_polar(xdata, ydata, fit_degree, odd_terms=True))
-    else:
-        yfit = misc.eval_polarfit_even(
-            xfit, *misc.fit_polar(xdata, ydata, fit_degree, odd_terms=False))
+    yfit = misc.eval_polarfit(
+        xfit, *misc.fit_yl0_polynomial(xdata, ydata, fit_degree, odd_terms=odd_terms))
 
     ax.plot(xfit, yfit, **plot_kwargs)
 

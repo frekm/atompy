@@ -26,6 +26,8 @@ from ._miscellaneous import (
     fit_polar,
     eval_polarfit,
     eval_polarfit_even,
+    fit_yl0_polynomial,
+    eval_yl0_polynomial,
 )
 
 from ._histogram import Hist1d, Hist2d

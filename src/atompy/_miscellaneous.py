@@ -3,8 +3,9 @@ import numpy.typing as npt
 from typing import Any, Optional, Callable, Union, Literal, overload
 import matplotlib.pyplot as plt
 import time
-from scipy.optimize import curve_fit
-from scipy.special import legendre
+import warnings
+from scipy.optimize import curve_fit, Bounds
+from scipy.special import sph_harm
 from dataclasses import dataclass
 from . import _errors
 
@@ -734,11 +735,134 @@ class PcolormeshData:
             return self[index]
 
 
+def eval_yl0_polynomial(
+    thetas: npt.ArrayLike,
+    *coeffs
+):
+    r"""
+    Evaluate a polynomial of spherical harmonics.
+
+    Parameters
+    ----------
+    thetas : ArrayLike
+        Polar angle(s) in rad. :math:`0 \le \theta \le \pi`.
+
+    *coeffs
+        Coefficients corresponding to the terms. Length of ``coeffs`` determines
+        the degree of the polynomial.
+
+    Returns
+    -------
+    sum_yl0 : ArrayLike
+        Sum of spherical harmonics evaluated at ``thetas``.
+
+    See also
+    --------
+    add_polar_guideline
+    fit_yl0_polynomial
+
+    Notes
+    -----
+    See `scipy.special.sph_harm <https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.sph_harm.html>`__.
+    """
+    if hasattr(thetas, "__len__"):
+        size = len(thetas) # type: ignore
+    else:
+        size = 1
+
+    output = np.zeros(size)
+    for l, coeff in enumerate(coeffs):
+        output += coeff * np.real(sph_harm(0, l, 0.0, thetas))
+    return output
+
+
+def fit_yl0_polynomial(
+    thetas: npt.ArrayLike,
+    intensity: npt.ArrayLike,
+    degree: int,
+    odd_terms: bool = True
+):
+    r"""
+    Fit data to a polynomial of :math:`\sum_l Y_l^0(\theta, 0)`
+
+    Parameters
+    ----------
+    thetas : ArrayLike
+        Polar angles of data in rad. :math:`0 \le \theta \le \pi`.
+    
+    intensity : ArrayLike
+        Corresponding y-data.
+
+    degree : int
+        Maximum degree of the polynomial.
+
+    odd_terms : bool, default ``True``
+        If ``False``, restrict to even ``l`` only, ensuring forward, backward
+        symmetry.
+
+    Returns
+    -------
+    coeffs : ndarray
+        Coefficients of the polynomial, starting with the lowest order.
+
+    Notes
+    -----
+    Fit uses `scipy.special.sph_harm <https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.sph_harm.html>`__.
+
+    See also
+    --------
+    add_polar_guideline
+    eval_yl0_polynomial
+    """
+    p0 = np.full(degree, 0.0)
+
+    lower = np.full(degree, -np.inf)
+    upper = np.full(degree, np.inf)
+
+    if not odd_terms:
+        for i in range(1, degree+1, 2):
+            lower[i] = 0.0
+            upper[i] = 0.0 + 1.0e-300
+
+    bounds = Bounds(lower, upper) # type: ignore
+
+    coeffs, _ = curve_fit(
+        eval_yl0_polynomial, thetas, intensity, p0=p0, bounds=bounds)
+    return coeffs
+
+
+def fit_polar(
+        x: npt.NDArray[np.float64],
+        y: npt.NDArray[np.float64],
+        deg: int,
+        odd_terms: bool = True
+) -> npt.NDArray[np.float64]:
+    """
+    DEPRECATED. Alias for :func:`.fit_yl0`.
+
+    Parameters
+    ----------
+    x, y : ndarray
+        data
+
+    deg : int
+        degree of the fit
+
+    odd_terms : bool, default ``True``
+        if ``True`` use even and odd terms in the Legendre polynomial.
+    """
+    warnings.warn("fit_polar is deprecated. Use fit_pl0 instead",
+                  DeprecationWarning)
+    return fit_yl0_polynomial(x, y, deg, odd_terms=odd_terms)
+
+
 def eval_polarfit(
     theta: npt.ArrayLike,
     *coeffs
 ) -> npt.ArrayLike:
     """
+    DEPRECATED. Alias for :func:`.eval_yl0`.
+
     Evaluate legendre polyomial with coefficients ``coeffs``.
 
     See ``scipy.special.legendre``.
@@ -756,10 +880,9 @@ def eval_polarfit(
     output : ArrayLike
         Evaluate Legendre polynomial squared.
     """
-    rtn = 0.0
-    for i, coeff in enumerate(coeffs):
-        rtn += coeff * legendre(i)(np.cos(theta))
-    return rtn**2
+    warnings.warn("eval_polarfit is deprecated. Use eval_pl0 instead",
+                  DeprecationWarning)
+    return eval_yl0_polynomial(theta, *coeffs)
 
 
 def eval_polarfit_even(
@@ -767,6 +890,8 @@ def eval_polarfit_even(
     *coeffs
 ) -> npt.ArrayLike:
     """
+    DEPRECATED. Use :func:`.eval_yl0` instead.
+
     Evaluate legendre polyomial with coefficients ``coeffs`` of only even terms.
 
     See ``scipy.special.legendre``.
@@ -784,43 +909,32 @@ def eval_polarfit_even(
     output : ArrayLike
         Evaluate Legendre polynomial squared.
     """
-    rtn = 0.0
-    for i, coeff in enumerate(coeffs):
-        rtn += coeff * legendre(i*2)(np.cos(theta))
-    return rtn**2
+    warnings.warn("eval_polarfit_even is deprecated. Use eval_pl0 instead",
+                  DeprecationWarning)
+    coeffs_all = []
+    for coeff_even in coeffs:
+        coeffs_all.append(coeff_even)
+        coeffs_all.append(0.0)
+    return eval_yl0_polynomial(theta, *coeffs_all)
 
 
-def fit_polar(
-        x: npt.NDArray[np.float64],
-        y: npt.NDArray[np.float64],
-        deg: int,
-        odd_terms: bool = True
+
+def eval_sph_harm(
+    theta: npt.ArrayLike,
+    phi: float,
+    l: int,
+    m: int,
+) -> npt.ArrayLike:
+    return np.real(sph_harm(m, l, phi, theta))
+
+
+def fit_sph_harm(
+    theta: npt.NDArray[np.float64],
+    y: npt.NDArray[np.float64],
+    phi: float,
+    l: int,
+    m: int,
+    odd_terms: bool = True
 ) -> npt.NDArray[np.float64]:
-    """
-    Fit polarplot data to a Legendre polynomial of degree ``deg``.
+    raise NotImplementedError
 
-    Parameters
-    ----------
-    x, y : ndarray
-        data
-
-    deg : int
-        degree of the fit
-
-    odd_terms : bool, default ``True``
-        if ``True`` use even and odd terms in the Legendre polynomial.
-    """
-    deg += 1
-    params = []
-
-    if odd_terms:
-        p0 = np.full(deg, 1)
-        params, _ = curve_fit(eval_polarfit, x, y, p0=p0)
-    else:
-        p0 = np.full(int((deg+1)/2), 1)
-        params_, _ = curve_fit(eval_polarfit_even, x, y, p0=p0)
-        for param in params_:
-            params.append(param)
-            params.append(0.0)
-
-    return np.array(params)

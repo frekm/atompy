@@ -1,3 +1,7 @@
+- Deprecated `fit_polar`, `eval_polarfit`, `eval_polarfit_even`.
+- Added `fit_yl0_polynomial` and `eval_yl0_polynomial`.
+- Fixed `add_polar_guideline`.
+
 # v4.10.0
 - Added `fit_polar`, `eval_polarfit`, `eval_polarfit_even`, 
   and `add_polar_guideline`.

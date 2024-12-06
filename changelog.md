@@ -1,3 +1,4 @@
+# v4.12.0
 - Added operator overloading for `Hist1d` and `Hist2d`
 
 # v4.11.0

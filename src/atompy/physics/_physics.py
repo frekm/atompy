@@ -224,8 +224,88 @@ def mom_init_distr_elec_mol(
 
 
 def get_ffunction_histos(
-        theta_e,
-        phi_e,
-        theta_mol
+        theta_e: npt.NDArray[np.float64],
+        phi_e: npt.NDArray[np.float64],
+        theta_mol: npt.NDArray[np.float64],
+        nbins: int,
 ) -> tuple[Hist1d, Hist1d, Hist1d, Hist1d]:
-    ...
+    """
+    Parameters
+    ----------
+    theta_e : ndarray
+        Polar angle of electron momentum vector to molecular axis in rad.
+    
+    phi_e : ndarray
+        Azimuthal angle of electron momentum to molecular axis in rad.
+
+    theta_mol : ndarray
+        Polar angle of molecular axis and polarisation axis in rad.
+
+    nbins : int
+        Number of bins in the F-Function histograms.
+
+    Returns
+    -------
+    F00, F20, F21, F22 : :class:`.Hist1d`
+        F-Function histograms of FLN(theta_e).
+    """
+    if (
+        np.min(theta_e) < 0.0 or np.max(theta_e) > 2*np.pi or
+        np.min(theta_mol) < 0.0 or np.max(theta_mol) > 2*np.pi
+    ):
+        raise ValueError("polar angles must be between 0 and pi")
+
+    thetarange = (0.0, np.pi)
+
+    #######
+    # F00 #
+    #######
+    f00 = Hist1d(*np.histogram(theta_e, bins=nbins, range=thetarange))
+    f00.histogram = f00.normalized_to_integral.histogram / 2.0
+
+    #######
+    # F20 #
+    #######
+    # get indices where 60deg < theta_mol < 120deg
+    i = np.flatnonzero(np.logical_and(
+        theta_mol > np.deg2rad(60.0),
+        theta_mol < np.deg2rad(120.0)
+    ))
+    f20 = Hist1d(*np.histogram(theta_e[i], bins=nbins, range=thetarange))
+    f20.histogram = f20.normalized_to_integral.histogram
+    f20.histogram = (f00.histogram - f20.histogram) / 0.375
+
+    #######
+    # F22 #
+    #######
+    i = np.flatnonzero(np.abs(np.cos(phi_e)) > 0.2)
+    j = np.digitize(theta_e, f00.edges)
+    weights = (1 - 2.0*f00.histogram[j]) / np.cos(2.0*phi_e)
+    f22 = Hist1d(*np.histogram(
+        theta_e[i],
+        bins=nbins,
+        range=thetarange,
+        weights=weights
+    ))
+    f22.histogram = f22.normalized_to_integral.histogram / 4.0
+
+    #######
+    # F21 #
+    #######
+    weights = np.full(theta_e.shape, 1)
+    weights[theta_e > np.deg2rad(90)] = -1
+    f21 = Hist1d(*np.histogram(
+        theta_e,
+        bins=nbins,
+        range=thetarange,
+        weights=weights
+    ))
+    f21 = f21.normalized_to_integral
+
+    return f00, f20, f21, f22
+
+
+
+
+
+

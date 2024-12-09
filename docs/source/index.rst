@@ -7,7 +7,7 @@ analysis and to create plots. Plotting is done using `matplotlib
 <https://matplotlib.org/>`_, data analysis is mostly done by `numpy
 <https://numpy.org/>`_.
 
-The source code can be found on `GitHub <https://github.com/crono-kircher/
+The source code can be found on `GitHub <https://github.com/frekm/
 atompy/>`_.
 
 Overview
@@ -66,7 +66,7 @@ Simple drop-in
 The easiest way is to download ``atompy.zip`` from GitHub and drop it into
 your working directory.
 
-1. Navigate to the GitHub `Release Page <`https://github.com/frekm/atompy/releases>`__.
+1. Navigate to the GitHub `Release Page <https://github.com/frekm/atompy/releases>`__.
 2. Download ``atompy.zip`` from the assets list.
 3. Extract its contents to your working directory.
 
@@ -79,11 +79,11 @@ Using ``git``
 
 .. code-block:: shell
 
-  pip install git+https//github.com/crono-kircher/atompy
+  pip install git+https//github.com/frekm/atompy
 
 From source
 -----------
-1. Download the source code from the GitHub `Release Page <`https://github.com/crono-kircher/atompy/releases>`_.
+1. Download the source code from the GitHub `Release Page <https://github.com/frekm/atompy/releases>`__.
 2. Unpack it and run
 
 .. code-block:: shell

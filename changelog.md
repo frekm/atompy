@@ -1,3 +1,6 @@
+# v4.12.1
+- Fix hyperlinks in documentation
+
 # v4.12.0
 - Added operator overloading for `Hist1d` and `Hist2d`
 

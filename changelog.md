@@ -1,3 +1,9 @@
+# v4.12.1
+- Fix hyperlinks in documentation
+
+# v4.12.0
+- Added operator overloading for `Hist1d` and `Hist2d`
+
 # v4.11.0
 - Deprecated `fit_polar`, `eval_polarfit`, `eval_polarfit_even`.
 - Added `fit_yl0_polynomial` and `eval_yl0_polynomial`.

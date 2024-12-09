@@ -4,7 +4,29 @@ from numpy.typing import NDArray
 from dataclasses import dataclass
 from . import _io as apio
 from . import _miscellaneous as _misc
-from typing import Literal
+from typing import Literal, Union
+
+
+def _check_hist1d_compatibility(
+    h1: "Hist1d",
+    h2: "Hist1d"
+) -> None:
+    if h1.edges.shape != h2.edges.shape:
+        raise ValueError("histograms do not match")
+    if np.any(h1.edges != h2.edges):
+        raise ValueError("edges of histograms do not match")
+
+
+def _check_hist2d_compatibility(
+    h1: "Hist2d",
+    h2: "Hist2d"
+) -> None:
+    if h1.xedges.shape != h2.xedges.shape or h1.yedges.shape != h2.yedges.shape:
+        raise ValueError("histograms do not match")
+    if np.any(h1.xedges != h2.xedges):
+        raise ValueError("xedges of histograms do not match")
+    if np.any(h1.yedges != h2.yedges):
+        raise ValueError("yedges of histograms do not match")
 
 
 @dataclass
@@ -34,6 +56,58 @@ class Hist1d:
 
     def __iter__(self) -> _Hist1dIterator:
         return _Hist1dIterator(self.histogram, self.edges)
+
+    def __add__(self, other: "Hist1d") -> "Hist1d":
+        if not isinstance(other, Hist1d):
+            raise NotImplemented
+        _check_hist1d_compatibility(self, other)
+        return Hist1d(self._histogram + other._histogram, self._edges)
+
+    def __sub__(self, other: "Hist1d") -> "Hist1d":
+        if not isinstance(other, Hist1d):
+            raise NotImplemented
+        _check_hist1d_compatibility(self, other)
+        return Hist1d(self._histogram - other._histogram, self._edges)
+
+    def __mul__(self, other: "Hist1d") -> "Hist1d":
+        if not isinstance(other, Hist1d):
+            raise NotImplemented
+        _check_hist1d_compatibility(self, other)
+        return Hist1d(self._histogram * other._histogram, self._edges)
+
+    def __truediv__(self, other: "Hist1d") -> "Hist1d":
+        if not isinstance(other, Hist1d):
+            raise NotImplemented
+        _check_hist1d_compatibility(self, other)
+        return Hist1d(self._histogram / other._histogram, self._edges)
+
+    def __floordiv__(self, other: "Hist1d") -> "Hist1d":
+        if not isinstance(other, Hist1d):
+            raise NotImplemented
+        _check_hist1d_compatibility(self, other)
+        return Hist1d(self._histogram // other._histogram, self._edges)
+
+    def __neg__(self) -> "Hist1d":
+        return Hist1d(-1.0 * self._histogram, self._edges)
+
+    def __pos__(self) -> "Hist1d":
+        return self
+
+    def __eq__(self, other: "Hist1d") -> np.bool:
+        if not isinstance(other, Hist1d):
+            raise NotImplemented
+        return (
+            np.all(self._histogram == other._histogram)
+            and np.all(self.edges == other.edges)
+        )
+
+    def __ne__(self, other: "Hist1d") -> np.bool:
+        if not isinstance(other, Hist1d):
+            raise NotImplemented
+        return (
+            np.any(self._histogram != other._histogram)
+            and np.any(self.edges != other.edges)
+        )
 
     @property
     def histogram(self) -> NDArray[np.float64]:
@@ -303,7 +377,6 @@ class Hist1d:
         return Hist1d(_H, self.edges)
 
 
-
 @dataclass
 class _Hist2dIterator:
     H: NDArray[np.float64]
@@ -376,6 +449,58 @@ class Hist2d:
 
     def __iter__(self) -> _Hist2dIterator:
         return _Hist2dIterator(self.H, self.xedges, self.yedges)
+
+    def __add__(self, other: "Hist2d") -> "Hist2d":
+        if not isinstance(other, Hist2d):
+            raise NotImplemented
+        _check_hist2d_compatibility(self, other)
+        return Hist2d(self._H + other._H, self._xedges, self._yedges)
+
+    def __sub__(self, other: "Hist2d") -> "Hist2d":
+        if not isinstance(other, Hist2d):
+            raise NotImplemented
+        _check_hist2d_compatibility(self, other)
+        return Hist2d(self._H - other._H, self._xedges, self._yedges)
+
+    def __mul__(self, other: "Hist2d") -> "Hist2d":
+        if not isinstance(other, Hist2d):
+            raise NotImplemented
+        _check_hist2d_compatibility(self, other)
+        return Hist2d(self._H * other._H, self._xedges, self._yedges)
+
+    def __truediv__(self, other: "Hist2d") -> "Hist2d":
+        if not isinstance(other, Hist2d):
+            raise NotImplemented
+        _check_hist2d_compatibility(self, other)
+        return Hist2d(self._H / other._H, self._xedges, self._yedges)
+
+    def __floordiv__(self, other: "Hist2d") -> "Hist2d":
+        if not isinstance(other, Hist2d):
+            raise NotImplemented
+        _check_hist2d_compatibility(self, other)
+        return Hist2d(self._H // other._H, self._xedges, self._yedges)
+
+    def __neg__(self) -> "Hist2d":
+        return Hist2d(-1.0 * self._H, self._xedges, self._yedges)
+
+    def __pos__(self) -> "Hist2d":
+        return self
+
+    def __eq__(self, other: "Hist2d") -> np.bool:
+        return (
+            np.all(self._H == other._H)
+            and np.all(self._xedges == other._xedges)
+            and np.all(self._yedges == other._yedges)
+        )
+
+    def __ne__(self, other: "Hist2d") -> np.bool:
+        if not isinstance(other, Hist2d):
+            raise NotImplemented
+        return (
+            np.any(self._H != other._H)
+            and np.any(self._xedges != other._xedges)
+            and np.any(self._yedges != other._yedges)
+        )
 
     @property
     def H(self) -> NDArray[np.float64]:

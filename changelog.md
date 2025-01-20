@@ -1,3 +1,6 @@
+# v4.12.2
+- Replaced `np.bool` with `bool` in type-hinting
+
 # v4.12.1
 - Fix hyperlinks in documentation
 

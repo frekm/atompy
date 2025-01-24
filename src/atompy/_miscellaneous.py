@@ -693,6 +693,14 @@ class PcolormeshData:
     y: npt.NDArray[np.float64]
     c: npt.NDArray[np.float64]
 
+    @property
+    def z(self):
+        return self.c
+
+    @z.setter
+    def z(self, arr: npt.NDArray[np.float64]):
+        self.c
+
     def __getitem__(
         self,
         index

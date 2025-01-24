@@ -643,6 +643,34 @@ class SingleVector:
 
 
 class CoordinateSystem:
+    """
+    Create a coordinate systems defined by `vec1`, `vec2` (and `vec3`).
+
+    The new coordinate system will be defined by the following unit
+    vectors:
+    
+    - `z` will exactly align with `vec1`.
+    - `y` is a unit vector along ``vec1.cross(vec2)``
+    - `x` is a unit vector along ``y.cross(vec1)``
+
+    The coordinate system is right-handed and orthogonal.
+
+    If `vec3` is provided, the behaviour changes (see below).
+
+    Parameters
+    ----------
+
+    vec1, vec2 : :class:`Vector`
+        The collection of vectors defining the coordinate systems.
+
+        Both collections need to have the same length.
+
+    vec3 : :class:`Vector`, optional
+        If three collections of vectors are provided, the coordinate
+        systems will simply use the normalized `vec1`, `vec2`, `vec3`
+        as `x`, `y`, `z`.
+    """
+
     def __init__(
         self,
         vec1: Vector,
@@ -672,7 +700,18 @@ class CoordinateSystem:
         self,
         vec: Vector
     ) -> Vector:
-        """ Project vector into coordinate system """
+        """
+        Project vector into coordinate system
+        
+        Parameters
+        ----------
+        vec : :class:`.Vector`
+            The collection of vectors to project.
+
+        Returns
+        -------
+        projected_vectors : :class:`.Vector`
+        """
         result = vec.copy()
         result.x = vec.dot(self.x_axis)
         result.y = vec.dot(self.y_axis)
@@ -686,8 +725,8 @@ class CoordinateSystem:
         """
         Remove every CoordinateSystem ``i`` where ``mask[i] == True``
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         mask : ndarray
             Array of booleans.
 
@@ -710,9 +749,9 @@ class CoordinateSystem:
         """
         Keep every CoordinateSystem ``i`` where ``mask[i] == True``.
 
-        Paramters
-        ---------
-        mask: ndarray
+        Parameters
+        ----------
+        mask : ndarray
             Array of booleans.
 
         Returns

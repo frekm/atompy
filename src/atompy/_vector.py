@@ -271,7 +271,7 @@ class Vector:
 
         Parameters
         ----------
-        other : Vector
+        other : :class:`.Vector`
             The other Vector
 
         Returns
@@ -295,7 +295,7 @@ class Vector:
 
         Returns
         -------
-        rotated_vector: `Vector`
+        rotated_vector : :class:`.Vector`
         """
         output = Vector(np.empty(self._data.shape))
         output.x = self.x
@@ -312,12 +312,12 @@ class Vector:
 
         Parameters
         ----------
-        angle : `ArrayLike`
+        angle : ArrayLike
             angle(s) in rad
 
         Returns
         -------
-        rotated_vector: `Vector`
+        rotated_vector : :class:`.Vector`
         """
         output = Vector(np.empty(self._data.shape))
         output.x = np.cos(angle) * self.x + np.sin(angle) * self.z
@@ -334,12 +334,12 @@ class Vector:
 
         Parameters
         ----------
-        angle : `ArrayLike`
+        angle : ArrayLike
             angle(s) in rad
 
         Returns
         -------
-        rotated_vector: `Vector`
+        rotated_vector : :class:`.Vector`
         """
         output = Vector(np.empty(self._data.shape))
         output.x = np.cos(angle) * self.x - np.sin(angle) * self.y
@@ -598,7 +598,7 @@ class SingleVector:
 
         Returns
         -------
-        rotated_vector: :class:`.SingleVector`
+        rotated_vector : :class:`.SingleVector`
         """
         output_x = self.x
         output_y = np.cos(angle) * self.y - np.sin(angle) * self.z
@@ -616,7 +616,7 @@ class SingleVector:
 
         Returns
         -------
-        rotated_vector: :class`.SingleVector`
+        rotated_vector : :class:`.SingleVector`
         """
         output_x = np.cos(angle) * self.x + np.sin(angle) * self.z
         output_y = self.y
@@ -634,7 +634,7 @@ class SingleVector:
 
         Returns
         -------
-        rotated_vector: :class:`.SingleVector`
+        rotated_vector : :class:`.SingleVector`
         """
         output_x = np.cos(angle) * self.x - np.sin(angle) * self.y
         output_y = np.sin(angle) * self.x + np.cos(angle) * self.y
@@ -684,16 +684,16 @@ class CoordinateSystem:
         mask
     ) -> "CoordinateSystem":
         """
-        Remove every CoordinateSystem `i` where `mask[i] == True`
+        Remove every CoordinateSystem ``i`` where ``mask[i] == True``
 
         Paramters
         ---------
-        mask : `numpy.ndarray`, shape `(len(self),)` 
+        mask : ndarray
             Array of booleans.
 
         Returns
         -------
-        `CoordinateSystem`
+        :class:`.CoordinateSystem`
         """
         result_x = np.ma.compressed(
             np.ma.masked_where(mask, self.x_axis, copy=True))
@@ -708,15 +708,15 @@ class CoordinateSystem:
         mask
     ) -> "CoordinateSystem":
         """
-        Keep every CoordinateSystem `i` where `mask[i] == True`
+        Keep every CoordinateSystem ``i`` where ``mask[i] == True``.
 
         Paramters
         ---------
-        mask: `numpy.ndarray`, shape `(len(self),)` 
+        mask: ndarray
             Array of booleans.
 
         Returns
         -------
-        `CoordinateSystem`
+        :class:`.CoordinateSystem`
         """
         return self.remove_where(np.logical_not(mask))

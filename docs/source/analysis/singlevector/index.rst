@@ -13,10 +13,10 @@ operations for single vectors. If you have a collection of vectors, use
 .. toctree::
     :hidden:
 
-    methods/atompy.Vector.angle_between
-    methods/atompy.Vector.cross
-    methods/atompy.Vector.dot
-    methods/atompy.Vector.rotated_around_x
-    methods/atompy.Vector.rotated_around_y
-    methods/atompy.Vector.rotated_around_z
+    methods/atompy.SingleVector.angle_between
+    methods/atompy.SingleVector.cross
+    methods/atompy.SingleVector.dot
+    methods/atompy.SingleVector.rotated_around_x
+    methods/atompy.SingleVector.rotated_around_y
+    methods/atompy.SingleVector.rotated_around_z
 

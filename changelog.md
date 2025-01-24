@@ -1,3 +1,6 @@
+- Added `CoordinateSystem`
+- Added `PcolormeshData.z` property (alias for `PcolormeshData.c`)
+
 # v4.12.2
 - Replaced `np.bool` with `bool` in type-hinting
 

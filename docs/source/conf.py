@@ -16,7 +16,7 @@ sys.path.append(os.path.abspath('../../src/'))
 
 
 project = 'atompy'
-copyright = 'Max Kircher, CC BY-NC 4.0'
+copyright = 'MIT'
 author = 'Max Kircher'
 release = __version__
 

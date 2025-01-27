@@ -1,9 +1,7 @@
 [project]
 name = "atompy"
 version = "4.13.0-dev" # also update _version.py
-authors = [
-    {name="Max Kircher", email="kircher@atom.uni-frankfurt.de"},
-]
+authors = [{ name = "Max Kircher", email = "kircher@atom.uni-frankfurt.de" }]
 description = """
     A collection of utility functions to create plots and do
     analysis.
@@ -13,15 +11,10 @@ requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: MIT",
-    "Operating System :: OS Independent"
+    "Operating System :: OS Independent",
 ]
-dependencies = [
-    "numpy",
-    "matplotlib",
-    "uproot",
-    "scipy"
-]
+dependencies = ["numpy", "matplotlib", "uproot", "scipy"]
 
 [project.urls]
-"Homepage" = "https://github.com/frekm/atompy"
-
+"Repository" = "https://github.com/frekm/atompy"
+"Documentation" = "https://atomphys-atompy.readthedocs.io/en/latest/"

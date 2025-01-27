@@ -77,6 +77,14 @@ installed:
 You should now be able to run your Python script by pressing ``CTRL`` + ``F5``.
 If you want to debug the script, press ``F5``.
 
+If not, check your keyboard shortcuts:
+
+- In the bottom left corner, click on "Manage".
+- Open "Keyboard Shortcuts".
+- Search for "Python: Run File".
+- Set up a keybind.
+
+
 Useful Settings
 ---------------
 Below some settings that you can put in ``settings.json``.

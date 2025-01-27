@@ -734,12 +734,9 @@ class CoordinateSystem:
         -------
         :class:`.CoordinateSystem`
         """
-        result_x = np.ma.compressed(
-            np.ma.masked_where(mask, self.x_axis, copy=True))
-        result_y = np.ma.compressed(
-            np.ma.masked_where(mask, self.y_axis, copy=True))
-        result_z = np.ma.compressed(
-            np.ma.masked_where(mask, self.z_axis, copy=True))
+        result_x = Vector(self.x_axis[mask==False])
+        result_y = Vector(self.y_axis[mask==False])
+        result_z = Vector(self.z_axis[mask==False])
         return CoordinateSystem(result_x, result_y, result_z)
 
     def keep_where(

@@ -1,4 +1,6 @@
-- Extended tutorials
+# v4.14.0
+- Added `col/row_pad_ignores_labels` keyword to `make_me_nice`
+- Documentation improvements
 
 # v4.13.0
 - Added `CoordinateSystem`

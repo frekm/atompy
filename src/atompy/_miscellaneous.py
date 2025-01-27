@@ -155,11 +155,11 @@ def integral_sum(
 
     Parameters
     ----------
-    bincenters : ArrayLike
+    bincenters : array_like
         center of bins. All bins should have equal size, otherwise return
         doesn't make sense
 
-    y_data : ArrayLike
+    y_data : array_like
         corresponding data
 
     lower, upper : float
@@ -752,7 +752,7 @@ def eval_yl0_polynomial(
 
     Parameters
     ----------
-    thetas : ArrayLike
+    thetas : array_like
         Polar angle(s) in rad. :math:`0 \le \theta \le \pi`.
 
     *coeffs
@@ -761,7 +761,7 @@ def eval_yl0_polynomial(
 
     Returns
     -------
-    sum_yl0 : ArrayLike
+    sum_yl0 : array_like
         Sum of spherical harmonics evaluated at ``thetas``.
 
     See also
@@ -795,10 +795,10 @@ def fit_yl0_polynomial(
 
     Parameters
     ----------
-    thetas : ArrayLike
+    thetas : array_like
         Polar angles of data in rad. :math:`0 \le \theta \le \pi`.
     
-    intensity : ArrayLike
+    intensity : array_like
         Corresponding y-data.
 
     degree : int
@@ -877,7 +877,7 @@ def eval_polarfit(
 
     Parameters
     ----------
-    theta : ArrayLike
+    theta : array_like
         angle(s) in rad
 
     *coeffs
@@ -885,7 +885,7 @@ def eval_polarfit(
 
     Returns
     -------
-    output : ArrayLike
+    output : array_like
         Evaluate Legendre polynomial squared.
     """
     warnings.warn("eval_polarfit is deprecated. Use eval_pl0 instead",
@@ -906,7 +906,7 @@ def eval_polarfit_even(
 
     Parameters
     ----------
-    theta : ArrayLike
+    theta : array_like
         angle(s) in rad
 
     *coeffs
@@ -914,7 +914,7 @@ def eval_polarfit_even(
 
     Returns
     -------
-    output : ArrayLike
+    output : array_like
         Evaluate Legendre polynomial squared.
     """
     warnings.warn("eval_polarfit_even is deprecated. Use eval_pl0 instead",

@@ -25,7 +25,7 @@ class Vector:
 
     Parameters
     ----------
-    vectors : ArrayLike, shape (N, 3) or (3,)
+    vectors : array_like, shape (N, 3) or (3,)
         a list of vectors [vec1, vec2, vec3, ...]
 
     Examples
@@ -290,7 +290,7 @@ class Vector:
 
         Parameters
         ----------
-        angle : `ArrayLike`
+        angle : array_like
             angle(s) in rad
 
         Returns
@@ -312,7 +312,7 @@ class Vector:
 
         Parameters
         ----------
-        angle : ArrayLike
+        angle : array_like
             angle(s) in rad
 
         Returns
@@ -334,7 +334,7 @@ class Vector:
 
         Parameters
         ----------
-        angle : ArrayLike
+        angle : array_like
             angle(s) in rad
 
         Returns

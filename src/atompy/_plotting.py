@@ -1659,19 +1659,19 @@ def make_me_nice(
     extra_wspaces_inch[0] = np.min([t.x0 for t in tbboxes_inch[:, 0]])
     for col in range(1, ncols):
         extra_wspaces_inch[col] = (
-            np.min([t.x0 for t in tbboxes_inch[:, col]])
-            - np.max([t.x1 for t in tbboxes_inch[:, col-1]]))
+            np.min([t.x0 for t in tbboxes_inch[:, col]]) -
+            np.max([t.x1 for t in tbboxes_inch[:, col-1]]))
 
     extra_hspaces_inch = np.zeros(nrows)
     extra_hspaces_inch[0] = fh_inch - np.max([t.y1 for t in tbboxes_inch[0]])
     for row in range(1, nrows):
         extra_hspaces_inch[row] = (
-            np.min([t.y0 for t in tbboxes_inch[row-1]])
-            - np.max([t.y1 for t in tbboxes_inch[row]]))
+            np.min([t.y0 for t in tbboxes_inch[row-1]]) -
+            np.max([t.y1 for t in tbboxes_inch[row]]))
 
     new_fw_inch: float = (
-        (np.max([t.x1 for t in tbboxes_inch[:, -1]])
-         - np.min([t.x0 for t in tbboxes_inch[:, 0]]))
+        (np.max([t.x1 for t in tbboxes_inch[:, -1]]) -
+         np.min([t.x0 for t in tbboxes_inch[:, 0]]))
         - np.sum(extra_wspaces_inch[1:])
         + mpads_inch.left + mpads_inch.right
         + np.sum(col_pads_inch)
@@ -2020,14 +2020,12 @@ def add_polar_guideline(
 
     xfit = np.linspace(0, 2*np.pi, fit_steps)
     yfit = misc.eval_polarfit(
-        xfit, *misc.fit_yl0_polynomial(xdata, ydata, fit_degree, odd_terms=odd_terms))
+        xfit, *misc.fit_yl0_polynomial(xdata, ydata, fit_degree,
+                                       odd_terms=odd_terms))
 
     ax.plot(xfit, yfit, **plot_kwargs)
 
     return xfit, yfit  # type: ignore
-
-
-
 
 
 if __name__ == "__main__":

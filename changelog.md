@@ -1,3 +1,6 @@
+# v4.14.1-dev
+- Updated documentation
+
 # v4.14.0
 - Added `col/row_pad_ignores_labels` keyword to `make_me_nice`
 - Documentation improvements

@@ -695,6 +695,9 @@ class PcolormeshData:
 
     @property
     def z(self):
+        """
+        Alias for ``PcolormeshData.c``.
+        """
         return self.c
 
     @z.setter

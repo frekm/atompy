@@ -1511,7 +1511,9 @@ def make_me_nice(
     fix_figwidth: bool = True,
     margin_pad_pts: ArrayLike = 5.0,
     col_pad_pts: ArrayLike = 10.0,
+    col_pad_ignores_labels: ArrayLike = False,
     row_pad_pts: ArrayLike = 10.0,
+    row_pad_ignores_labels: ArrayLike = False,
     max_figwidth: float = np.inf,
     nruns: int = 2,
     renderer: Optional[RendererBase] = None,
@@ -1567,7 +1569,19 @@ def make_me_nice(
             Same padding in-between all columns (rows).
         (float, ...):
             Different values in-between all columns. Must have a length
-            of `ncols-1` (`nrows-1`).
+            of ``ncols-1`` (``nrows-1``).
+
+    col_pad_ignores_labels, row_pad_ignores_labels : array_like, default ``False``
+        Boolean controlling if the padding in-between columns (rows) of axes
+        should ignore axes labels or not.
+
+        bool:
+            Global for all columns (rows).
+
+        (bool, ...):
+            Different choices for each column (row). Must have a length of
+            ``ncols-1`` (``nrows-1``).
+
 
     max_figwidth : float, default ``numpy.inf``
         Only relevant if ``fix_figwidth == False``.
@@ -1624,27 +1638,40 @@ def make_me_nice(
         raise ValueError(f"{margin_pad_pts.shape=} is invalid")
     mpads_inch = Edges(*(margin_pad_pts / PTS_PER_INCH))
 
-    if ncols > 1:
-        col_pad_pts = np.array(col_pad_pts)
-        if col_pad_pts.size == 1:
-            value = col_pad_pts[0] if col_pad_pts.shape else col_pad_pts
-            col_pad_pts = np.array([value] * (ncols-1))
-        elif col_pad_pts.shape != (ncols-1,):
-            raise ValueError(f"{col_pad_pts.shape=} is invalid")
-        col_pads_inch = col_pad_pts / PTS_PER_INCH
-    else:
-        col_pads_inch = np.array([0.0])
+    def check_colrow_valid(value, nsteps) -> np.ndarray:
+        if nsteps > 1:
+            values = np.array(value)
+            if values.size == 1:
+                el = values[0] if values.shape else values
+                values = np.array([el] * (nsteps-1))
+            elif values.shape != (nsteps-1,):
+                raise ValueError
+        else:
+            ret = False if isinstance(value, bool) else 0.0
+            values = np.array([ret])
+        return values
 
-    if nrows > 1:
-        row_pad_pts = np.array(row_pad_pts)
-        if row_pad_pts.size == 1:
-            value = row_pad_pts[0] if row_pad_pts.shape else row_pad_pts
-            row_pad_pts = np.array([value] * (nrows-1))
-        elif row_pad_pts.shape != (nrows-1,):
-            raise ValueError(f"{row_pad_pts.shape=} is invalid")
-        row_pads_inch = row_pad_pts / PTS_PER_INCH
-    else:
-        row_pads_inch = np.array([0.0])
+    try:
+        col_pad_pts = check_colrow_valid(col_pad_pts, ncols)
+    except ValueError:
+        raise ValueError(f"{col_pad_pts=} has invalid shape")
+    col_pads_inch = col_pad_pts / PTS_PER_INCH
+    try:
+        col_pad_ignores_labels = check_colrow_valid(
+            col_pad_ignores_labels, ncols)
+    except ValueError:
+        raise ValueError(f"{col_pad_ignores_labels=} has invalid shape")
+
+    try:
+        row_pad_pts = check_colrow_valid(row_pad_pts, nrows)
+    except ValueError:
+        raise ValueError(f"{row_pad_pts} has invalid shape")
+    row_pads_inch = row_pad_pts / PTS_PER_INCH
+    try:
+        row_pad_ignores_labels = check_colrow_valid(
+            row_pad_ignores_labels, nrows)
+    except ValueError:
+        raise ValueError(f"{row_pad_ignores_labels=} has invalid shape")
 
     bboxes_inch = np.empty((nrows, ncols), dtype=Bbox)
     tbboxes_inch = np.empty((nrows, ncols), dtype=Bbox)
@@ -1658,20 +1685,28 @@ def make_me_nice(
     extra_wspaces_inch = np.zeros(ncols)
     extra_wspaces_inch[0] = np.min([t.x0 for t in tbboxes_inch[:, 0]])
     for col in range(1, ncols):
+        if col_pad_ignores_labels[col-1]:
+            relevant_wbboxes = bboxes_inch
+        else:
+            relevant_wbboxes = tbboxes_inch
         extra_wspaces_inch[col] = (
-            np.min([t.x0 for t in tbboxes_inch[:, col]])
-            - np.max([t.x1 for t in tbboxes_inch[:, col-1]]))
+            np.min([t.x0 for t in relevant_wbboxes[:, col]]) -
+            np.max([t.x1 for t in relevant_wbboxes[:, col-1]]))
 
     extra_hspaces_inch = np.zeros(nrows)
     extra_hspaces_inch[0] = fh_inch - np.max([t.y1 for t in tbboxes_inch[0]])
     for row in range(1, nrows):
+        if row_pad_ignores_labels[row-1]:
+            relevant_hbboxes = bboxes_inch
+        else:
+            relevant_hbboxes = tbboxes_inch
         extra_hspaces_inch[row] = (
-            np.min([t.y0 for t in tbboxes_inch[row-1]])
-            - np.max([t.y1 for t in tbboxes_inch[row]]))
+            np.min([t.y0 for t in relevant_hbboxes[row-1]]) -
+            np.max([t.y1 for t in relevant_hbboxes[row]]))
 
     new_fw_inch: float = (
-        (np.max([t.x1 for t in tbboxes_inch[:, -1]])
-         - np.min([t.x0 for t in tbboxes_inch[:, 0]]))
+        (np.max([t.x1 for t in tbboxes_inch[:, -1]]) -
+         np.min([t.x0 for t in tbboxes_inch[:, 0]]))
         - np.sum(extra_wspaces_inch[1:])
         + mpads_inch.left + mpads_inch.right
         + np.sum(col_pads_inch)
@@ -1700,7 +1735,9 @@ def make_me_nice(
             max_figwidth=np.inf,
             margin_pad_pts=margin_pad_pts,
             row_pad_pts=row_pad_pts,
+            row_pad_ignores_labels=row_pad_ignores_labels,
             col_pad_pts=col_pad_pts,
+            col_pad_ignores_labels=col_pad_ignores_labels,
             nruns=nruns-1,
             renderer=renderer
         )
@@ -2020,14 +2057,12 @@ def add_polar_guideline(
 
     xfit = np.linspace(0, 2*np.pi, fit_steps)
     yfit = misc.eval_polarfit(
-        xfit, *misc.fit_yl0_polynomial(xdata, ydata, fit_degree, odd_terms=odd_terms))
+        xfit, *misc.fit_yl0_polynomial(xdata, ydata, fit_degree,
+                                       odd_terms=odd_terms))
 
     ax.plot(xfit, yfit, **plot_kwargs)
 
     return xfit, yfit  # type: ignore
-
-
-
 
 
 if __name__ == "__main__":

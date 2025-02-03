@@ -53,14 +53,14 @@ def compton_photon_energy_out(
 
     Parameters
     ----------
-    E1 : float
+    E1 : array_like
         energy of incoming photon in a.u.
-    cos_theta : float or `np.ndarray`
+    cos_theta : array_like
         the cosine of the scattering angle theta
 
     Returns
     -------
-    energy : float or `np.ndarray`
+    energy : ndarray
         The energy of the scattered photon in a.u.
     """
     return Ein / (1.0 + Ein / 137.0**2 * (1.0 - cos_theta))  # type: ignore
@@ -75,9 +75,9 @@ def klein_nishina_cross_section(
 
     Parameters
     ----------
-    E1 : ArrayLike
+    E1 : array_like
         energy of incoming photon in a.u.
-    cos_theta : ArrayLike
+    cos_theta : array_like
         cosine of the scattering angles
 
     Returns

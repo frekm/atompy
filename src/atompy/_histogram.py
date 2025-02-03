@@ -93,18 +93,18 @@ class Hist1d:
     def __pos__(self) -> "Hist1d":
         return self
 
-    def __eq__(self, other: "Hist1d") -> np.bool:
+    def __eq__(self, other: "Hist1d") -> bool:
         if not isinstance(other, Hist1d):
             raise NotImplemented
-        return (
+        return bool(
             np.all(self._histogram == other._histogram)
             and np.all(self.edges == other.edges)
         )
 
-    def __ne__(self, other: "Hist1d") -> np.bool:
+    def __ne__(self, other: "Hist1d") -> bool:
         if not isinstance(other, Hist1d):
             raise NotImplemented
-        return (
+        return bool(
             np.any(self._histogram != other._histogram)
             and np.any(self.edges != other.edges)
         )
@@ -486,17 +486,17 @@ class Hist2d:
     def __pos__(self) -> "Hist2d":
         return self
 
-    def __eq__(self, other: "Hist2d") -> np.bool:
-        return (
+    def __eq__(self, other: "Hist2d") -> bool:
+        return bool(
             np.all(self._H == other._H)
             and np.all(self._xedges == other._xedges)
             and np.all(self._yedges == other._yedges)
         )
 
-    def __ne__(self, other: "Hist2d") -> np.bool:
+    def __ne__(self, other: "Hist2d") -> bool:
         if not isinstance(other, Hist2d):
             raise NotImplemented
-        return (
+        return bool(
             np.any(self._H != other._H)
             and np.any(self._xedges != other._xedges)
             and np.any(self._yedges != other._yedges)

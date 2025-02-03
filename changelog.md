@@ -1,3 +1,14 @@
+# v4.14.0
+- Added `col/row_pad_ignores_labels` keyword to `make_me_nice`
+- Documentation improvements
+
+# v4.13.0
+- Added `CoordinateSystem`
+- Added `PcolormeshData.z` property (alias for `PcolormeshData.c`)
+
+# v4.12.2
+- Replaced `np.bool` with `bool` in type-hinting
+
 # v4.12.1
 - Fix hyperlinks in documentation
 

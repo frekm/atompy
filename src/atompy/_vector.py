@@ -25,7 +25,7 @@ class Vector:
 
     Parameters
     ----------
-    vectors : ArrayLike, shape (N, 3) or (3,)
+    vectors : array_like, shape (N, 3) or (3,)
         a list of vectors [vec1, vec2, vec3, ...]
 
     Examples
@@ -271,7 +271,7 @@ class Vector:
 
         Parameters
         ----------
-        other : Vector
+        other : :class:`.Vector`
             The other Vector
 
         Returns
@@ -290,12 +290,12 @@ class Vector:
 
         Parameters
         ----------
-        angle : `ArrayLike`
+        angle : array_like
             angle(s) in rad
 
         Returns
         -------
-        rotated_vector: `Vector`
+        rotated_vector : :class:`.Vector`
         """
         output = Vector(np.empty(self._data.shape))
         output.x = self.x
@@ -312,12 +312,12 @@ class Vector:
 
         Parameters
         ----------
-        angle : `ArrayLike`
+        angle : array_like
             angle(s) in rad
 
         Returns
         -------
-        rotated_vector: `Vector`
+        rotated_vector : :class:`.Vector`
         """
         output = Vector(np.empty(self._data.shape))
         output.x = np.cos(angle) * self.x + np.sin(angle) * self.z
@@ -334,12 +334,12 @@ class Vector:
 
         Parameters
         ----------
-        angle : `ArrayLike`
+        angle : array_like
             angle(s) in rad
 
         Returns
         -------
-        rotated_vector: `Vector`
+        rotated_vector : :class:`.Vector`
         """
         output = Vector(np.empty(self._data.shape))
         output.x = np.cos(angle) * self.x - np.sin(angle) * self.y
@@ -598,7 +598,7 @@ class SingleVector:
 
         Returns
         -------
-        rotated_vector: :class:`.SingleVector`
+        rotated_vector : :class:`.SingleVector`
         """
         output_x = self.x
         output_y = np.cos(angle) * self.y - np.sin(angle) * self.z
@@ -616,7 +616,7 @@ class SingleVector:
 
         Returns
         -------
-        rotated_vector: :class`.SingleVector`
+        rotated_vector : :class:`.SingleVector`
         """
         output_x = np.cos(angle) * self.x + np.sin(angle) * self.z
         output_y = self.y
@@ -634,7 +634,7 @@ class SingleVector:
 
         Returns
         -------
-        rotated_vector: :class:`.SingleVector`
+        rotated_vector : :class:`.SingleVector`
         """
         output_x = np.cos(angle) * self.x - np.sin(angle) * self.y
         output_y = np.sin(angle) * self.x + np.cos(angle) * self.y
@@ -643,6 +643,34 @@ class SingleVector:
 
 
 class CoordinateSystem:
+    """
+    Create a coordinate systems defined by `vec1`, `vec2` (and `vec3`).
+
+    The new coordinate system will be defined by the following unit
+    vectors:
+    
+    - `z` will exactly align with `vec1`.
+    - `y` is a unit vector along ``vec1.cross(vec2)``
+    - `x` is a unit vector along ``y.cross(vec1)``
+
+    The coordinate system is right-handed and orthogonal.
+
+    If `vec3` is provided, the behaviour changes (see below).
+
+    Parameters
+    ----------
+
+    vec1, vec2 : :class:`Vector`
+        The collection of vectors defining the coordinate systems.
+
+        Both collections need to have the same length.
+
+    vec3 : :class:`Vector`, optional
+        If three collections of vectors are provided, the coordinate
+        systems will simply use the normalized `vec1`, `vec2`, `vec3`
+        as `x`, `y`, `z`.
+    """
+
     def __init__(
         self,
         vec1: Vector,
@@ -672,7 +700,18 @@ class CoordinateSystem:
         self,
         vec: Vector
     ) -> Vector:
-        """ Project vector into coordinate system """
+        """
+        Project vector into coordinate system
+        
+        Parameters
+        ----------
+        vec : :class:`.Vector`
+            The collection of vectors to project.
+
+        Returns
+        -------
+        projected_vectors : :class:`.Vector`
+        """
         result = vec.copy()
         result.x = vec.dot(self.x_axis)
         result.y = vec.dot(self.y_axis)
@@ -684,23 +723,20 @@ class CoordinateSystem:
         mask
     ) -> "CoordinateSystem":
         """
-        Remove every CoordinateSystem `i` where `mask[i] == True`
+        Remove every CoordinateSystem ``i`` where ``mask[i] == True``
 
-        Paramters
-        ---------
-        mask : `numpy.ndarray`, shape `(len(self),)` 
+        Parameters
+        ----------
+        mask : ndarray
             Array of booleans.
 
         Returns
         -------
-        `CoordinateSystem`
+        :class:`.CoordinateSystem`
         """
-        result_x = np.ma.compressed(
-            np.ma.masked_where(mask, self.x_axis, copy=True))
-        result_y = np.ma.compressed(
-            np.ma.masked_where(mask, self.y_axis, copy=True))
-        result_z = np.ma.compressed(
-            np.ma.masked_where(mask, self.z_axis, copy=True))
+        result_x = Vector(self.x_axis[mask==False])
+        result_y = Vector(self.y_axis[mask==False])
+        result_z = Vector(self.z_axis[mask==False])
         return CoordinateSystem(result_x, result_y, result_z)
 
     def keep_where(
@@ -708,15 +744,15 @@ class CoordinateSystem:
         mask
     ) -> "CoordinateSystem":
         """
-        Keep every CoordinateSystem `i` where `mask[i] == True`
+        Keep every CoordinateSystem ``i`` where ``mask[i] == True``.
 
-        Paramters
-        ---------
-        mask: `numpy.ndarray`, shape `(len(self),)` 
+        Parameters
+        ----------
+        mask : ndarray
             Array of booleans.
 
         Returns
         -------
-        `CoordinateSystem`
+        :class:`.CoordinateSystem`
         """
         return self.remove_where(np.logical_not(mask))

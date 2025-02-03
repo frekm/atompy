@@ -8,4 +8,5 @@ Data Analysis
     histograms/index
     vector/index
     singlevector/index
+    coordinatesystem/index
     misc/index

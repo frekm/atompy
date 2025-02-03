@@ -32,7 +32,7 @@ from ._miscellaneous import (
 
 from ._histogram import Hist1d, Hist2d
 
-from ._vector import Vector, SingleVector
+from ._vector import Vector, SingleVector, CoordinateSystem
 
 
 from ._errors import(

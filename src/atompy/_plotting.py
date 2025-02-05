@@ -1665,6 +1665,20 @@ def make_me_nice(
     mpads_inch = Edges(*(margin_pad_pts / PTS_PER_INCH))
 
     try:
+        iter(margin_pad_ignores_labels)  # type: ignore
+        mpad_ignore_labels = np.asarray(margin_pad_ignores_labels)
+    except TypeError:
+        mpad_ignore_labels = np.array([margin_pad_ignores_labels] * 4)
+    if mpad_ignore_labels.size == 2:
+        mpad_ignore_labels = np.array([
+            mpad_ignore_labels[0], mpad_ignore_labels[0],
+            mpad_ignore_labels[1], mpad_ignore_labels[1]])
+    elif mpad_ignore_labels.size != 4:
+        msg = f"{margin_pad_ignores_labels=} has invalid shape"
+        raise ValueError(msg)
+    mpad_ignore_labels = Edges(*mpad_ignore_labels)
+
+    try:
         col_pad_pts = check_colrow_valid(col_pad_pts, ncols)
     except ValueError:
         raise ValueError(f"{col_pad_pts=} has invalid shape")
@@ -1695,31 +1709,44 @@ def make_me_nice(
             tbboxes_inch[row, col] = get_axes_tightbbox_inch(
                 axs[row, col], renderer=renderer)
 
+    if mpad_ignore_labels.left:
+        relevant_left_bboxes = bboxes_inch
+    else:
+        relevant_left_bboxes = tbboxes_inch
     extra_wspaces_inch = np.zeros(ncols)
-    extra_wspaces_inch[0] = np.min([t.x0 for t in tbboxes_inch[:, 0]])
+    extra_wspaces_inch[0] = np.min([t.x0 for t in relevant_left_bboxes[:, 0]])
     for col in range(1, ncols):
         if col_pad_ignores_labels[col-1]:
-            relevant_wbboxes = bboxes_inch
+            relevant_col_wbboxes = bboxes_inch
         else:
-            relevant_wbboxes = tbboxes_inch
+            relevant_col_wbboxes = tbboxes_inch
         extra_wspaces_inch[col] = (
-            np.min([t.x0 for t in relevant_wbboxes[:, col]]) -
-            np.max([t.x1 for t in relevant_wbboxes[:, col-1]]))
+            np.min([t.x0 for t in relevant_col_wbboxes[:, col]]) -
+            np.max([t.x1 for t in relevant_col_wbboxes[:, col-1]]))
 
+    if mpad_ignore_labels.top:
+        relevant_top_bboxes = bboxes_inch
+    else:
+        relevant_top_bboxes = tbboxes_inch
     extra_hspaces_inch = np.zeros(nrows)
-    extra_hspaces_inch[0] = fh_inch - np.max([t.y1 for t in tbboxes_inch[0]])
+    extra_hspaces_inch[0] = fh_inch - np.max([t.y1
+                                              for t in relevant_top_bboxes[0]])
     for row in range(1, nrows):
         if row_pad_ignores_labels[row-1]:
-            relevant_hbboxes = bboxes_inch
+            relevant_row_hbboxes = bboxes_inch
         else:
-            relevant_hbboxes = tbboxes_inch
+            relevant_row_hbboxes = tbboxes_inch
         extra_hspaces_inch[row] = (
-            np.min([t.y0 for t in relevant_hbboxes[row-1]]) -
-            np.max([t.y1 for t in relevant_hbboxes[row]]))
+            np.min([t.y0 for t in relevant_row_hbboxes[row-1]]) -
+            np.max([t.y1 for t in relevant_row_hbboxes[row]]))
 
+    if mpad_ignore_labels.right:
+        relevant_right_bboxes = bboxes_inch
+    else:
+        relevant_right_bboxes = tbboxes_inch
     new_fw_inch: float = (
-        (np.max([t.x1 for t in tbboxes_inch[:, -1]]) -
-         np.min([t.x0 for t in tbboxes_inch[:, 0]]))
+        (np.max([t.x1 for t in relevant_right_bboxes[:, -1]]) -
+         np.min([t.x0 for t in relevant_left_bboxes[:, 0]]))
         - np.sum(extra_wspaces_inch[1:])
         + mpads_inch.left + mpads_inch.right
         + np.sum(col_pads_inch)
@@ -1758,9 +1785,13 @@ def make_me_nice(
     if new_fw_inch > max_figwidth:
         raise _errors.FigureWidthTooLargeError
 
+    if mpad_ignore_labels.bottom:
+        relevant_bottom_bboxes = bboxes_inch
+    else:
+        relevant_bottom_bboxes = tbboxes_inch
     new_fh_inch = (
         (np.max([t.y1 for t in tbboxes_inch[0]])
-            - np.min([t.y0 for t in tbboxes_inch[-1]]))
+            - np.min([t.y0 for t in relevant_bottom_bboxes[-1]]))
         - np.sum(extra_hspaces_inch[1:])
         + mpads_inch.top + mpads_inch.bottom
         + np.sum(row_pads_inch)

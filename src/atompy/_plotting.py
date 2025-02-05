@@ -1510,6 +1510,7 @@ def make_me_nice(
     fig: Optional[Figure] = None,
     fix_figwidth: bool = True,
     margin_pad_pts: ArrayLike = 5.0,
+    margin_pad_ignores_labels: ArrayLike = False,
     col_pad_pts: ArrayLike = 10.0,
     col_pad_ignores_labels: ArrayLike = False,
     row_pad_pts: ArrayLike = 10.0,
@@ -1561,6 +1562,19 @@ def make_me_nice(
             Same padding for left, right, top, bottom edge.
         (float, float, float, float):
             Different padding for left, right, top, bottom edge.
+
+    margin_pad_ignores_labels : array_like, default ``False``
+        Boolean controlling if ``margin_pad_pts`` should add padding taking
+        into account axes labels or not.
+
+        bool:
+            Switch behavior for all margins left, right, top, bottom.
+
+        (bool, bool):
+            Switch behavior for (left, right) and (top, bottom) separately.
+
+        (bool, bool, bool, bool)
+            Switch behavior for left, right, top, bottom margins separately.
 
     col_pad_pts, row_pad_pts : array_like, default ``10.0``
         Extra padding between the columns (rows) in pts.

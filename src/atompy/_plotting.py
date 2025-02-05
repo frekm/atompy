@@ -1596,7 +1596,6 @@ def make_me_nice(
             Different choices for each column (row). Must have a length of
             ``ncols-1`` (``nrows-1``).
 
-
     max_figwidth : float, default ``numpy.inf``
         Only relevant if ``fix_figwidth == False``.
 
@@ -1637,6 +1636,19 @@ def make_me_nice(
       you need to specify that before creating the figure. E.g., with
       ``matplotlib.use("some-backend")``.
     """
+    def check_colrow_valid(value, nsteps) -> np.ndarray:
+        if nsteps > 1:
+            values = np.array(value)
+            if values.size == 1:
+                el = values[0] if values.shape else values
+                values = np.array([el] * (nsteps-1))
+            elif values.shape != (nsteps-1,):
+                raise ValueError
+        else:
+            ret = False if isinstance(value, bool) else 0.0
+            values = np.array([ret])
+        return values
+
     fig = fig or plt.gcf()
     fw_inch, fh_inch = fig.get_size_inches()
     axs = get_sorted_axes_grid(fig)
@@ -1651,19 +1663,6 @@ def make_me_nice(
     elif margin_pad_pts.shape != (4,):
         raise ValueError(f"{margin_pad_pts.shape=} is invalid")
     mpads_inch = Edges(*(margin_pad_pts / PTS_PER_INCH))
-
-    def check_colrow_valid(value, nsteps) -> np.ndarray:
-        if nsteps > 1:
-            values = np.array(value)
-            if values.size == 1:
-                el = values[0] if values.shape else values
-                values = np.array([el] * (nsteps-1))
-            elif values.shape != (nsteps-1,):
-                raise ValueError
-        else:
-            ret = False if isinstance(value, bool) else 0.0
-            values = np.array([ret])
-        return values
 
     try:
         col_pad_pts = check_colrow_valid(col_pad_pts, ncols)

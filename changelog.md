@@ -1,4 +1,5 @@
-# v4.14.1-dev
+# v4.14.2-dev
+- Added `margin_pad_ignores_labels` keyword to `make_me_nice`
 - Updated documentation
 
 # v4.14.0

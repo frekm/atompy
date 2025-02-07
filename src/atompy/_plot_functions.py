@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.colorbar import Colorbar
+import numpy as np
 from numpy.typing import ArrayLike
 from typing import Optional, Literal, Union, Any, Sequence, overload
 from . import _plotting
@@ -75,6 +76,7 @@ def _format_axes(
 
 def create_1d_plot(
     *datasets: ArrayLike,
+    labels: Optional[Union[str, Sequence[str]]] = None,
     plot_function: Literal["plot", "step"] = "plot",
     plot_kwargs_all: dict[str, Any] = {},
     plot_kwargs_per: Optional[Sequence[dict[str, Any]]] = None,
@@ -101,6 +103,13 @@ def create_1d_plot(
         One or many dataset(s) to be plotted.
         
         Each dataset must be composed of two arrays x and y.
+
+    labels : array_like, optional
+        Labels of each dataset. Length must match the amounts of datasets
+        passed.
+
+        If labels are also passed in the ``plot_kwargs_all/per`` dictionaries,
+        those will take precedence.
 
     plot_function : ``"plot"`` or ``"step"``, default ``"plot"``
         Use :func:`matplotlib.pyplot.plot` or 
@@ -158,8 +167,28 @@ def create_1d_plot(
     figure : :class:`matplotlib.figure.Figure`
 
     axes : :class:`matplotlib.axes.Axes`
+
+    Examples
+    --------
+
+    .. plot:: _examples/create_1D_plot.py
+        :include-source:
     """
     fig, ax = plt.subplots(1, 1)
+
+    labels_provided_directly = False
+    if labels is not None:
+        labels_provided_directly = True
+        if isinstance(labels, str):
+            labels_ = np.array([labels])
+        else:
+            labels_ = np.asarray(labels)
+        if len(labels_) != len(datasets):
+            msg = (
+                "length of 'kwargs_per' is not the same length as the number of provided datasets: "
+                f"{len(labels_)=}, {len(datasets)=}"
+            )
+            raise ValueError(msg)
 
     if plot_kwargs_per is not None and len(plot_kwargs_per) != len(datasets):
         msg = (
@@ -172,11 +201,16 @@ def create_1d_plot(
         raise ValueError(f"Invalid shape of {plot_kwargs_per=}")
 
     lines_have_labels = False
+
+    if plot_kwargs_per is None:
+        plot_kwargs_per = []
+        for i in range(len(datasets)):
+            plot_kwargs_per.append({})
+
     for i, dataset in enumerate(datasets):
-        if plot_kwargs_per is not None:
-            kwargs = plot_kwargs_all | plot_kwargs_per[i]
-        else:
-            kwargs = plot_kwargs_all
+        if labels_provided_directly:
+            plot_kwargs_per[i].setdefault("label", labels_[i])
+        kwargs = plot_kwargs_all | plot_kwargs_per[i]
 
         if "label" in kwargs:
             lines_have_labels = True
@@ -330,6 +364,20 @@ def create_2d_plot(
 
     colorbar : :class:`matplotlib.colorbar.Colorbar`
         Only returned if ``add_colorbar == True``.
+
+    Examples
+    --------
+
+    Using :func:`matplotlib.pyplot.pcolormesh` backend:
+
+    .. plot:: _examples/create_2D_plot_pcolormesh.py
+        :include-source:
+
+    Using :func:`matplotlib.pyplot.imshow` backend:
+
+    .. plot:: _examples/create_2D_plot_imshow.py
+        :include-source:
+
     """
     fig, ax = plt.subplots(1, 1)
 

@@ -19,10 +19,10 @@ instantiate it with the output from :func:`numpy.histogram2d`.
 .. code:: python
 
     # load from text file
-    hist = ap.load_2d_from_txt("path/to/file.txt", output="Hist1d")
+    hist = ap.load_2d_from_txt("path/to/file.txt", output_format="Hist2d")
 
     # load from ROOT file
-    hist = ap.load_2d_from_root("path/to/file.root", output="Hist1d")
+    hist = ap.load_2d_from_root("path/to/file.root", output_format="Hist2d")
 
     # instantiate from np.histogram output
     hist = ap.Hist2d(*np.histogram(some_xdata, some_ydata))
@@ -43,7 +43,7 @@ To plot a histogram, you can use :obj:`matplotlib.pyplot.pcolormesh` or
     size.
 
 For convenience, :class:`.Hist2d` has two properties
-:meth:`.Hist2d.for_pcolormesh` and :meth:`.Hist2d.for_imshow`, the result
+:attr:`.Hist2d.for_pcolormesh` and :attr:`.Hist2d.for_imshow`, the result
 in appropriate output that can be used for plotting.
 
 Basic usage
@@ -57,7 +57,7 @@ Basic usage
     image, extent = hist.for_imshow
     plt.imshow(image, extent=extent)
 
-:meth:`.Hist2d.for_pcolormesh` and :meth:`.Hist2d.for_imshow` don't simply
+:attr:`.Hist2d.for_pcolormesh` and :attr:`.Hist2d.for_imshow` don't simply
 return three (or two) arrays, but wrap those in a special class, namely
 :class:`.PcolormeshData` and :class:`.ImshowData`, respectively.
 
@@ -94,7 +94,7 @@ Instead, one could also use a keyword argument in the plotting call:
     plt.imshow(**hist.for_imshow(), cmap="atom")
 
 In these examples, zeros are included in the colormap. If this is unwanted,
-one can conveniently remove them with the :meth:`.Hist2d.without_zeros`
+one can conveniently remove them with the :attr:`.Hist2d.without_zeros`
 method (see also :doc:`here <examples_hist2d/without_zeros>`):
 
 .. code:: python
@@ -115,7 +115,7 @@ Projections
 See also :doc:`here <examples_hist2d/prox>` (x) and
 :doc:`here <examples_hist2d/proy>` (y).
 
-Methods :meth:`.Hist2d.projected_onto_x` and :meth:`.Hist2d.projected_onto_y` 
+Methods :attr:`.Hist2d.projected_onto_x` and :attr:`.Hist2d.projected_onto_y` 
 project the 2D histogram onto the _x_ and _y_ axis, respectively, returning
 a :class:`.Hist1d` object.
 
@@ -139,7 +139,7 @@ Applying gates
 --------------
 
 As seen in the :ref:`above example <example projections>`, one can apply gates
-using :meth:`.Hist2d.within_xrange` or :meth:`.Hist2d.within_yrange`.
+using :attr:`.Hist2d.within_xrange` or :attr:`.Hist2d.within_yrange`.
 
 For example
 

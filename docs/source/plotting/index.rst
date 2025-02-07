@@ -62,6 +62,9 @@ Plotting
 .. autosummary::
   :toctree: _autogen
 
+  create_1d_plot
+  create_2d_plot
+
   dotted
   dash_dotted
   dashed

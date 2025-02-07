@@ -10,10 +10,37 @@ Conversions
 -----------
 
 .. data:: atompy.PTS_PER_INCH
-    :annotation: = 72.0
+    :annotation: = 72.0 pts/inch
 
 .. data:: atompy.MM_PER_INCH
-    :annotation: = 25.4
+    :annotation: = 25.4 mm/inch
+
+
+
+Figure sizes of various journals
+--------------------------------
+
+.. data:: atompy.FIGURE_WIDTH_NATURE_1COL
+    :annotation: = 3.54 inch
+    
+.. data:: atompy.FIGURE_WIDTH_NATURE_2COL,
+    :annotation: = 7.09 inch
+
+.. data:: atompy.FIGURE_WIDTH_PRL_1COL,
+    :annotation: = 3.375 inch
+
+.. data:: atompy.FIGURE_WIDTH_PRL_2COL,
+    :annotation: = 6.75 inch
+
+.. data:: atompy.FIGURE_WIDTH_SCIENCE_1COL,
+    :annotation: = 2.25 inch
+
+.. data:: atompy.FIGURE_WIDTH_SCIENCE_2COL,
+    :annotation: = 4.75 inch
+
+.. data:: atompy.FIGURE_WIDTH_SCIENCE_3COL,
+    :annotation: = 7.25 inch
+
 
 .. _constants colors:
 

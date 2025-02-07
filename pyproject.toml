@@ -1,6 +1,6 @@
 [project]
 name = "atompy"
-version = "4.14.1-dev.2" # also update _version.py
+version = "4.14.1-dev.3" # also update _version.py
 authors = [{ name = "Max Kircher", email = "kircher@atom.uni-frankfurt.de" }]
 description = """
     A collection of utility functions to create plots and do

@@ -34,7 +34,6 @@ from ._histogram import Hist1d, Hist2d
 
 from ._vector import Vector, SingleVector, CoordinateSystem
 
-
 from ._errors import(
     AliasError,
     NonconstantBinsizeError,
@@ -75,6 +74,18 @@ from ._plotting import (
     get_axes_margins_inches,
     square_polar_axes,
     add_polar_guideline
+)
+
+from ._plot_functions import (
+    FIGURE_WIDTH_NATURE_1COL,
+    FIGURE_WIDTH_NATURE_2COL,
+    FIGURE_WIDTH_PRL_1COL,
+    FIGURE_WIDTH_PRL_2COL,
+    FIGURE_WIDTH_SCIENCE_1COL,
+    FIGURE_WIDTH_SCIENCE_2COL,
+    FIGURE_WIDTH_SCIENCE_3COL,
+    create_1d_plot,
+    create_2d_plot,
 )
 
 from . import physics

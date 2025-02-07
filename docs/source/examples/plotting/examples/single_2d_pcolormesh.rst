@@ -8,7 +8,7 @@ Using ``matplotlib`` directly
     :include-source:
 
 Using :func:`.create_2d_plot`
-****************************
+*****************************
 
 .. plot:: _examples/create_2d_plot_pcolormesh.py
     :include-source:

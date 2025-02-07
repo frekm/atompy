@@ -18,18 +18,19 @@ fig, ax = ap.create_1d_plot(
     dataset1,
     dataset2,
     dataset3,
-    # configure the plot, if desired
-    plot_kwargs_all=dict(linewidth=2.0),
-    plot_kwargs_per=(
-        dict(label=r"$f(x) = x$",   color="b", linewidth=1.0),
-        dict(label=r"$f(x) = x^2$", color="r"),
-        dict(label=r"$f(x) = x^3$", color="m")
+    labels = (
+        "$f(x) = x$",
+        "$f(x) = x^2$",
+        "$f(x) = x^3$",
     ),
-    legend_kwargs=dict(loc="upper left"),
+    # configure the plot, if desired
+    plot_kwargs_all={"lw":2.0},
+    plot_kwargs_per=({"c":"b", "lw":1.0}, {"c":"r"}, {"c":"m"}),
+    legend_kwargs={"loc":"upper left"},
     xlabel="$x$",
     ylabel="$f(x)$",
-    xmin=x[0],
-    xmax=x[-1],
+    xmin=x.min(),
+    xmax=x.max(),
     ymin=0.0,
 )
 

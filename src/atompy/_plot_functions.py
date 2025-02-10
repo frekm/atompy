@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.colorbar import Colorbar
+import matplotlib.colors as mcolors
 import numpy as np
 from numpy.typing import ArrayLike
 from typing import Optional, Literal, Union, Any, Sequence, overload
@@ -17,23 +18,244 @@ FIGURE_WIDTH_SCIENCE_2COL = 4.75
 FIGURE_WIDTH_SCIENCE_3COL = 7.25
 GOLDENRATIO = 1.618033988749
 
+PALETTE_OKABE_ITO = (
+    "#e69f00",
+    "#56b4e9",
+    "#009e73",
+    "#f0e442",
+    "#0072b2",
+    "#d55e00",
+    "#cc79a7",
+    "#000000",
+)
 
-def set_style_science(figwidth: float = FIGURE_WIDTH_SCIENCE_1COL):
-    # TODO
-    print("set_style_science: not yet implemented")
-    ...
+PALETTE_OKABE_ITO_ACCENT = (
+    "#D9CBBE",
+    "#C3CDD6",
+    "#CAB9C1",
+    "#F0EDD6",
+    "#044F7E",
+    "#026D4E",
+    "#026D4E",
+)
 
 
-def set_style_prl(figwidth: float = FIGURE_WIDTH_PRL_1COL):
-    # TODO
-    print("set_style_prl: not yet implemented")
-    ...
 
 
-def set_style_nature(figwidth: float = FIGURE_WIDTH_NATURE_1COL):
-    # TODO
-    print("set_style_nature: not yet implemented")
-    ...
+def set_color_cycle(
+    *colors: str,
+    nsteps: int = 7,
+) -> None:
+    """
+    Set the color cycle in plots.
+
+    Modifies ``rcParams`` of matplotlib
+    (see `here <https://matplotlib.org/stable/users/explain/customizing.html#the-default-matplotlibrc-file>`__).
+
+    Parameters
+    ----------
+    *colors : str, optional
+        Colors seperated by comma and given in HEX-codes.
+
+        If now colors are provided, defaults to Okabe and Ito palette
+        (see `https://jfly.uni-koeln.de/color/`_).
+
+        Alternatively, the name of a colormap can be specified and the color
+        cycle picks ``nsteps`` colors from that colormap.
+
+        See `https://matplotlib.org/stable/users/explain/colors/colormaps.html`_
+        for available colormaps.
+
+    nsteps : int, default 7
+        Define how many different colors will be set in the color cycler.
+
+        Irrelevant if a specific colors are passed in ``colors``.
+
+    Examples
+    --------
+
+    .. code:: python
+        # Set color cycle to red, green, blue
+        set_color_cycle("#FF0000", "#00FF00", "#0000FF")
+
+        # Set color cycle to Okabe and Ito palette
+        set_color_cycle()
+
+        # Set color cycle to a continuous colormap that repeats after 8 colors
+        set_color_cylce(cmap="viridis", nsteps=8)
+
+        # Set color cycle to a diverging colormap that passes through zero
+        # with the second color
+        set_color_cylce("RdBu", nsteps=3)
+    """
+    if not colors:
+        if nsteps > 7:
+            msg = (
+                "For Okabe and Ito palette, a maximum of 7 distinct colors can "
+                f"be used, but {nsteps=}"
+            )
+            raise ValueError(msg)
+        colors = PALETTE_OKABE_ITO[:nsteps]
+
+    if len(colors) == 1 and colors[0] in plt.colormaps():
+        cmap_ = plt.get_cmap(colors[0])
+        colors = tuple(
+            [mcolors.to_hex(cmap_(i / (nsteps-1))) for i in range(nsteps)])
+
+    cycler_str = "cycler('color', ["
+    for color in colors:
+        if color[0] == "#":
+            color = color[1:]
+        cycler_str += f"'{color}', "
+    cycler_str += "])"
+    plt.rcParams["axes.prop_cycle"] = cycler_str
+
+
+def set_ticks_tight() -> None:
+    """
+    Reduce padding between ticks, ticklabels, and axis labels.
+    """
+    plt.rcParams["xtick.major.pad"] = 1.0
+    plt.rcParams["xtick.minor.pad"] = 0.9
+    plt.rcParams["ytick.major.pad"] = 1.0
+    plt.rcParams["ytick.minor.pad"] = 0.9
+    plt.rcParams["axes.labelpad"] = 2.0
+    plt.rcParams["axes.titlepad"] = 3.0
+
+def _set_theme_atompy(
+    latex_backend: bool = False
+):
+    plt.style.use("default")
+
+
+def set_theme_science(
+    figwidth_inch: float = FIGURE_WIDTH_SCIENCE_1COL,
+    reset_rcParams: bool = False
+) -> None:
+    """
+    Adjust ``rcParams`` to fit requirements for Science figures.
+
+    See also `https://www.science.org/content/page/instructions-preparing-initial-manuscript#preparation-of-figures`_
+    and `https://www.science.org/do/10.5555/page.2385607/full/author_figure_prep_guide_2022-1738682509963.pdf`_.
+
+    Parameters
+    ----------
+    figwidth_inch : float, default 2.25 inch
+        Figure width. Default is 1-column width. See also
+        :data:`.FIGURE_WIDTH_SCIENCE_1COL`, 
+        :data:`.FIGURE_WIDTH_SCIENCE_2COL`, and
+        :data:`.FIGURE_WIDTH_SCIENCE_3COL`.
+
+    reset_rcParams : bool, default ``False``.
+        Reset rcParams to default values
+        (see `here <https://matplotlib.org/stable/users/explain/customizing.html#the-default-matplotlibrc-file>`__).
+    """
+    if reset_rcParams:
+        plt.style.use("default")
+
+    plt.rcParams["font.family"] = "sans-serif"
+    plt.rcParams["font.size"] = 7.0
+    plt.rcParams["font.sans-serif"] = "Helvetica, Arial, DejaVu Sans, Bitstream Vera Sans, Computer Modern Sans Serif, Lucida Grande, Verdana, Geneva, Lucid, Avant Garde, sans-serif"
+
+    plt.rcParams["axes.linewidth"] = 0.6
+    plt.rcParams["grid.linewidth"] = 0.5
+    plt.rcParams["lines.linewidth"] = 1.0
+    plt.rcParams["xtick.major.width"] = 0.6
+    plt.rcParams["xtick.minor.width"] = 0.5
+    plt.rcParams["ytick.major.width"] = 0.6
+    plt.rcParams["ytick.minor.width"] = 0.5
+
+    plt.rcParams["figure.figsize"] = figwidth_inch, 3./4. * figwidth_inch
+    plt.rcParams["figure.dpi"] = 300
+
+    set_color_cycle()
+    set_ticks_tight()
+
+
+def set_theme_prl(
+    figwidth_inch: float = FIGURE_WIDTH_PRL_1COL,
+    reset_rcParams: bool = False
+) -> None:
+    """
+    Adjust ``rcParams`` to fit requirements for Physical Review figures.
+
+    See also `https://journals.aps.org/authors/style-basics#figures`_.
+
+    Parameters
+    ----------
+    figwidth_inch : float, default 2.25 inch
+        Figure width. Default is 1-column width. See also
+        :data:`.FIGURE_WIDTH_PRL_1COL` and
+        :data:`.FIGURE_WIDTH_PRL_2COL`.
+
+    reset_rcParams : bool, default ``False``.
+        Reset rcParams to default values
+        (see `here <https://matplotlib.org/stable/users/explain/customizing.html#the-default-matplotlibrc-file>`__).
+    """
+    if reset_rcParams:
+        plt.style.use("default")
+
+    plt.rcParams["font.family"] = "serif"
+    plt.rcParams["font.size"] = 8.0
+    plt.rcParams["font.serif"] = "STIXGeneral, DejaVu Serif, Bitstream Vera Serif, Computer Modern Roman, New Century Schoolbook, Century Schoolbook L, Utopia, ITC Bookman, Bookman, Nimbus Roman No9 L, Times New Roman, Times, Palatino, Charter, serif"
+    plt.rcParams["mathtext.fontset"] = "stix"
+
+    plt.rcParams["axes.linewidth"] = 0.6
+    plt.rcParams["grid.linewidth"] = 0.5
+    plt.rcParams["lines.linewidth"] = 1.0
+    plt.rcParams["xtick.major.width"] = 0.6
+    plt.rcParams["xtick.minor.width"] = 0.5
+    plt.rcParams["ytick.major.width"] = 0.6
+    plt.rcParams["ytick.minor.width"] = 0.5
+
+    plt.rcParams["figure.figsize"] = figwidth_inch, 3./4. * figwidth_inch
+    plt.rcParams["figure.dpi"] = 300
+
+    set_color_cycle()
+    set_ticks_tight()
+
+
+def set_theme_nature(
+    figwidth_inch: float = FIGURE_WIDTH_NATURE_1COL,
+    reset_rcParams: bool = False
+) -> None:
+    """
+    Adjust ``rcParams`` to fit requirements for Nature figures.
+
+    See also `https://www.nature.com/nature/for-authors/formatting-guide`_
+    and `https://research-figure-guide.nature.com/figures/preparing-figures-our-specifications/`_.
+
+    Parameters
+    ----------
+    figwidth_inch : float, default 2.25 inch
+        Figure width. Default is 1-column width. See also
+        :data:`.FIGURE_WIDTH_NATURE_1COL` and
+        :data:`.FIGURE_WIDTH_NATURE_2COL`.
+
+    reset_rcParams : bool, default ``False``.
+        Reset rcParams to default values
+        (see `here <https://matplotlib.org/stable/users/explain/customizing.html#the-default-matplotlibrc-file>`__).
+    """
+    if reset_rcParams:
+        plt.style.use("default")
+
+    plt.rcParams["font.family"] = "sans-serif"
+    plt.rcParams["font.size"] = 7.0
+    plt.rcParams["font.sans-serif"] = "Helvetica, Arial, DejaVu Sans, Bitstream Vera Sans, Computer Modern Sans Serif, Lucida Grande, Verdana, Geneva, Lucid, Avant Garde, sans-serif"
+
+    plt.rcParams["axes.linewidth"] = 0.6
+    plt.rcParams["grid.linewidth"] = 0.5
+    plt.rcParams["lines.linewidth"] = 1.0
+    plt.rcParams["xtick.major.width"] = 0.6
+    plt.rcParams["xtick.minor.width"] = 0.5
+    plt.rcParams["ytick.major.width"] = 0.6
+    plt.rcParams["ytick.minor.width"] = 0.5
+
+    plt.rcParams["figure.figsize"] = figwidth_inch, 3./4. * figwidth_inch
+    plt.rcParams["figure.dpi"] = 300
+
+    set_color_cycle()
+    set_ticks_tight()
 
 
 def _format_axes(
@@ -101,7 +323,7 @@ def create_1d_plot(
     ----------
     *datasets : ((x1s, y1s), (x2s, y2s), ...)
         One or many dataset(s) to be plotted.
-        
+
         Each dataset must be composed of two arrays x and y.
 
     labels : array_like, optional

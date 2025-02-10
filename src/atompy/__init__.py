@@ -77,6 +77,7 @@ from ._plotting import (
 )
 
 from ._plot_functions import (
+    GOLDENRATIO,
     FIGURE_WIDTH_NATURE_1COL,
     FIGURE_WIDTH_NATURE_2COL,
     FIGURE_WIDTH_PRL_1COL,
@@ -84,6 +85,12 @@ from ._plot_functions import (
     FIGURE_WIDTH_SCIENCE_1COL,
     FIGURE_WIDTH_SCIENCE_2COL,
     FIGURE_WIDTH_SCIENCE_3COL,
+    set_color_cycle,
+    set_ticks_tight,
+    _set_theme_atompy,
+    set_theme_science,
+    set_theme_prl,
+    set_theme_nature,
     create_1d_plot,
     create_2d_plot,
 )

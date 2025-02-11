@@ -707,13 +707,19 @@ def add_colorbar(
         x0 = bbox.x0
         y0 = bbox.y0 - pad - height
 
-    colorbar_axes = fig.add_axes(
-        (x0, y0, width, height), label=_COLORBAR_LABEL)
+    colorbar_axes = fig.add_axes((x0, y0, width, height),
+                                 label=_COLORBAR_LABEL)
+
     colorbar = fig.colorbar(mappable, cax=colorbar_axes, location=location)
 
     _colorbar_manager.colorbars.append(
         _Colorbar(colorbar, ax, location, thickness*fig_size, pad*fig_size)
     )
+
+    if_any_frame_visible = False
+    for t in [f"axes.spines.{l}" for l in ["left", "right", "top", "bottom"]]:
+        if_any_frame_visible = if_any_frame_visible or plt.rcParams[t]
+    colorbar.outline.set_visible(if_any_frame_visible) # type: ignore
     return colorbar
 
 

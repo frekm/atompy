@@ -23,22 +23,22 @@ Figure sizes of various journals
 .. data:: atompy.FIGURE_WIDTH_NATURE_1COL
     :annotation: = 3.54 inch
     
-.. data:: atompy.FIGURE_WIDTH_NATURE_2COL,
+.. data:: atompy.FIGURE_WIDTH_NATURE_2COL
     :annotation: = 7.09 inch
 
-.. data:: atompy.FIGURE_WIDTH_PRL_1COL,
+.. data:: atompy.FIGURE_WIDTH_PRL_1COL
     :annotation: = 3.375 inch
 
-.. data:: atompy.FIGURE_WIDTH_PRL_2COL,
+.. data:: atompy.FIGURE_WIDTH_PRL_2COL
     :annotation: = 6.75 inch
 
-.. data:: atompy.FIGURE_WIDTH_SCIENCE_1COL,
+.. data:: atompy.FIGURE_WIDTH_SCIENCE_1COL
     :annotation: = 2.25 inch
 
-.. data:: atompy.FIGURE_WIDTH_SCIENCE_2COL,
+.. data:: atompy.FIGURE_WIDTH_SCIENCE_2COL
     :annotation: = 4.75 inch
 
-.. data:: atompy.FIGURE_WIDTH_SCIENCE_3COL,
+.. data:: atompy.FIGURE_WIDTH_SCIENCE_3COL
     :annotation: = 7.25 inch
 
 

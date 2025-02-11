@@ -43,6 +43,7 @@ Manipulate Figures and Axes
 
   add_polar_guideline
 
+  set_color_cycle
   _set_theme_atompy
   set_latex_backend
 

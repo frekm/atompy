@@ -56,12 +56,12 @@ def set_color_cycle(
         Colors seperated by comma and given in HEX-codes.
 
         If now colors are provided, defaults to Okabe and Ito palette
-        (see `https://jfly.uni-koeln.de/color/`_).
+        (see `here <https://jfly.uni-koeln.de/color/>`__ for a motivation).
 
         Alternatively, the name of a colormap can be specified and the color
         cycle picks ``nsteps`` colors from that colormap.
 
-        See `https://matplotlib.org/stable/users/explain/colors/colormaps.html`_
+        See `matplolib's colormaps documenation <https://matplotlib.org/stable/users/explain/colors/colormaps.html>`__
         for available colormaps.
 
     nsteps : int, default 7
@@ -73,6 +73,7 @@ def set_color_cycle(
     --------
 
     .. code:: python
+
         # Set color cycle to red, green, blue
         set_color_cycle("#FF0000", "#00FF00", "#0000FF")
 

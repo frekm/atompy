@@ -126,7 +126,7 @@ def set_theme_latex_backend(
         plt.rcParams["pgf.preamble"] = r"\usepackage{scholax}\usepackage{amsmath,amsthm}\usepackage[scaled=1.075,ncf,vvarbb]{newtxmath}\usepackage{picture,xcolor}\usepackage{nicefrac}"
 
 
-def set_ticks_tight() -> None:
+def _set_ticks_tight() -> None:
     """
     Reduce padding between ticks, ticklabels, and axis labels.
     """
@@ -222,136 +222,6 @@ def _set_theme_atompy(
 
     plt.rcParams["image.cmap"] = "atom"
     plt.rcParams["image.aspect"] = "auto"
-
-
-def set_theme_science(
-    figwidth_inch: float = FIGURE_WIDTH_SCIENCE_1COL,
-    reset_rcParams: bool = False
-) -> None:
-    """
-    Adjust ``rcParams`` to fit requirements for Science figures.
-
-    See also `https://www.science.org/content/page/instructions-preparing-initial-manuscript#preparation-of-figures`_
-    and `https://www.science.org/do/10.5555/page.2385607/full/author_figure_prep_guide_2022-1738682509963.pdf`_.
-
-    Parameters
-    ----------
-    figwidth_inch : float, default 2.25 inch
-        Figure width. Default is 1-column width. See also
-        :data:`.FIGURE_WIDTH_SCIENCE_1COL`, 
-        :data:`.FIGURE_WIDTH_SCIENCE_2COL`, and
-        :data:`.FIGURE_WIDTH_SCIENCE_3COL`.
-
-    reset_rcParams : bool, default ``False``.
-        Reset rcParams to default values
-        (see `here <https://matplotlib.org/stable/users/explain/customizing.html#the-default-matplotlibrc-file>`__).
-    """
-    if reset_rcParams:
-        plt.style.use("default")
-
-    plt.rcParams["font.family"] = "sans-serif"
-    plt.rcParams["font.size"] = 7.0
-    plt.rcParams["font.sans-serif"] = "Helvetica, Arial, DejaVu Sans, Bitstream Vera Sans, Computer Modern Sans Serif, Lucida Grande, Verdana, Geneva, Lucid, Avant Garde, sans-serif"
-
-    plt.rcParams["axes.linewidth"] = 0.6
-    plt.rcParams["grid.linewidth"] = 0.5
-    plt.rcParams["lines.linewidth"] = 1.0
-    plt.rcParams["xtick.major.width"] = 0.6
-    plt.rcParams["xtick.minor.width"] = 0.5
-    plt.rcParams["ytick.major.width"] = 0.6
-    plt.rcParams["ytick.minor.width"] = 0.5
-
-    plt.rcParams["figure.figsize"] = figwidth_inch, 3./4. * figwidth_inch
-    plt.rcParams["figure.dpi"] = 300
-
-    set_color_cycle()
-    set_ticks_tight()
-
-
-def set_theme_prl(
-    figwidth_inch: float = FIGURE_WIDTH_PRL_1COL,
-    reset_rcParams: bool = False
-) -> None:
-    """
-    Adjust ``rcParams`` to fit requirements for Physical Review figures.
-
-    See also `https://journals.aps.org/authors/style-basics#figures`_.
-
-    Parameters
-    ----------
-    figwidth_inch : float, default 2.25 inch
-        Figure width. Default is 1-column width. See also
-        :data:`.FIGURE_WIDTH_PRL_1COL` and
-        :data:`.FIGURE_WIDTH_PRL_2COL`.
-
-    reset_rcParams : bool, default ``False``.
-        Reset rcParams to default values
-        (see `here <https://matplotlib.org/stable/users/explain/customizing.html#the-default-matplotlibrc-file>`__).
-    """
-    if reset_rcParams:
-        plt.style.use("default")
-
-    plt.rcParams["font.family"] = "serif"
-    plt.rcParams["font.size"] = 8.0
-    plt.rcParams["font.serif"] = "STIXGeneral, DejaVu Serif, Bitstream Vera Serif, Computer Modern Roman, New Century Schoolbook, Century Schoolbook L, Utopia, ITC Bookman, Bookman, Nimbus Roman No9 L, Times New Roman, Times, Palatino, Charter, serif"
-    plt.rcParams["mathtext.fontset"] = "stix"
-
-    plt.rcParams["axes.linewidth"] = 0.6
-    plt.rcParams["grid.linewidth"] = 0.5
-    plt.rcParams["lines.linewidth"] = 1.0
-    plt.rcParams["xtick.major.width"] = 0.6
-    plt.rcParams["xtick.minor.width"] = 0.5
-    plt.rcParams["ytick.major.width"] = 0.6
-    plt.rcParams["ytick.minor.width"] = 0.5
-
-    plt.rcParams["figure.figsize"] = figwidth_inch, 3./4. * figwidth_inch
-    plt.rcParams["figure.dpi"] = 300
-
-    set_color_cycle()
-    set_ticks_tight()
-
-
-def set_theme_nature(
-    figwidth_inch: float = FIGURE_WIDTH_NATURE_1COL,
-    reset_rcParams: bool = False
-) -> None:
-    """
-    Adjust ``rcParams`` to fit requirements for Nature figures.
-
-    See also `https://www.nature.com/nature/for-authors/formatting-guide`_
-    and `https://research-figure-guide.nature.com/figures/preparing-figures-our-specifications/`_.
-
-    Parameters
-    ----------
-    figwidth_inch : float, default 2.25 inch
-        Figure width. Default is 1-column width. See also
-        :data:`.FIGURE_WIDTH_NATURE_1COL` and
-        :data:`.FIGURE_WIDTH_NATURE_2COL`.
-
-    reset_rcParams : bool, default ``False``.
-        Reset rcParams to default values
-        (see `here <https://matplotlib.org/stable/users/explain/customizing.html#the-default-matplotlibrc-file>`__).
-    """
-    if reset_rcParams:
-        plt.style.use("default")
-
-    plt.rcParams["font.family"] = "sans-serif"
-    plt.rcParams["font.size"] = 7.0
-    plt.rcParams["font.sans-serif"] = "Helvetica, Arial, DejaVu Sans, Bitstream Vera Sans, Computer Modern Sans Serif, Lucida Grande, Verdana, Geneva, Lucid, Avant Garde, sans-serif"
-
-    plt.rcParams["axes.linewidth"] = 0.6
-    plt.rcParams["grid.linewidth"] = 0.5
-    plt.rcParams["lines.linewidth"] = 1.0
-    plt.rcParams["xtick.major.width"] = 0.6
-    plt.rcParams["xtick.minor.width"] = 0.5
-    plt.rcParams["ytick.major.width"] = 0.6
-    plt.rcParams["ytick.minor.width"] = 0.5
-
-    plt.rcParams["figure.figsize"] = figwidth_inch, 3./4. * figwidth_inch
-    plt.rcParams["figure.dpi"] = 300
-
-    set_color_cycle()
-    set_ticks_tight()
 
 
 def _create_plot_format_axes(

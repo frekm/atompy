@@ -86,12 +86,8 @@ from ._plot_functions import (
     FIGURE_WIDTH_SCIENCE_2COL,
     FIGURE_WIDTH_SCIENCE_3COL,
     set_color_cycle,
-    set_ticks_tight,
     set_theme_latex_backend,
     _set_theme_atompy,
-    set_theme_science,
-    set_theme_prl,
-    set_theme_nature,
     create_1d_plot,
     create_2d_plot,
 )

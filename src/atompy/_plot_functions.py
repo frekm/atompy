@@ -112,6 +112,17 @@ def set_color_cycle(
 def set_latex_backend(
     font: Literal["FiraSans", "Times", "ScholaX"]
 ) -> None:
+    """
+    Enable a latex backend for rendering figures.
+
+    Must be called before figure creation.
+
+    Parameters
+    ----------
+    font : {``"FiraSans"``, ``"Times"``, ``"ScholaX"``} 
+        Choose a font. ``"FiraSans"`` uses ``lualatex`` (which is very slow)
+        as backend, the other fonts use ``pdflatex`` (not as slow).
+    """
     plt.rcParams["pgf.rcfonts"] = False
     plt.rcParams["backend"] = "pgf"
 
@@ -144,6 +155,31 @@ def _set_theme_atompy(
     fontsize: float = 10.0,
     use_serif: bool = True,
 ):
+    """
+    Sets a theme me likes.
+
+    .. attention::
+
+        The default behavior of this function may change without further notice.
+        Do not assume that the behavior will stay constant over multiple
+        versions of ``atompy``.
+
+    Parameters
+    ----------
+    spines : str, default ""
+        Any combination of ``"l"``, ``"b"``, ``"t"``, ``"r"``.
+        E.g., ``"lb"`` would enable the left and bottom spines of the axes.
+        ``""`` disables all spines.
+
+    use_latex : bool, default ``True``
+        Use a latex backend for rendering. May be slow.
+
+    fontsize : float, default 10 pts
+
+    use_serif : bool, default ``True``
+        Use a font-family with serifs. If ``False``, use a sans-serif font
+        family.
+    """
     spines_sort = "".join(sorted(spines))
     valid_spines = (
         "b", "l", "r", "t", "bl", "br", "bt", "blr", "blt", "brt", "blrt", ""

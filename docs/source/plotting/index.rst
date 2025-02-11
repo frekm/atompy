@@ -43,6 +43,9 @@ Manipulate Figures and Axes
 
   add_polar_guideline
 
+  _set_theme_atompy
+  set_latex_backend
+
 
 Colorbars
 ^^^^^^^^^

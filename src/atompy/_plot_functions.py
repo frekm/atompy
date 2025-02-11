@@ -605,13 +605,14 @@ def create_2d_plot(
     """
     fig, ax = plt.subplots(1, 1)
 
-    plot_kwargs.setdefault("cmap", "atom")
+    plot_kwargs_ = plot_kwargs.copy()
+    plot_kwargs_.setdefault("cmap", "atom")
     if len(data) == 2:
-        plot_kwargs.setdefault("aspect", "auto")
-        im = plt.imshow(data[0], extent=data[1], **plot_kwargs)  # type: ignore
+        plot_kwargs_.setdefault("aspect", "auto")
+        im = plt.imshow(data[0], extent=data[1], **plot_kwargs_)  # type: ignore
     elif len(data) == 3:
-        plot_kwargs.setdefault("rasterized", True)
-        im = plt.pcolormesh(data[0], data[1], data[2], **plot_kwargs)
+        plot_kwargs_.setdefault("rasterized", True)
+        im = plt.pcolormesh(data[0], data[1], data[2], **plot_kwargs_)
     else:
         msg = f"invalid shape of data"
         raise ValueError(msg)
@@ -626,8 +627,9 @@ def create_2d_plot(
 
     if make_me_nice:
         if axes_width_inch is not None or axes_height_inch is not None:
-            make_me_nice_kwargs.setdefault("fix_figwidth", False)
-        _plotting.make_me_nice(**make_me_nice_kwargs)
+            make_me_nice_kwargs_ = make_me_nice_kwargs.copy()
+            make_me_nice_kwargs_.setdefault("fix_figwidth", False)
+        _plotting.make_me_nice(**make_me_nice_kwargs_)
 
     if add_colorbar:
         return fig, ax, cb

@@ -109,7 +109,7 @@ def set_color_cycle(
     plt.rcParams["axes.prop_cycle"] = cycler_str
 
 
-def set_theme_latex_backend(
+def set_latex_backend(
     font: Literal["FiraSans", "Times", "ScholaX"]
 ) -> None:
     plt.rcParams["pgf.rcfonts"] = False
@@ -163,10 +163,10 @@ def _set_theme_atompy(
         if use_serif:
             plt.rcParams["font.size"] = fontsize
             plt.rcParams["font.family"] = "serif"
-            set_theme_latex_backend(font="ScholaX")
+            set_latex_backend(font="ScholaX")
         else:
             plt.rcParams["font.size"] = fontsize
-            set_theme_latex_backend(font="FiraSans")
+            set_latex_backend(font="FiraSans")
     else:
         if use_serif:
             plt.rcParams["font.size"] = fontsize

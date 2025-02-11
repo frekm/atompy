@@ -110,13 +110,20 @@ def set_color_cycle(
 
 
 def set_theme_latex_backend(
-    font: Literal["FiraSans"]
+    font: Literal["FiraSans", "Times", "ScholaX"]
 ) -> None:
+    plt.rcParams["pgf.rcfonts"] = False
+    plt.rcParams["backend"] = "pgf"
+
     if font == "FiraSans":
-        plt.rcParams["backend"] = "pgf"
         plt.rcParams["pgf.texsystem"] = "lualatex"
-        plt.rcParams["pgf.rcfonts"] = False
         plt.rcParams["pgf.preamble"] = r"\usepackage[mathrm=sym]{unicode-math}\setmathfont{Fira Math}[Scale=MatchUppercase,Numbers=Tabular]\setsansfont{Fira Sans}[Scale=MatchUppercase,Numbers=Lining]\usepackage{picture,xcolor}\usepackage{nicefrac}"
+    elif font == "Times":
+        plt.rcParams["pgf.texsystem"] = "pdflatex"
+        plt.rcParams["pgf.preamble"] = r"\usepackage[T1]{fontenc}\usepackage{newtxtext,newtxmath}\usepackage{picture,xcolor}\usepackage{nicefrac}"
+    elif font == "ScholaX":
+        plt.rcParams["pgf.texsystem"] = "pdflatex"
+        plt.rcParams["pgf.preamble"] = r"\usepackage{scholax}\usepackage{amsmath,amsthm}\usepackage[scaled=1.075,ncf,vvarbb]{newtxmath}\usepackage{picture,xcolor}\usepackage{nicefrac}"
 
 
 def set_ticks_tight() -> None:
@@ -133,8 +140,9 @@ def set_ticks_tight() -> None:
 
 def _set_theme_atompy(
     spines: str = "",
-    use_latex: bool = False,
+    use_latex: bool = True,
     fontsize: float = 10.0,
+    use_serif: bool = True,
 ):
     spines_sort = "".join(sorted(spines))
     valid_spines = (
@@ -152,21 +160,32 @@ def _set_theme_atompy(
     set_color_cycle()
 
     if use_latex:
-        plt.rcParams["font.size"] = fontsize
-        set_theme_latex_backend(font="FiraSans")
+        if use_serif:
+            plt.rcParams["font.size"] = fontsize
+            plt.rcParams["font.family"] = "serif"
+            set_theme_latex_backend(font="ScholaX")
+        else:
+            plt.rcParams["font.size"] = fontsize
+            set_theme_latex_backend(font="FiraSans")
     else:
-        plt.rcParams["font.size"] = fontsize * 0.9
+        if use_serif:
+            plt.rcParams["font.size"] = fontsize
+            plt.rcParams["font.family"] = "serif"
+            plt.rcParams["font.serif"] = "STIXGeneral, DejaVu Serif, Bitstream Vera Serif, Computer Modern Roman, New Century Schoolbook, Century Schoolbook L, Utopia, ITC Bookman, Bookman, Nimbus Roman No9 L, Times New Roman, Times, Palatino, Charter, serif"
+            plt.rcParams["mathtext.fontset"] = "stix"
+        else:
+            plt.rcParams["font.size"] = fontsize * 0.9
 
     plt.rcParams["figure.figsize"] = 80.0 / MM_PER_INCH, 60.0 / MM_PER_INCH
-    plt.rcParams["figure.dpi"] = 300
+    plt.rcParams["figure.dpi"] = 600
 
     plt.rcParams["axes.spines.left"] = True if "l" in spines else False
     plt.rcParams["axes.spines.bottom"] = True if "b" in spines else False
     plt.rcParams["axes.spines.top"] = True if "t" in spines else False
     plt.rcParams["axes.spines.right"] = True if "r" in spines else False
 
-    plt.rcParams["xtick.major.size"] = 3.5# 0.0 if "l" in spines else 3.5
-    plt.rcParams["ytick.major.size"] = 3.5#0.0 if "b" in spines else 3.5
+    plt.rcParams["xtick.major.size"] = 3.5
+    plt.rcParams["ytick.major.size"] = 3.5
 
     plt.rcParams["xtick.major.pad"] = 1.8
     plt.rcParams["xtick.minor.pad"] = 1.5
@@ -176,21 +195,24 @@ def _set_theme_atompy(
     plt.rcParams["axes.titlepad"] = 3.0
 
     plt.rcParams["axes.grid"] = True
+    plt.rcParams["axes.grid.axis"] = "both"
+    plt.rcParams["axes.grid.which"] = "major"
 
     plt.rcParams["axes.linewidth"] = 0.8
     plt.rcParams["xtick.major.width"] = plt.rcParams["axes.linewidth"]
-    plt.rcParams["xtick.minor.width"] = 0.5
     plt.rcParams["ytick.major.width"] = plt.rcParams["axes.linewidth"]
-    plt.rcParams["ytick.minor.width"] = 0.5
     plt.rcParams["lines.linewidth"] = 2.0
 
     plt.rcParams["axes.titlelocation"] = "left"
 
-    plt.rcParams["grid.color"] = "#E2E2E2"
-    plt.rcParams["grid.alpha"] = 0.7 
-    plt.rcParams["axes.edgecolor"] = "#AFAFAF"
-    plt.rcParams["xtick.color"] = plt.rcParams["grid.color"]
-    plt.rcParams["ytick.color"] = plt.rcParams["grid.color"]
+    c_spines = "#afafaf"
+    c_grid = "#E2E2E2"
+
+    plt.rcParams["grid.color"] = c_grid
+    plt.rcParams["grid.alpha"] = 1.0
+    plt.rcParams["axes.edgecolor"] = c_spines
+    plt.rcParams["xtick.color"] = c_spines if "l" in spines else c_grid
+    plt.rcParams["ytick.color"] = c_spines if "b" in spines else c_grid
     plt.rcParams["xtick.labelcolor"] = "k"
     plt.rcParams["ytick.labelcolor"] = "k"
 
@@ -332,7 +354,7 @@ def set_theme_nature(
     set_ticks_tight()
 
 
-def _format_axes(
+def _create_plot_format_axes(
     ax: Axes,
     xlabel: Optional[str],
     ylabel: Optional[str],
@@ -522,8 +544,8 @@ def create_1d_plot(
     if lines_have_labels:
         ax.legend(**legend_kwargs)
 
-    _format_axes(ax, xlabel, ylabel, title, xmin, xmax, ymin, ymax,
-                 aspect_ratio, axes_width_inch, axes_height_inch)
+    _create_plot_format_axes(ax, xlabel, ylabel, title, xmin, xmax, ymin, ymax,
+                             aspect_ratio, axes_width_inch, axes_height_inch)
 
     if make_me_nice:
         if axes_width_inch is not None or axes_height_inch is not None:
@@ -688,8 +710,8 @@ def create_2d_plot(
         msg = f"invalid shape of data"
         raise ValueError(msg)
 
-    _format_axes(ax, xlabel, ylabel, title, xmin, xmax, ymin, ymax,
-                 aspect_ratio, axes_width_inch, axes_height_inch)
+    _create_plot_format_axes(ax, xlabel, ylabel, title, xmin, xmax, ymin, ymax,
+                             aspect_ratio, axes_width_inch, axes_height_inch)
 
     if add_colorbar:
         cb = _plotting.add_colorbar(im, ax, **colorbar_kwargs)

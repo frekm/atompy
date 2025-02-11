@@ -40,8 +40,6 @@ PALETTE_OKABE_ITO_ACCENT = (
 )
 
 
-
-
 def set_color_cycle(
     *colors: str,
     nsteps: int = 7,
@@ -111,6 +109,16 @@ def set_color_cycle(
     plt.rcParams["axes.prop_cycle"] = cycler_str
 
 
+def set_theme_latex_backend(
+    font: Literal["FiraSans"]
+) -> None:
+    if font == "FiraSans":
+        plt.rcParams["backend"] = "pgf"
+        plt.rcParams["pgf.texsystem"] = "lualatex"
+        plt.rcParams["pgf.rcfonts"] = False
+        plt.rcParams["pgf.preamble"] = r"\usepackage[mathrm=sym]{unicode-math}\setmathfont{Fira Math}[Scale=MatchUppercase,Numbers=Tabular]\setsansfont{Fira Sans}[Scale=MatchUppercase,Numbers=Lining]\usepackage{picture,xcolor}\usepackage{nicefrac}"
+
+
 def set_ticks_tight() -> None:
     """
     Reduce padding between ticks, ticklabels, and axis labels.
@@ -122,10 +130,76 @@ def set_ticks_tight() -> None:
     plt.rcParams["axes.labelpad"] = 2.0
     plt.rcParams["axes.titlepad"] = 3.0
 
+
 def _set_theme_atompy(
-    latex_backend: bool = False
+    spines: str = "",
+    use_latex: bool = False,
+    fontsize: float = 10.0,
 ):
+    spines_sort = "".join(sorted(spines))
+    valid_spines = (
+        "b", "l", "r", "t", "bl", "br", "bt", "blr", "blt", "brt", "blrt", ""
+    )
+    if spines_sort not in valid_spines:
+        msg = (
+            "invalid spines identifier. spines must only contain b, l, r, or t "
+            "a maximum of one time"
+        )
+        raise ValueError(msg)
+
     plt.style.use("default")
+
+    set_color_cycle()
+
+    if use_latex:
+        plt.rcParams["font.size"] = fontsize
+        set_theme_latex_backend(font="FiraSans")
+    else:
+        plt.rcParams["font.size"] = fontsize * 0.9
+
+    plt.rcParams["figure.figsize"] = 80.0 / MM_PER_INCH, 60.0 / MM_PER_INCH
+    plt.rcParams["figure.dpi"] = 300
+
+    plt.rcParams["axes.spines.left"] = True if "l" in spines else False
+    plt.rcParams["axes.spines.bottom"] = True if "b" in spines else False
+    plt.rcParams["axes.spines.top"] = True if "t" in spines else False
+    plt.rcParams["axes.spines.right"] = True if "r" in spines else False
+
+    plt.rcParams["xtick.major.size"] = 3.5# 0.0 if "l" in spines else 3.5
+    plt.rcParams["ytick.major.size"] = 3.5#0.0 if "b" in spines else 3.5
+
+    plt.rcParams["xtick.major.pad"] = 1.8
+    plt.rcParams["xtick.minor.pad"] = 1.5
+    plt.rcParams["ytick.major.pad"] = 1.8
+    plt.rcParams["ytick.minor.pad"] = 1.5
+    plt.rcParams["axes.labelpad"] = 2.0
+    plt.rcParams["axes.titlepad"] = 3.0
+
+    plt.rcParams["axes.grid"] = True
+
+    plt.rcParams["axes.linewidth"] = 0.8
+    plt.rcParams["xtick.major.width"] = plt.rcParams["axes.linewidth"]
+    plt.rcParams["xtick.minor.width"] = 0.5
+    plt.rcParams["ytick.major.width"] = plt.rcParams["axes.linewidth"]
+    plt.rcParams["ytick.minor.width"] = 0.5
+    plt.rcParams["lines.linewidth"] = 2.0
+
+    plt.rcParams["axes.titlelocation"] = "left"
+
+    plt.rcParams["grid.color"] = "#E2E2E2"
+    plt.rcParams["grid.alpha"] = 0.7 
+    plt.rcParams["axes.edgecolor"] = "#AFAFAF"
+    plt.rcParams["xtick.color"] = plt.rcParams["grid.color"]
+    plt.rcParams["ytick.color"] = plt.rcParams["grid.color"]
+    plt.rcParams["xtick.labelcolor"] = "k"
+    plt.rcParams["ytick.labelcolor"] = "k"
+
+    plt.rcParams["grid.linewidth"] = plt.rcParams["axes.linewidth"]
+
+    plt.rcParams["legend.frameon"] = False
+
+    plt.rcParams["image.cmap"] = "atom"
+    plt.rcParams["image.aspect"] = "auto"
 
 
 def set_theme_science(

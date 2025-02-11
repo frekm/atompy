@@ -1,3 +1,6 @@
+# v4.15.1-dev.0
+- Bugfixes
+
 # v4.15.0
 - Added `create_1d_plot` and `create_2d_plot`
 - Added `margin_pad_ignores_labels` keyword to `make_me_nice`

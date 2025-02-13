@@ -8,6 +8,7 @@ from numpy.typing import ArrayLike
 from typing import Optional, Literal, Union, Any, Sequence, overload
 from . import _plotting
 from ._plotting import MM_PER_INCH
+import cycler
 
 FIGURE_WIDTH_PRL_1COL = 3.0 + 3.0/8.0
 FIGURE_WIDTH_PRL_2COL = 2.0 * FIGURE_WIDTH_PRL_1COL
@@ -68,6 +69,7 @@ PALETTE_COLORBREWER_ACCENT = (
 def set_color_cycle(
     *colors: str,
     nsteps: int = 7,
+    fig: Optional[Figure] = None,
 ) -> None:
     """
     Set the color cycle in plots.
@@ -94,6 +96,13 @@ def set_color_cycle(
 
         Irrelevant if a specific colors are passed in ``colors``.
 
+    fig : :class:`matplotlib.figure.Figure`, optional
+        Optionally, provide a figure. The color cycle of all axes of that figure 
+        will be updated.
+
+        If ``None``, check if a figure already exists. If so update the color
+        cycle of all axes of the last active figure.
+
     Examples
     --------
 
@@ -112,6 +121,7 @@ def set_color_cycle(
         # with the second color
         set_color_cylce("RdBu", nsteps=3)
     """
+    # format colors appropriately
     if not colors:
         if nsteps > 7:
             msg = (
@@ -120,12 +130,23 @@ def set_color_cycle(
             )
             raise ValueError(msg)
         colors = PALETTE_OKABE_ITO[:nsteps]
-
     if len(colors) == 1 and colors[0] in plt.colormaps():
         cmap_ = plt.get_cmap(colors[0])
         colors = tuple(
             [mcolors.to_hex(cmap_(i / (nsteps-1))) for i in range(nsteps)])
 
+    # no figure passed, but a figure exists
+    if fig is None and plt.get_fignums():
+        fig = plt.gcf()
+
+    # some axes exist already, update the cycler for them
+    if fig is not None and fig.get_axes():
+        axs = fig.get_axes()
+        color_cycler = cycler.cycler(color=colors)
+        for ax in axs:
+            ax.set_prop_cycle(color_cycler)
+
+    # update rcParams so future axes will use this one
     cycler_str = "cycler('color', ["
     for color in colors:
         if color[0] == "#":
@@ -177,6 +198,7 @@ def _set_ticks_tight() -> None:
 
 def _set_theme_atompy(
     spines: str = "",
+    spines_color: Union[Literal["grid"], str] = "#AFAFAF",
     use_latex: bool = True,
     fontsize: float = 10.0,
     use_serif: bool = True,
@@ -189,6 +211,9 @@ def _set_theme_atompy(
         The default behavior of this function may change without further notice.
         Do not assume that the behavior will stay constant over multiple
         versions of ``atompy``.
+
+        If the behavior changes, however, it will be listed in the
+        `changelog <https://github.com/frekm/atompy/blob/main/changelog.md>`__.
 
     Parameters
     ----------
@@ -267,8 +292,8 @@ def _set_theme_atompy(
 
     plt.rcParams["axes.titlelocation"] = "left"
 
-    c_spines = "#afafaf"
     c_grid = "#E2E2E2"
+    c_spines = c_grid if spines_color == "grid" else spines_color
 
     plt.rcParams["grid.color"] = c_grid
     plt.rcParams["grid.alpha"] = 1.0

@@ -1,3 +1,6 @@
+# v4.17.0
+- Improved `set_color_cycle`
+  - It now updates the color_cycle even after an axes on-the-fly
 - Added multiple color palettes (access via `ap.PALETTE_*`)
 
 # v4.16.0

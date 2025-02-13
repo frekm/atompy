@@ -1,6 +1,5 @@
 accessible-pygments==0.0.5
 alabaster==0.7.16
--e git+https://github.com/crono-kircher/atompy.git@9a8021d867af55f4cec35091fc8a930daa1fb745#egg=atompy
 awkward==2.6.6
 awkward-cpp==35
 Babel==2.15.0

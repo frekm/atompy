@@ -1,7 +1,7 @@
 - Added multiple color palettes (access via `ap.PALETTE_*`)
 
 # v4.16.0
-- Add `set_color_cycle`, `_set_theme_atompy`, and `set_latex_backend`
+- Added `set_color_cycle`, `_set_theme_atompy`, and `set_latex_backend`
 - Bugfixes
 
 # v4.15.0
@@ -37,7 +37,7 @@
   and `add_polar_guideline`.
 
 # v4.9.1
-- Fix hyperlink on documentation index page.
+- Fixed hyperlink on documentation index page.
 
 # v4.9.0
 - Added `sample_distribution_func` and `sample_distribution_discrete`
@@ -103,12 +103,12 @@
 - General improvements to documentation
 
 # v3.0.7
-- Add scipy to requirements list
-- Add atompy.physics.coltrims.ion_tof_calibration
+- Added scipy to requirements list
+- Added atompy.physics.coltrims.ion_tof_calibration
 
 # v3.0.6
 - New layout implemented with `sphinx.ext.autosummary`
-- Change HTML theme back to `pydata-sphinx-theme` (it works better with 
+- Changed HTML theme back to `pydata-sphinx-theme` (it works better with 
   `autosummary`)
 
 # v3.0.5
@@ -145,5 +145,5 @@
 
 
 # v2.0.0
-- changed return value when loading multiple histos at once
-- changed that the _histXd functions return Hist1d and Hist2d instances
+- Changed return value when loading multiple histos at once
+- Changed that the _histXd functions return Hist1d and Hist2d instances

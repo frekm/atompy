@@ -1,3 +1,5 @@
+- Added multiple color palettes (access via `ap.PALETTE_*`)
+
 # v4.16.0
 - Add `set_color_cycle`, `_set_theme_atompy`, and `set_latex_backend`
 - Bugfixes

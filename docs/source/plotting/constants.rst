@@ -91,3 +91,22 @@ access these, e.g., like :code:`colors.RED`.
 
 .. data:: atompy.bright_green
     :annotation: = "#3BB143"
+
+Color Palettes
+**************
+
+See the excellent book
+`Fundamentals of Data Visualization <https://f0nzie.github.io/dataviz-rsuite/color-basics.html>`__
+by Claus O. Wilke for a motivation of these color palettes.
+
+.. data:: atompy.PALETTE_OKABE_ITO
+
+.. data:: atompy.PALETTE_OKABE_ITO_MUTE
+
+.. data:: atompy.PALETTE_OKABE_ITO_ACCENT
+    
+.. data:: atompy.PALETTE_COLORBREWER_DARK2
+    
+.. data:: atompy.PALETTE_COLORBREWER_MUTE
+
+.. data:: atompy.PALETTE_COLORBREWER_ACCENT

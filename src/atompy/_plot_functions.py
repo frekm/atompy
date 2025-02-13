@@ -29,14 +29,39 @@ PALETTE_OKABE_ITO = (
     "#000000",
 )
 
-PALETTE_OKABE_ITO_ACCENT = (
+PALETTE_OKABE_ITO_MUTE = (
     "#D9CBBE",
     "#C3CDD6",
     "#CAB9C1",
     "#F0EDD6",
+)
+
+PALETTE_OKABE_ITO_ACCENT = (
     "#044F7E",
     "#026D4E",
-    "#026D4E",
+    "#954000",
+)
+
+PALETTE_COLORBREWER_DARK2 = (
+    "#1B9E77",
+    "#D95F02",
+    "#7570B3",
+    "#E7298A",
+    "#66A61E",
+    "#E6AB02",
+    "#A6761D",
+)
+
+PALETTE_COLORBREWER_MUTE = (
+    "#7FC97F",
+    "#BEAED4",
+    "#FDC086",
+    "#FFFF99",
+)
+PALETTE_COLORBREWER_ACCENT = (
+    "#386CB0",
+    "#F0027F",
+    "#BF5B17",
 )
 
 

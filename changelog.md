@@ -1,3 +1,6 @@
+# v4.17.1
+- Changed order of colors in `PALETTE_OKABE_ITO_ACCENT`
+
 # v4.17.0
 - Improved `set_color_cycle`
   - It now updates the color_cycle even after an axes on-the-fly

@@ -20,8 +20,8 @@ FIGURE_WIDTH_SCIENCE_3COL = 7.25
 GOLDENRATIO = 1.618033988749
 
 PALETTE_OKABE_ITO = (
-    "#e69f00",
     "#56b4e9",
+    "#e69f00",
     "#009e73",
     "#f0e442",
     "#0072b2",

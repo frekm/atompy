@@ -1,3 +1,5 @@
+- Changed order of colors in `PALETTE_OKABE_ITO`
+
 # v4.17.1
 - Changed order of colors in `PALETTE_OKABE_ITO_ACCENT`
 

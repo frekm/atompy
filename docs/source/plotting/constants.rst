@@ -99,14 +99,33 @@ See the excellent book
 `Fundamentals of Data Visualization <https://f0nzie.github.io/dataviz-rsuite/color-basics.html>`__
 by Claus O. Wilke for a motivation of these color palettes.
 
+The below color palettes can be used automatically by
+:class:`matplotlib.axes.Axes` by updating its cycler (see the respective documentation
+at `matplotlib.org <https://matplotlib.org/stable/users/explain/artists/color_cycle.html>`__.)
+
+Alternativley, ``atompy`` provides the :func:`.set_color_cycle` method to
+achieve this more conveniently.
+
 .. data:: atompy.PALETTE_OKABE_ITO
+
+    .. plot:: _examples/color_palettes/okabe_ito.py
 
 .. data:: atompy.PALETTE_OKABE_ITO_MUTE
 
+    .. plot:: _examples/color_palettes/okabe_ito_mute.py
+
 .. data:: atompy.PALETTE_OKABE_ITO_ACCENT
+
+    .. plot:: _examples/color_palettes/okabe_ito_accent.py
     
 .. data:: atompy.PALETTE_COLORBREWER_DARK2
+
+    .. plot:: _examples/color_palettes/colorbrewer_dark2.py
     
 .. data:: atompy.PALETTE_COLORBREWER_MUTE
 
+    .. plot:: _examples/color_palettes/colorbrewer_mute.py
+
 .. data:: atompy.PALETTE_COLORBREWER_ACCENT
+
+    .. plot:: _examples/color_palettes/colorbrewer_accent.py

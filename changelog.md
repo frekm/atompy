@@ -1,3 +1,4 @@
+- Expanded documentation of color palettes
 - Changed order of colors in `PALETTE_OKABE_ITO`
 
 # v4.17.1

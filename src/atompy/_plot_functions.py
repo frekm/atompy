@@ -298,8 +298,8 @@ def _set_theme_atompy(
     plt.rcParams["grid.color"] = c_grid
     plt.rcParams["grid.alpha"] = 1.0
     plt.rcParams["axes.edgecolor"] = c_spines
-    plt.rcParams["xtick.color"] = c_spines if "l" in spines else c_grid
-    plt.rcParams["ytick.color"] = c_spines if "b" in spines else c_grid
+    plt.rcParams["xtick.color"] = c_spines if "b" in spines else c_grid
+    plt.rcParams["ytick.color"] = c_spines if "l" in spines else c_grid
     plt.rcParams["xtick.labelcolor"] = "k"
     plt.rcParams["ytick.labelcolor"] = "k"
 

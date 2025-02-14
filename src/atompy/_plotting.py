@@ -653,6 +653,7 @@ def add_colorbar(
         :include-source:
 
     """
+    previous_current_axes = plt.gca()
     valid_positions = ["left", "right", "top", "bottom"]
     if location not in valid_positions:
         msg = f"{location=}, but it should be in {valid_positions}"
@@ -720,6 +721,7 @@ def add_colorbar(
     for t in [f"axes.spines.{l}" for l in ["left", "right", "top", "bottom"]]:
         if_any_frame_visible = if_any_frame_visible or plt.rcParams[t]
     colorbar.outline.set_visible(if_any_frame_visible) # type: ignore
+    plt.sca(previous_current_axes)
     return colorbar
 
 

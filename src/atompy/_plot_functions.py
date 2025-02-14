@@ -265,6 +265,7 @@ def _set_theme_atompy(
 
     plt.rcParams["figure.figsize"] = 80.0 / MM_PER_INCH, 60.0 / MM_PER_INCH
     plt.rcParams["figure.dpi"] = 600
+    plt.rcParams["savefig.format"] = "pdf"
 
     plt.rcParams["axes.spines.left"] = True if "l" in spines else False
     plt.rcParams["axes.spines.bottom"] = True if "b" in spines else False

@@ -3,7 +3,6 @@ Plot a single 1D-Histogram from a ROOT file.
 """
 
 import atompy as ap
-import numpy as np
 import matplotlib.pyplot as plt
 
 ax = plt.subplot()

@@ -271,24 +271,32 @@ def _set_theme_atompy(
     plt.rcParams["axes.spines.top"] = True if "t" in spines else False
     plt.rcParams["axes.spines.right"] = True if "r" in spines else False
 
-    plt.rcParams["xtick.major.size"] = 3.5
-    plt.rcParams["ytick.major.size"] = 3.5
-
     plt.rcParams["xtick.major.pad"] = 1.8
     plt.rcParams["xtick.minor.pad"] = 1.5
     plt.rcParams["ytick.major.pad"] = 1.8
     plt.rcParams["ytick.minor.pad"] = 1.5
     plt.rcParams["axes.labelpad"] = 2.0
-    plt.rcParams["axes.titlepad"] = 3.0
+    plt.rcParams["axes.titlepad"] = 5.0
 
     plt.rcParams["axes.grid"] = True
     plt.rcParams["axes.grid.axis"] = "both"
     plt.rcParams["axes.grid.which"] = "major"
 
     plt.rcParams["axes.linewidth"] = 0.8
+    plt.rcParams["grid.linewidth"] = plt.rcParams["axes.linewidth"]
+
+    plt.rcParams["lines.linewidth"] = 2.0
+    plt.rcParams["lines.markersize"] = 3.0
+    plt.rcParams["errorbar.capsize"] = plt.rcParams["lines.markersize"]
+
+    plt.rcParams["xtick.major.size"] = 3.5
+    plt.rcParams["ytick.major.size"] = 3.5
+    plt.rcParams["xtick.minor.size"] = 2.0
+    plt.rcParams["ytick.minor.size"] = 2.0
     plt.rcParams["xtick.major.width"] = plt.rcParams["axes.linewidth"]
     plt.rcParams["ytick.major.width"] = plt.rcParams["axes.linewidth"]
-    plt.rcParams["lines.linewidth"] = 2.0
+    plt.rcParams["xtick.minor.width"] = 0.4
+    plt.rcParams["ytick.minor.width"] = 0.4
 
     plt.rcParams["axes.titlelocation"] = "left"
 

@@ -1,5 +1,6 @@
+# v4.18.0
 - Added `savefig`
-- Changed default file format of `_set_theme_atompy` to PDF
+- Changed default file format set by `_set_theme_atompy` to PDF
 
 # v4.17.2
 - Expanded documentation of color palettes

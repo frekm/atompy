@@ -100,7 +100,7 @@ def set_color_cycle(
         Optionally, provide a figure. The color cycle of all axes of that figure 
         will be updated.
 
-        If ``None``, check if a figure already exists. If so update the color
+        If ``None``, check if a figure already exists. If so, update the color
         cycle of all axes of the last active figure.
 
     Examples

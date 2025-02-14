@@ -39,3 +39,11 @@ wrapper functions providing some convenience. See documentation of
     load_1d_from_root
     load_2d_from_txt
     load_2d_from_root
+
+Save plots
+^^^^^^^^^^
+
+.. autosummary::
+    :toctree: _autogen
+
+    savefig

@@ -1,12 +1,120 @@
 import uproot
-import numpy as np
 import matplotlib as mpl
+import inspect
+import os
+import pathlib 
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+import numpy as np
 from numpy.typing import NDArray
-from typing import Optional, Union, Literal, overload
+from typing import Optional, Union, Literal, overload, Sequence
 from . import _histogram
 from . import _miscellaneous as _misc
 from . import _errors
 
+
+def savefig(
+    fname: Optional[str] = None,
+    ftype: Optional[Union[str, Sequence[str]]] = None,
+    fig: Optional[Figure] = None,
+    **savefig_kwargs
+) -> None:
+    r"""
+    Save a :class:`matplotlib.figure.Figure` to a file.
+ 
+    Wraps :func:`matplotlib.pyplot.savefig`.
+
+    Parameters
+    ----------
+    fig : :class:`matplotlib.figure.Figure`, optional
+        If ``None``, use last active figure.
+
+    fname : str, optional
+        File name (and path).
+
+        If ``None``, uses the filename of the programs entry point.
+
+        If a file name without a file-type extension is provided, uses
+        `rcParams["savefig.format"] <https://matplotlib.org/stable/users/explain/customizing.html#matplotlibrc-sample>`__
+        unless `ftype` is provided.
+
+        If fname ends in ``/`` or ``\``, it is assumed as a directory in which
+        the output will be saved using the file name of the programs entry
+        point.
+
+    ftype : str or Sequence[str], optional
+        The file type(s).
+
+        If provided, the appropriate extension is appended to
+        `fname` and the file is saved as that file type.
+
+        If a sequence is provided, saves one file for each provided type.
+
+        If nothing is provided, infers the file type from `fname`.
+
+    Other Parameters
+    ----------------
+    **savefig_kwargs
+        Keyword arguments of :func:`matplotlib.pyplot.savefig`.
+
+    See also
+    --------
+    matplotlib.pyplot.savefig
+
+    Examples
+    --------
+    Assume a script named ``my_plot.py`` with the contents
+
+    .. code-block:: python
+        :caption: ``my_plot.py``
+        
+        import atompy as ap
+
+        plt.plot(some_data)
+
+        ap.savefig()
+        ap.savefig(ftype="pdf")
+        ap.savefig("output/")
+        ap.savefig("a_plot")
+        ap.savefig("a_plot", ftype=("pdf", "png"))
+        ap.savefig("a_plot.pdf", ftype=("pdf", "png"))
+
+    Executing ``my_plot.py`` will save:
+
+    - ``my_plot.png`` (assuming `plt.rcParams["savefig.format"] <https://matplotlib.org/stable/users/explain/customizing.html#the-default-matplotlibrc-file>`__ = "png")
+    - ``my_plot.pdf``
+    - ``output/my_plot.png``
+    - ``a_plot.pdf``
+    - ``a_plot.pdf`` and ``a_plot.png``
+    - ``a_plot.pdf.pdf`` and ``a_plot.pdf.png``
+
+    """
+    fig = fig or plt.gcf()
+
+    main_caller_fname = inspect.stack()[-1].filename
+    main_caller_fname_base, _ = os.path.splitext(main_caller_fname)
+    if fname is None:
+        fname = main_caller_fname_base
+        print(fname)
+    elif fname.endswith("\\") or fname.endswith("/"):
+        if fname.startswith("\\") or fname.startswith("/"):
+            fname = fname[1:]
+        path = pathlib.Path(main_caller_fname_base)
+        fname = path.parent / fname / path.name # type: ignore
+
+    # create directories if not present
+    pathlib.Path(fname).parent.mkdir(parents=True, exist_ok=True) # type: ignore
+
+    fname_, ftype_ = os.path.splitext(fname) # type: ignore
+    if ftype is not None:
+        dot = "."
+        ftypes = (ftype, ) if isinstance(ftype, str) else tuple(ftype)
+    else:
+        dot = ""
+        ftypes = (ftype_, )
+
+    for type in ftypes:
+        fig.savefig(f"{fname_}{dot}{type}", **savefig_kwargs)
 
 
 def save_1d_as_txt(

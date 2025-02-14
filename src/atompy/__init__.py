@@ -1,4 +1,5 @@
 from ._io import (
+    savefig,
     save_1d_as_txt,
     save_2d_as_txt,
     load_1d_from_txt,

@@ -1,3 +1,4 @@
+# v4.17.2
 - Expanded documentation of color palettes
 - Changed order of colors in `PALETTE_OKABE_ITO`
 - Fix x/ytick color mismatch in `_set_theme_atompy`

@@ -1,3 +1,5 @@
+- Added example to `_set_theme_atompy`
+
 # v4.18.0
 - Added `savefig`
 - Changed default file format set by `_set_theme_atompy` to PDF

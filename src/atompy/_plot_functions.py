@@ -230,6 +230,13 @@ def _set_theme_atompy(
     use_serif : bool, default ``True``
         Use a font-family with serifs. If ``False``, use a sans-serif font
         family.
+
+    Examples
+    --------
+
+    .. plot:: _examples/set_theme_atompy.py
+        :include-source:
+
     """
     spines_sort = "".join(sorted(spines))
     valid_spines = (

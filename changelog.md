@@ -1,3 +1,4 @@
+- Added ability to have `*` in `savefig`
 - Added example to `_set_theme_atompy`
 
 # v4.18.0

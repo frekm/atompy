@@ -38,9 +38,12 @@ def savefig(
         `rcParams["savefig.format"] <https://matplotlib.org/stable/users/explain/customizing.html#matplotlibrc-sample>`__
         unless `ftype` is provided.
 
-        If fname ends in ``/`` or ``\``, it is assumed as a directory in which
+        If `fname` ends in ``/`` or ``\``, it is assumed as a directory in which
         the output will be saved using the file name of the programs entry
         point.
+
+        If ``*`` is in `fname`, replace it with the file name of the programs
+        entry point.
 
     ftype : str or Sequence[str], optional
         The file type(s).
@@ -75,6 +78,7 @@ def savefig(
         ap.savefig()
         ap.savefig(ftype="pdf")
         ap.savefig("output/")
+        ap.savefig("output/*_extra")
         ap.savefig("a_plot")
         ap.savefig("a_plot", ftype=("pdf", "png"))
         ap.savefig("a_plot.pdf", ftype=("pdf", "png"))
@@ -84,38 +88,40 @@ def savefig(
     - ``my_plot.png`` (assuming `plt.rcParams["savefig.format"] <https://matplotlib.org/stable/users/explain/customizing.html#the-default-matplotlibrc-file>`__ = "png")
     - ``my_plot.pdf``
     - ``output/my_plot.png``
+    - ``output/my_plot_extra.png``
     - ``a_plot.pdf``
     - ``a_plot.pdf`` and ``a_plot.png``
     - ``a_plot.pdf.pdf`` and ``a_plot.pdf.png``
 
     """
+
     fig = fig or plt.gcf()
 
     main_caller_fname = inspect.stack()[-1].filename
     main_caller_fname_base, _ = os.path.splitext(main_caller_fname)
     if fname is None:
         fname = main_caller_fname_base
-        print(fname)
     elif fname.endswith("\\") or fname.endswith("/"):
         if fname.startswith("\\") or fname.startswith("/"):
             fname = fname[1:]
         path = pathlib.Path(main_caller_fname_base)
         fname = path.parent / fname / path.name # type: ignore
+    elif "*" in fname:
+        path = pathlib.Path(main_caller_fname_base)
+        fname = fname.replace("*", path.name)
+
+    assert(fname is not None)
 
     # create directories if not present
     pathlib.Path(fname).parent.mkdir(parents=True, exist_ok=True) # type: ignore
 
-    fname_, ftype_ = os.path.splitext(fname) # type: ignore
-    if ftype is not None:
-        dot = "."
-        ftypes = (ftype, ) if isinstance(ftype, str) else tuple(ftype)
+    if ftype is None:
+        fig.savefig(fname, **savefig_kwargs)
     else:
-        dot = ""
-        ftypes = (ftype_, )
-
-    for type in ftypes:
-        fig.savefig(f"{fname_}{dot}{type}", **savefig_kwargs)
-
+        ftypes = (ftype, ) if isinstance(ftype, str) else tuple(ftype)
+        for type in ftypes:
+            fig.savefig(f"{fname}.{type}", **savefig_kwargs)
+        
 
 def save_1d_as_txt(
     histogram: NDArray[np.float64],

@@ -278,7 +278,21 @@ class Hist1d:
         integral : float
             integral = sum(binsizes * histogram_values)
         """
-        return np.sum(np.diff(self.edges) * self.histogram)  # type: ignore
+        return np.sum(self.binwidths * self.histogram)  # type: ignore
+
+    @property
+    def bins(self) -> int:
+        """
+        Returns the number of bins
+        """
+        return self.edges.size - 1
+    
+    @property
+    def binwidths(self) -> NDArray[np.float64]:
+        """
+        Returns the widths of each bin.
+        """
+        return np.diff(self.edges)
 
     @property
     def normalized_to_integral(self) -> "Hist1d":

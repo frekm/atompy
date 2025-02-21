@@ -309,11 +309,40 @@ class Hist1d:
         Examples
         --------
 
-        .. plot:: _examples/histogram/norm_to_int_1d.py
+        .. plot:: _examples/histogram/normalize_hist1d.py
             :include-source:
 
         """
         return Hist1d(self.histogram / self.integral, self.edges)
+
+    @property
+    def sum(self) -> float:
+        """
+        Returns sum of histogram.
+        """
+        return np.sum(self.histogram).astype(float)
+    
+    @property
+    def normalized_to_sum(self) -> "Hist1d":
+        return Hist1d(self.histogram / self.sum, self.edges)
+
+    @property
+    def max(self) -> float:
+        """
+        Returns maximum value of the histogram.
+        """
+        return self.histogram.max()
+
+    @property
+    def min(self) -> float:
+        """
+        Returns minimum value of the histogram.
+        """
+        return self.histogram.min()
+
+    @property
+    def normalized_to_max(self) -> "Hist1d":
+        return Hist1d(self.histogram / self.max, self.edges)
 
     def within_range(
         self,

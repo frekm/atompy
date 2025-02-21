@@ -1,6 +1,6 @@
-=====================================
-Normalize a histogram to its integral
-=====================================
+========================
+Normalize a 1D histogram
+========================
 
-.. plot:: _examples/histogram/norm_to_int_1d.py
+.. plot:: _examples/histogram/normalize_hist1d.py
     :include-source:

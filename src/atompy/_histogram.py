@@ -269,7 +269,7 @@ class Hist1d:
         return self.centers, self.histogram
 
     @property
-    def integral(self) -> float:
+    def integral(self) -> np.float64:
         """
         Calculate integral of histogram.
 
@@ -316,33 +316,19 @@ class Hist1d:
         return Hist1d(self.histogram / self.integral, self.edges)
 
     @property
-    def sum(self) -> float:
+    def sum(self) -> np.float64:
         """
         Returns sum of histogram.
         """
-        return np.sum(self.histogram).astype(float)
+        return np.sum(self.histogram).astype(np.float64)
     
     @property
     def normalized_to_sum(self) -> "Hist1d":
         return Hist1d(self.histogram / self.sum, self.edges)
 
     @property
-    def max(self) -> float:
-        """
-        Returns maximum value of the histogram.
-        """
-        return self.histogram.max()
-
-    @property
-    def min(self) -> float:
-        """
-        Returns minimum value of the histogram.
-        """
-        return self.histogram.min()
-
-    @property
     def normalized_to_max(self) -> "Hist1d":
-        return Hist1d(self.histogram / self.max, self.edges)
+        return Hist1d(self.histogram / self.histogram.max(), self.edges)
 
     def within_range(
         self,

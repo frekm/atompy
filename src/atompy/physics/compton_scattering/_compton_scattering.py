@@ -1,9 +1,9 @@
-from typing import overload, Union, Optional
+from typing import overload, Union, Optional, Any
 import numpy as np
 import numpy.typing as npt
 import time
-from .._vector import Vector
-from ._physics import subtract_binding_energy  # for backward compability
+from ..._vector import Vector
+from .._physics import subtract_binding_energy  # for backward compability
 
 
 @overload
@@ -60,7 +60,8 @@ def compton_photon_energy_out(
     energy : ndarray
         The energy of the scattered photon in a.u.
     """
-    return Ein / (1.0 + Ein / 137.0**2 * (1.0 - cos_theta))  # type: ignore
+    Ein = np.asarray(Ein)
+    return Ein / (1.0 + Ein / 137.0**2 * (1.0 - np.asarray(cos_theta)))
 
 
 def klein_nishina_cross_section(
@@ -81,13 +82,15 @@ def klein_nishina_cross_section(
         The differential cross section $d\sigma/d\Omega$ in cm^2 or,
         if *normalize* is True, normalized to its maximum
     """
-    ratio = compton_photon_energy_out(Ein, cos_theta) / Ein  # type: ignore
-    out = (
-        0.5 / 137.0**4 * ratio**2 * (1.0 / ratio + ratio - (1.0 - cos_theta**2))
-    )  # type: ignore
-    return (
-        out / np.amax(out) if normalize else out * 0.5292**2 * 10**-16
-    )  # type: ignore
+    Ein = np.asarray(Ein)
+    ratio = compton_photon_energy_out(Ein, cos_theta) / Ein
+    out: Any = (
+        0.5
+        / 137.0**4
+        * ratio**2
+        * (1.0 / ratio + ratio - (1.0 - np.asarray(cos_theta) ** 2))
+    )
+    return out / np.amax(out) if normalize else out * 0.5292**2 * 10**-16
 
 
 def scattering_angle_distr(N: int, k1_mag_au: float) -> npt.NDArray[np.float64]:

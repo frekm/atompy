@@ -2,7 +2,7 @@ import uproot
 import matplotlib as mpl
 import inspect
 import os
-import pathlib 
+import pathlib
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 import numpy as np
@@ -17,11 +17,11 @@ def savefig(
     fname: Optional[str] = None,
     ftype: Optional[Union[str, Sequence[str]]] = None,
     fig: Optional[Figure] = None,
-    **savefig_kwargs
+    **savefig_kwargs,
 ) -> None:
     r"""
     Save a :class:`matplotlib.figure.Figure` to a file.
- 
+
     Wraps :func:`matplotlib.pyplot.savefig`.
 
     Parameters
@@ -70,7 +70,7 @@ def savefig(
 
     .. code-block:: python
         :caption: ``my_plot.py``
-        
+
         import atompy as ap
 
         plt.plot(some_data)
@@ -105,29 +105,29 @@ def savefig(
         if fname.startswith("\\") or fname.startswith("/"):
             fname = fname[1:]
         path = pathlib.Path(main_caller_fname_base)
-        fname = path.parent / fname / path.name # type: ignore
+        fname = path.parent / fname / path.name  # type: ignore
     elif "*" in fname:
         path = pathlib.Path(main_caller_fname_base)
         fname = fname.replace("*", path.name)
 
-    assert(fname is not None)
+    assert fname is not None
 
     # create directories if not present
-    pathlib.Path(fname).parent.mkdir(parents=True, exist_ok=True) # type: ignore
+    pathlib.Path(fname).parent.mkdir(parents=True, exist_ok=True)  # type: ignore
 
     if ftype is None:
         fig.savefig(fname, **savefig_kwargs)
     else:
-        ftypes = (ftype, ) if isinstance(ftype, str) else tuple(ftype)
+        ftypes = (ftype,) if isinstance(ftype, str) else tuple(ftype)
         for type in ftypes:
             fig.savefig(f"{fname}.{type}", **savefig_kwargs)
-        
+
 
 def save_1d_as_txt(
     histogram: NDArray[np.float64],
     edges: NDArray[np.float64],
     fname: str,
-    **savetxt_kwargs
+    **savetxt_kwargs,
 ) -> None:
     """
     Save a 1d histogram to a file.
@@ -167,7 +167,7 @@ def save_2d_as_txt(
     xedges: NDArray[np.float64],
     yedges: NDArray[np.float64],
     fname: str,
-    **savetxt_kwargs
+    **savetxt_kwargs,
 ) -> None:
     """
     Save a 2d histogram to a file.
@@ -219,7 +219,7 @@ def load_1d_from_txt(
     transform: bool = True,
     xmin: Optional[float] = None,
     xmax: Optional[float] = None,
-    **loadtxt_kwargs
+    **loadtxt_kwargs,
 ) -> NDArray[np.float64]: ...
 
 
@@ -230,17 +230,17 @@ def load_1d_from_txt(
     transform: bool = True,
     xmin: Optional[float] = None,
     xmax: Optional[float] = None,
-    **loadtxt_kwargs
+    **loadtxt_kwargs,
 ) -> _histogram.Hist1d: ...
 
 
 def load_1d_from_txt(
-        fname: str,
-        output_format: Literal["ndarray", "Hist1d"] = "ndarray",
-        transform: bool = True,
-        xmin: Optional[float] = None,
-        xmax: Optional[float] = None,
-        **loadtxt_kwargs
+    fname: str,
+    output_format: Literal["ndarray", "Hist1d"] = "ndarray",
+    transform: bool = True,
+    xmin: Optional[float] = None,
+    xmax: Optional[float] = None,
+    **loadtxt_kwargs,
 ) -> Union[NDArray[np.float64], _histogram.Hist1d]:
     """
     Load a text file.
@@ -282,7 +282,7 @@ def load_1d_from_txt(
           refers to the bin-centers of the loaded histogram, ``output[1]`` to
           the corresponding values.
         - ``output_format == "Hist1d"``: Return a :class:`.Hist1d`.
-          ``output.edges`` (``output.histogram``) is analogous to 
+          ``output.edges`` (``output.histogram``) is analogous to
           ``output[0]`` (``output[1]``) of the ``"ndarray"`` output.
 
     Examples
@@ -299,9 +299,7 @@ def load_1d_from_txt(
     """
     valid_output_formats = ("ndarray", "Hist1d")
     if output_format not in valid_output_formats:
-        errmsg = (
-            f"{output_format=}, but it must be one of {valid_output_formats}"
-        )
+        errmsg = f"{output_format=}, but it must be one of {valid_output_formats}"
         raise ValueError(errmsg)
 
     output = np.loadtxt(fname, **loadtxt_kwargs)
@@ -318,24 +316,18 @@ def load_1d_from_txt(
 
 @overload
 def load_1d_from_root(
-    fname: str,
-    hname: str,
-    output_format: Literal["Hist1d"] = "ndarray"  # type: ignore
+    fname: str, hname: str, output_format: Literal["Hist1d"] = "ndarray"  # type: ignore
 ) -> _histogram.Hist1d: ...
 
 
 @overload
 def load_1d_from_root(
-    fname: str,
-    hname: str,
-    output_format: Literal["ndarray"] = "ndarray"
+    fname: str, hname: str, output_format: Literal["ndarray"] = "ndarray"
 ) -> NDArray[np.float64]: ...
 
 
 def load_1d_from_root(
-    fname: str,
-    hname: str,
-    output_format: Literal["ndarray", "Hist1d"] = "ndarray"
+    fname: str, hname: str, output_format: Literal["ndarray", "Hist1d"] = "ndarray"
 ) -> Union[NDArray[np.float64], _histogram.Hist1d]:
     """
     Import a 1d histogram from a `ROOT <https://root.cern.ch/>`_ file.
@@ -361,7 +353,7 @@ def load_1d_from_root(
           refers to the bin-centers of the loaded histogram, ``output[1]`` to
           the corresponding values.
         - ``output_format == "Hist1d"``: Return a :class:`.Hist1d`.
-          ``output.centers`` (``output.histogram``) is analogous to 
+          ``output.centers`` (``output.histogram``) is analogous to
           ``output[0]`` (``output[1]``) of the ``"ndarray"`` output.
 
     Examples
@@ -377,9 +369,7 @@ def load_1d_from_root(
     """
     valid_output_formats = ("ndarray", "Hist1d")
     if output_format not in valid_output_formats:
-        errmsg = (
-            f"{output_format=}, but it must be one of {valid_output_formats}"
-        )
+        errmsg = f"{output_format=}, but it must be one of {valid_output_formats}"
         raise ValueError(errmsg)
 
     with uproot.open(fname) as file:  # type: ignore
@@ -396,14 +386,14 @@ def load_1d_from_root(
 
 
 def for_pcolormesh(
-        x: NDArray[np.float64],
-        y: NDArray[np.float64],
-        z: NDArray[np.float64],
-        permuting: str = "x",
-        xmin: Optional[float] = None,
-        xmax: Optional[float] = None,
-        ymin: Optional[float] = None,
-        ymax: Optional[float] = None,
+    x: NDArray[np.float64],
+    y: NDArray[np.float64],
+    z: NDArray[np.float64],
+    permuting: str = "x",
+    xmin: Optional[float] = None,
+    xmax: Optional[float] = None,
+    ymin: Optional[float] = None,
+    ymax: Optional[float] = None,
 ) -> _misc.PcolormeshData:
     """
     Convert xyz-data such that it can be plotted with
@@ -451,7 +441,7 @@ def for_pcolormesh(
 
     Examples
     --------
-    
+
     .. code-block:: python
 
         xedges, yedges, counts = ap.for_pcolormesh(x, y, z)
@@ -475,11 +465,11 @@ def for_pcolormesh(
 
 
 def for_imshow(
-        x: NDArray[np.float64],
-        y: NDArray[np.float64],
-        z: NDArray[np.float64],
-        permuting: Literal["x", "y"] = "x",
-        origin: Optional[Literal["lower", "upper"]] = None
+    x: NDArray[np.float64],
+    y: NDArray[np.float64],
+    z: NDArray[np.float64],
+    permuting: Literal["x", "y"] = "x",
+    origin: Optional[Literal["lower", "upper"]] = None,
 ) -> _misc.ImshowData:
     """
     Convert xyz-data such that it can be plotted with
@@ -520,7 +510,7 @@ def for_imshow(
 
     Examples
     --------
-    
+
     .. code-block:: python
 
         image, extent = ap.for_imshow(x, y, z)
@@ -545,7 +535,6 @@ def for_imshow(
     return _misc.ImshowData(H, edges)
 
 
-
 @overload
 def load_2d_from_txt(
     fname: str,
@@ -557,7 +546,7 @@ def load_2d_from_txt(
     ymin: Optional[float] = None,
     ymax: Optional[float] = None,
     origin: Optional[Literal["lower", "upper"]] = None,
-    **loadtxt_kwargs
+    **loadtxt_kwargs,
 ) -> _misc.PcolormeshData: ...
 
 
@@ -572,7 +561,7 @@ def load_2d_from_txt(
     ymin: Optional[float] = None,
     ymax: Optional[float] = None,
     origin: Optional[Literal["lower", "upper"]] = None,
-    **loadtxt_kwargs
+    **loadtxt_kwargs,
 ) -> _misc.ImshowData: ...
 
 
@@ -587,14 +576,13 @@ def load_2d_from_txt(
     ymin: Optional[float] = None,
     ymax: Optional[float] = None,
     origin: Optional[Literal["lower", "upper"]] = None,
-    **loadtxt_kwargs
+    **loadtxt_kwargs,
 ) -> _histogram.Hist2d: ...
 
 
 def load_2d_from_txt(
     fname: str,
-    output_format: Literal["imshow",
-                           "pcolormesh", "Hist2d"] = "pcolormesh",
+    output_format: Literal["imshow", "pcolormesh", "Hist2d"] = "pcolormesh",
     xyz_indices: tuple[int, int, int] = (1, 0, 2),
     permuting: Literal["x", "y"] = "x",
     xmin: Optional[float] = None,
@@ -602,7 +590,7 @@ def load_2d_from_txt(
     ymin: Optional[float] = None,
     ymax: Optional[float] = None,
     origin: Optional[Literal["lower", "upper"]] = None,
-    **loadtxt_kwargs
+    **loadtxt_kwargs,
 ) -> Union[_misc.PcolormeshData, _misc.ImshowData, _histogram.Hist2d]:
     """
     Load 2D data stored in a text file.
@@ -665,7 +653,7 @@ def load_2d_from_txt(
 
     Returns
     -------
-    output : :class:`.PcolormeshData`, :class:`.ImshowData` or :class:`.Hist2d` 
+    output : :class:`.PcolormeshData`, :class:`.ImshowData` or :class:`.Hist2d`
         Depends on `output_format`.
 
         - ``output_format == "pcolormesh"``: Return :class:`.PcolormeshData`.
@@ -719,26 +707,21 @@ def load_2d_from_txt(
     z = data[:, xyz_indices[2]]
 
     if output_format == "Hist2d":
-        xedges, yedges, H = for_pcolormesh(
-            x, y, z, permuting, xmin, xmax, ymin, ymax)
+        xedges, yedges, H = for_pcolormesh(x, y, z, permuting, xmin, xmax, ymin, ymax)
         return _histogram.Hist2d(H.T, xedges, yedges)
     elif output_format == "imshow":
         return for_imshow(x, y, z, permuting, origin)
     elif output_format == "pcolormesh":
-        return for_pcolormesh(
-            x, y, z, permuting, xmin, xmax, ymin, ymax)
+        return for_pcolormesh(x, y, z, permuting, xmin, xmax, ymin, ymax)
     else:
         valid_output_formats = ["imshow", "pcolormesh", "Hist2d"]
-        errmsg = (
-            f"{output_format=}, but it must be one of {valid_output_formats}"
-        )
+        errmsg = f"{output_format=}, but it must be one of {valid_output_formats}"
         raise ValueError(errmsg)
+
 
 @overload
 def load_2d_from_root(
-    fname: str,
-    hname: str,
-    output_format: Literal["pcolormesh"] = "pcolormesh"
+    fname: str, hname: str, output_format: Literal["pcolormesh"] = "pcolormesh"
 ) -> _misc.PcolormeshData: ...
 
 
@@ -746,7 +729,7 @@ def load_2d_from_root(
 def load_2d_from_root(
     fname: str,
     hname: str,
-    output_format: Literal["imshow"] = "pcolormesh"  # type: ignore
+    output_format: Literal["imshow"] = "pcolormesh",  # type: ignore
 ) -> _misc.ImshowData: ...
 
 
@@ -754,14 +737,14 @@ def load_2d_from_root(
 def load_2d_from_root(
     fname: str,
     hname: str,
-    output_format: Literal["Hist2d"] = "pcolormesh"  # type: ignore
+    output_format: Literal["Hist2d"] = "pcolormesh",  # type: ignore
 ) -> _histogram.Hist2d: ...
 
 
 def load_2d_from_root(
     fname: str,
     hname: str,
-    output_format: Literal["pcolormesh", "imshow", "Hist2d"] = "pcolormesh"
+    output_format: Literal["pcolormesh", "imshow", "Hist2d"] = "pcolormesh",
 ) -> Union[_misc.PcolormeshData, _misc.ImshowData, _histogram.Hist2d]:
     """
     Load 2D data stored in a `ROOT <https://root.cern.ch/>`_ file.
@@ -780,7 +763,7 @@ def load_2d_from_root(
 
     Returns
     -------
-    output : :class:`.PcolormeshData`, :class:`.ImshowData` or :class:`.Hist2d` 
+    output : :class:`.PcolormeshData`, :class:`.ImshowData` or :class:`.Hist2d`
         Depends on `output_format`.
 
         - ``output_format == "pcolormesh"``: Return :class:`.PcolormeshData`.
@@ -806,7 +789,7 @@ def load_2d_from_root(
         data = ap.load_2d_from_txt("rootfile.root", "path/to/hist",
                                    output_format="imshow")
         plt.imshow(data.image, extent=data.extent)
-    
+
     Alternatively, immediately unpack the loaded data into their respective
     :class:`numpy.ndarray`.
 
@@ -833,9 +816,7 @@ def load_2d_from_root(
     """
     valid_output_formats = ["imshow", "pcolormesh", "Hist2d"]
     if output_format not in valid_output_formats:
-        errmsg = (
-            f"{output_format=}, but it must be one of {valid_output_formats}"
-        )
+        errmsg = f"{output_format=}, but it must be one of {valid_output_formats}"
         raise ValueError(errmsg)
 
     with uproot.open(fname) as file:  # type: ignore

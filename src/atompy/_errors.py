@@ -1,11 +1,8 @@
 from typing import Literal
 
+
 class NonconstantBinsizeError(Exception):
-    def __init__(
-        self,
-        fname: str,
-        which: Literal["x", "y", ""]
-    ) -> None:
+    def __init__(self, fname: str, which: Literal["x", "y", ""]) -> None:
         self.fname = fname
         self.which = which
 
@@ -16,6 +13,7 @@ class NonconstantBinsizeError(Exception):
             f"no {self.which}{dash}limits are provided."
         )
 
+
 class UnderdeterminedBinsizeError(Exception):
     def __str__(self) -> str:
         return (
@@ -24,19 +22,19 @@ class UnderdeterminedBinsizeError(Exception):
             "determine the binsizes."
         )
 
+
 class AliasError(Exception):
-    def __init__(self,
-                 keyword_arg: str,
-                 alias: str):
+    def __init__(self, keyword_arg: str, alias: str):
         self.keyword_arg = keyword_arg
         self.alias = alias
 
     def __str__(self):
-        return (f"Both '{self.keyword_arg}' and '{self.alias}' have been "
-                "provided, but they are aliases")
+        return (
+            f"Both '{self.keyword_arg}' and '{self.alias}' have been "
+            "provided, but they are aliases"
+        )
+
 
 class FigureWidthTooLargeError(Exception):
     def __str__(self):
-        return (
-            "New figure width exceeds maximum allowed figure width"
-        )
+        return "New figure width exceeds maximum allowed figure width"

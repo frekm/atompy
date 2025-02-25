@@ -35,7 +35,7 @@ from ._histogram import Hist1d, Hist2d
 
 from ._vector import Vector, SingleVector, CoordinateSystem
 
-from ._errors import(
+from ._errors import (
     AliasError,
     NonconstantBinsizeError,
     UnderdeterminedBinsizeError,
@@ -74,7 +74,7 @@ from ._plotting import (
     align_axes_horizontally,
     get_axes_margins_inches,
     square_polar_axes,
-    add_polar_guideline
+    add_polar_guideline,
 )
 
 from ._plot_functions import (

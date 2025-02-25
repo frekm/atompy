@@ -1,3 +1,7 @@
+# v4.20.0-dev
+- Added more normalization methods to `Hist1d`
+- Added `bins` and `binwidth` properties to `Hist1d`
+
 # v4.19.0
 - Added ability to have `*` in `savefig`
 - Added example to `_set_theme_atompy`

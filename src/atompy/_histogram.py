@@ -177,7 +177,7 @@ class Hist1d:
 
         Returns
         -------
-        new_histogram : Hist1d
+        new_histogram : :class:`.Hist1d`
             The new, rebinned histogram
         """
         old_n = self.edges.size - 1
@@ -278,19 +278,24 @@ class Hist1d:
         integral : float
             integral = sum(binsizes * histogram_values)
         """
-        return np.sum(self.binwidths * self.histogram)  # type: ignore
+        return np.sum(self.binwidths * self.histogram)
 
     @property
     def bins(self) -> int:
         """
-        Returns the number of bins
+        Get the number of bins.
         """
         return self.edges.size - 1
     
     @property
     def binwidths(self) -> NDArray[np.float64]:
         """
-        Returns the widths of each bin.
+        Get the widths of each bin.
+
+        Returns
+        -------
+        binwidths : ndarray
+            Has length :attr:`.Hist1d.bins`.
         """
         return np.diff(self.edges)
 
@@ -305,6 +310,11 @@ class Hist1d:
         -------
         hist1d : :class:`.Hist1d`
             New, normalized histogram.
+
+        See also
+        --------
+        Hist1d.normalized_to_max
+        Hist1d.normalized_to_sum
 
         Examples
         --------
@@ -324,10 +334,50 @@ class Hist1d:
     
     @property
     def normalized_to_sum(self) -> "Hist1d":
+        """
+        Returns the histogram normalized to its sum.
+
+        Returns
+        -------
+        hist1d : :class:`.Hist1d`
+            New, normalized histogram.
+
+        See also
+        --------
+        Hist1d.normalized_to_integral
+        Hist1d.normalized_to_max
+
+        Examples
+        --------
+
+        .. plot:: _examples/histogram/normalize_hist1d.py
+            :include-source:
+
+        """
         return Hist1d(self.histogram / self.sum, self.edges)
 
     @property
     def normalized_to_max(self) -> "Hist1d":
+        """
+        Returns the histogram normalized to its maximum.
+
+        Returns
+        -------
+        hist1d : :class:`.Hist1d`
+            New, normalized histogram.
+
+        Examples
+        --------
+
+        .. plot:: _examples/histogram/normalize_hist1d.py
+            :include-source:
+
+        See also
+        --------
+        Hist1d.normalized_to_integral
+        Hist1d.normalized_to_sum
+
+        """
         return Hist1d(self.histogram / self.histogram.max(), self.edges)
 
     def within_range(

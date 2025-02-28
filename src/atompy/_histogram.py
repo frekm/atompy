@@ -53,31 +53,31 @@ class Hist1d:
 
     def __add__(self, other: "Hist1d") -> "Hist1d":
         if not isinstance(other, Hist1d):
-            raise NotImplemented
+            return NotImplemented
         _check_hist1d_compatibility(self, other)
         return Hist1d(self._histogram + other._histogram, self._edges.copy())
 
     def __sub__(self, other: "Hist1d") -> "Hist1d":
         if not isinstance(other, Hist1d):
-            raise NotImplemented
+            return NotImplemented
         _check_hist1d_compatibility(self, other)
         return Hist1d(self._histogram - other._histogram, self._edges.copy())
 
     def __mul__(self, other: "Hist1d") -> "Hist1d":
         if not isinstance(other, Hist1d):
-            raise NotImplemented
+            return NotImplemented
         _check_hist1d_compatibility(self, other)
         return Hist1d(self._histogram * other._histogram, self._edges.copy())
 
     def __truediv__(self, other: "Hist1d") -> "Hist1d":
         if not isinstance(other, Hist1d):
-            raise NotImplemented
+            return NotImplemented
         _check_hist1d_compatibility(self, other)
         return Hist1d(self._histogram / other._histogram, self._edges.copy())
 
     def __floordiv__(self, other: "Hist1d") -> "Hist1d":
         if not isinstance(other, Hist1d):
-            raise NotImplemented
+            return NotImplemented
         _check_hist1d_compatibility(self, other)
         return Hist1d(self._histogram // other._histogram, self._edges.copy())
 
@@ -89,7 +89,7 @@ class Hist1d:
 
     def __eq__(self, other: "Hist1d") -> bool:
         if not isinstance(other, Hist1d):
-            raise NotImplemented
+            return NotImplemented
         return bool(
             np.all(self._histogram == other._histogram)
             and np.all(self.edges == other.edges)
@@ -97,7 +97,7 @@ class Hist1d:
 
     def __ne__(self, other: "Hist1d") -> bool:
         if not isinstance(other, Hist1d):
-            raise NotImplemented
+            return NotImplemented
         return bool(
             np.any(self._histogram != other._histogram)
             and np.any(self.edges != other.edges)
@@ -514,31 +514,31 @@ class Hist2d:
 
     def __add__(self, other: "Hist2d") -> "Hist2d":
         if not isinstance(other, Hist2d):
-            raise NotImplemented
+            return NotImplemented
         _check_hist2d_compatibility(self, other)
         return Hist2d(self._H + other._H, self._xedges, self._yedges)
 
     def __sub__(self, other: "Hist2d") -> "Hist2d":
         if not isinstance(other, Hist2d):
-            raise NotImplemented
+            return NotImplemented
         _check_hist2d_compatibility(self, other)
         return Hist2d(self._H - other._H, self._xedges, self._yedges)
 
     def __mul__(self, other: "Hist2d") -> "Hist2d":
         if not isinstance(other, Hist2d):
-            raise NotImplemented
+            return NotImplemented
         _check_hist2d_compatibility(self, other)
         return Hist2d(self._H * other._H, self._xedges, self._yedges)
 
     def __truediv__(self, other: "Hist2d") -> "Hist2d":
         if not isinstance(other, Hist2d):
-            raise NotImplemented
+            return NotImplemented
         _check_hist2d_compatibility(self, other)
         return Hist2d(self._H / other._H, self._xedges, self._yedges)
 
     def __floordiv__(self, other: "Hist2d") -> "Hist2d":
         if not isinstance(other, Hist2d):
-            raise NotImplemented
+            return NotImplemented
         _check_hist2d_compatibility(self, other)
         return Hist2d(self._H // other._H, self._xedges, self._yedges)
 
@@ -557,7 +557,7 @@ class Hist2d:
 
     def __ne__(self, other: "Hist2d") -> bool:
         if not isinstance(other, Hist2d):
-            raise NotImplemented
+            return NotImplemented
         return bool(
             np.any(self._H != other._H)
             and np.any(self._xedges != other._xedges)

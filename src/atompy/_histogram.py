@@ -7,20 +7,14 @@ from . import _miscellaneous as _misc
 from typing import Literal, Union
 
 
-def _check_hist1d_compatibility(
-    h1: "Hist1d",
-    h2: "Hist1d"
-) -> None:
+def _check_hist1d_compatibility(h1: "Hist1d", h2: "Hist1d") -> None:
     if h1.edges.shape != h2.edges.shape:
         raise ValueError("histograms do not match")
     if np.any(h1.edges != h2.edges):
         raise ValueError("edges of histograms do not match")
 
 
-def _check_hist2d_compatibility(
-    h1: "Hist2d",
-    h2: "Hist2d"
-) -> None:
+def _check_hist2d_compatibility(h1: "Hist2d", h2: "Hist2d") -> None:
     if h1.xedges.shape != h2.xedges.shape or h1.yedges.shape != h2.yedges.shape:
         raise ValueError("histograms do not match")
     if np.any(h1.xedges != h2.xedges):
@@ -156,16 +150,11 @@ class Hist1d:
         self._edges = _edges
 
     @property
-    def centers(
-        self
-    ) -> NDArray[np.float64]:
-        """ Return centers of the histogram's bins """
+    def centers(self) -> NDArray[np.float64]:
+        """Return centers of the histogram's bins"""
         return self.edges[:-1] + 0.5 * np.diff(self.edges)
 
-    def rebinned(
-        self,
-        factor: int
-    ) -> "Hist1d":
+    def rebinned(self, factor: int) -> "Hist1d":
         """
         Rebin histogram
 
@@ -190,8 +179,7 @@ class Hist1d:
 
         new_hist = np.empty(self.histogram.size // factor)
         for i in range(new_hist.size):
-            new_hist[i] = np.sum(
-                self.histogram[i * factor: i * factor + factor])
+            new_hist[i] = np.sum(self.histogram[i * factor : i * factor + factor])
 
         new_edges = np.full(new_hist.size + 1, self.edges[-1])
         for i in range(new_edges.size - 1):
@@ -199,11 +187,7 @@ class Hist1d:
 
         return Hist1d(new_hist, new_edges)
 
-    def save_to_file(
-            self,
-            fname: str,
-            **kwargs
-    ) -> None:
+    def save_to_file(self, fname: str, **kwargs) -> None:
         """
         Save histogram to file (i.e., centers and bin-values)
 
@@ -221,7 +205,7 @@ class Hist1d:
 
     @property
     def for_step(self) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
-        """ Returns right edges and bin-values
+        """Returns right edges and bin-values
 
         By default, :meth:`matplotlib.axes.Axes.step` needs the right edges of a
         bin and the corresponding bin value. See the *where* keyword argument.
@@ -249,7 +233,7 @@ class Hist1d:
 
     @property
     def for_plot(self):
-        """ Returns bin-centers and bin-values
+        """Returns bin-centers and bin-values
 
         Returns
         -------
@@ -263,7 +247,7 @@ class Hist1d:
 
             # 'hist' is a Hist1d object
             plt.plot(*hist.for_plot)
-            # ... which is equivalent to 
+            # ... which is equivalent to
             plt.plot(hist.centers, hist.histogram)
         """
         return self.centers, self.histogram
@@ -286,7 +270,7 @@ class Hist1d:
         Get the number of bins.
         """
         return self.edges.size - 1
-    
+
     @property
     def binwidths(self) -> NDArray[np.float64]:
         """
@@ -331,7 +315,7 @@ class Hist1d:
         Returns sum of histogram.
         """
         return np.sum(self.histogram).astype(np.float64)
-    
+
     @property
     def normalized_to_sum(self) -> "Hist1d":
         """
@@ -381,9 +365,7 @@ class Hist1d:
         return Hist1d(self.histogram / self.histogram.max(), self.edges)
 
     def within_range(
-        self,
-        range_: tuple[float, float],
-        keepdims: bool = False
+        self, range_: tuple[float, float], keepdims: bool = False
     ) -> "Hist1d":
         """
         Return a :class:`.Hist1d` only within `range_[0]` and `range_[1]`.
@@ -408,23 +390,21 @@ class Hist1d:
         .. plot:: _examples/histogram/within_range.py
             :include-source:
         """
-        idx = np.flatnonzero(np.logical_and(
-            self.edges >= range_[0], self.edges <= range_[1]))
+        idx = np.flatnonzero(
+            np.logical_and(self.edges >= range_[0], self.edges <= range_[1])
+        )
         if keepdims:
             _H = np.zeros_like(self.histogram)
-            _H[idx[0]:idx[-1]] = self.histogram[idx[0]:idx[-1]]
+            _H[idx[0] : idx[-1]] = self.histogram[idx[0] : idx[-1]]
             rtn = Hist1d(_H, self.edges)
 
         else:
             rtn = Hist1d(
-                self.histogram[idx[0]:idx[-1]],
-                self.edges[idx[0]:idx[-1] + 1])
+                self.histogram[idx[0] : idx[-1]], self.edges[idx[0] : idx[-1] + 1]
+            )
         return rtn
 
-    def without_range(
-            self,
-            range_: tuple[float, float]
-    ) -> "Hist1d":
+    def without_range(self, range_: tuple[float, float]) -> "Hist1d":
         """
         Return a :class:`.Hist1d` excluding everything within `range_[0]`
         and `range_[1]`.
@@ -449,10 +429,11 @@ class Hist1d:
         .. plot:: _examples/histogram/without_range.py
             :include-source:
         """
-        idx = np.flatnonzero(np.logical_and(
-            self.edges >= range_[0], self.edges <= range_[1]))
+        idx = np.flatnonzero(
+            np.logical_and(self.edges >= range_[0], self.edges <= range_[1])
+        )
         _H = self.histogram.copy()
-        _H[idx[0]:idx[-1]] = np.nan
+        _H[idx[0] : idx[-1]] = np.nan
         return Hist1d(_H, self.edges)
 
 
@@ -499,7 +480,7 @@ class Hist2d:
 
     Examples
     --------
-    :: 
+    ::
 
         import numpy as np
         import atompy as ap
@@ -522,6 +503,7 @@ class Hist2d:
         plt.pcolormesh(*hist2d.rebinned_x(2).for_pcolormesh)
 
     """
+
     _H: NDArray[np.float64]
     _xedges: NDArray[np.float64]
     _yedges: NDArray[np.float64]
@@ -695,8 +677,7 @@ class Hist2d:
             )
         new_hist = np.empty((self.H.shape[0] // factor, self.H.shape[1]))
         for i in range(new_hist.shape[0]):
-            new_hist[i, :] = np.sum(
-                self.H[i * factor:i * factor + factor, :], axis=0)
+            new_hist[i, :] = np.sum(self.H[i * factor : i * factor + factor, :], axis=0)
         new_xedges = np.full(new_hist.shape[0] + 1, self.xedges[-1])
         for i in range(new_xedges.size):
             new_xedges[i] = self.xedges[i * factor]
@@ -728,17 +709,14 @@ class Hist2d:
             )
         new_hist = np.empty((self.H.shape[0], self.H.shape[1] // factor))
         for i in range(new_hist.shape[1]):
-            new_hist[:, i] = np.sum(
-                self.H[:, i * factor:i * factor + factor], axis=1)
+            new_hist[:, i] = np.sum(self.H[:, i * factor : i * factor + factor], axis=1)
         new_yedges = np.full(new_hist.shape[1] + 1, self.yedges[-1])
         for i in range(new_yedges.size):
             new_yedges[i] = self.yedges[i * factor]
         return Hist2d(new_hist, self.xedges, new_yedges)
 
     @property
-    def for_pcolormesh(
-        self
-    ) -> _misc.PcolormeshData:
+    def for_pcolormesh(self) -> _misc.PcolormeshData:
         """
         Return such that it can be plotted using
         :obj:`matplotlib.pyplot.pcolormesh`
@@ -770,7 +748,7 @@ class Hist2d:
         """
         Return corresponding :class:`.ImshowData` object.
 
-        Assumes that the origin of the image is specified by 
+        Assumes that the origin of the image is specified by
         `matplotlib.rcParams["image.origin"]`
 
         Returns
@@ -796,27 +774,25 @@ class Hist2d:
             imshow_data = hist.for_imshow
             plt.imshow(imshow_data.image, extent=imshow_data.extent)
         """
-        if np.any(np.diff(
-                self.xedges) < (self.xedges[1] - self.xedges[0]) * 0.001):
+        if np.any(np.diff(self.xedges) < (self.xedges[1] - self.xedges[0]) * 0.001):
             raise ValueError("xbinsize not constant, use pcolormesh instead")
-        if np.any(np.diff(
-                self.yedges) < (self.yedges[1] - self.yedges[0]) * 0.001):
+        if np.any(np.diff(self.yedges) < (self.yedges[1] - self.yedges[0]) * 0.001):
             raise ValueError("ybinsize not constant, use pcolormesh instead")
         origin = plt.rcParams["image.origin"]
         if origin == "lower":
             H_ = self.H.T
         else:
             H_ = np.flip(self.H.T, axis=0)
-        edges = [self.xedges.min(),
-                 self.xedges.max(),
-                 self.yedges.min(),
-                 self.yedges.max()]
+        edges = [
+            self.xedges.min(),
+            self.xedges.max(),
+            self.yedges.min(),
+            self.yedges.max(),
+        ]
         return _misc.ImshowData(H_, np.array(edges))
 
     def within_xrange(
-        self,
-        xrange: tuple[float, float],
-        keepdims: bool = False
+        self, xrange: tuple[float, float], keepdims: bool = False
     ) -> "Hist2d":
         """
         Apply an inclusive gate along x.
@@ -837,24 +813,24 @@ class Hist2d:
         -------
         new_histogram : :class:`Hist2d`
         """
-        idx = np.flatnonzero(np.logical_and(
-            self.xedges >= xrange[0], self.xedges <= xrange[1]))
+        idx = np.flatnonzero(
+            np.logical_and(self.xedges >= xrange[0], self.xedges <= xrange[1])
+        )
         if keepdims:
             _H = np.zeros_like(self.H)
-            _H[idx[0]:idx[-1], :] = self.H[idx[0]:idx[-1], :]
+            _H[idx[0] : idx[-1], :] = self.H[idx[0] : idx[-1], :]
             rtn = Hist2d(_H, self.xedges, self.yedges)
 
         else:
             rtn = Hist2d(
-                self.H[idx[0]:idx[-1], :],
-                self.xedges[idx[0]:idx[-1] + 1],
-                self.yedges)
+                self.H[idx[0] : idx[-1], :],
+                self.xedges[idx[0] : idx[-1] + 1],
+                self.yedges,
+            )
         return rtn
 
     def within_yrange(
-        self,
-        yrange: tuple[float, float],
-        keepdims: bool = False
+        self, yrange: tuple[float, float], keepdims: bool = False
     ) -> "Hist2d":
         """
         Apply an inclusive gate along y.
@@ -875,23 +851,25 @@ class Hist2d:
         -------
         new_histogram : :class:`.Hist2d`
         """
-        idx = np.flatnonzero(np.logical_and(
-            self.yedges >= yrange[0], self.yedges <= yrange[1]))
+        idx = np.flatnonzero(
+            np.logical_and(self.yedges >= yrange[0], self.yedges <= yrange[1])
+        )
         if keepdims:
             _H = np.zeros_like(self.H)
-            _H[:, idx[0]:idx[-1]] = self.H[:, idx[0]:idx[-1]]
+            _H[:, idx[0] : idx[-1]] = self.H[:, idx[0] : idx[-1]]
             rtn = Hist2d(_H, self.xedges, self.yedges)
 
         else:
             rtn = Hist2d(
-                self.H[:, idx[0]:idx[-1]],
+                self.H[:, idx[0] : idx[-1]],
                 self.xedges,
-                self.yedges[idx[0]:idx[-1] + 1])
+                self.yedges[idx[0] : idx[-1] + 1],
+            )
         return rtn
 
     def without_xrange(
-            self,
-            xrange: tuple[float, float],
+        self,
+        xrange: tuple[float, float],
     ) -> "Hist2d":
         """
         Apply an exclusive gate along x.
@@ -914,15 +892,16 @@ class Hist2d:
         .. plot:: _examples/histogram/without_xrange.py
             :include-source:
         """
-        idx = np.flatnonzero(np.logical_and(
-            self.xedges >= xrange[0], self.xedges <= xrange[1]))
+        idx = np.flatnonzero(
+            np.logical_and(self.xedges >= xrange[0], self.xedges <= xrange[1])
+        )
         _H = self.H.copy()
-        _H[idx[0]:idx[-1], :] = np.nan
+        _H[idx[0] : idx[-1], :] = np.nan
         return Hist2d(_H, self.xedges, self.yedges)
 
     def without_yrange(
-            self,
-            yrange: tuple[float, float],
+        self,
+        yrange: tuple[float, float],
     ) -> "Hist2d":
         """
         Apply an exclusive gate along y.
@@ -945,10 +924,11 @@ class Hist2d:
         .. plot:: _examples/histogram/without_yrange.py
             :include-source:
         """
-        idx = np.flatnonzero(np.logical_and(
-            self.yedges >= yrange[0], self.yedges <= yrange[1]))
+        idx = np.flatnonzero(
+            np.logical_and(self.yedges >= yrange[0], self.yedges <= yrange[1])
+        )
         _H = self.H.copy()
-        _H[:, idx[0]:idx[-1]] = np.nan
+        _H[:, idx[0] : idx[-1]] = np.nan
         return Hist2d(_H, self.xedges, self.yedges)
 
     @property
@@ -1007,11 +987,11 @@ class Hist2d:
         self,
         counts: NDArray,
         bin_centers: NDArray,
-        option: Literal["", "s", "i", "g"] = ""
+        option: Literal["", "s", "i", "g"] = "",
     ):
         """
         See `TProfile <https://root.cern.ch/doc/master/classTProfile.html>`_
-        of the ROOT Data Analysis Framework 
+        of the ROOT Data Analysis Framework
         """
         H = np.sum(counts * bin_centers)
         E = np.sum(counts * bin_centers**2)
@@ -1026,15 +1006,14 @@ class Hist2d:
         elif option == "i":
             raise NotImplementedError
         elif option == "g":
-            out = 1. / np.sqrt(W)
+            out = 1.0 / np.sqrt(W)
         else:
             msg = f"{option=}, but it needs to be '', 's', 'i', or 'g'"
             raise ValueError(msg)
         return h, out
 
     def get_profile_along_x(
-        self,
-        option: Literal["", "s", "i", "g"] = ""
+        self, option: Literal["", "s", "i", "g"] = ""
     ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
         r"""
         Get the x-profile.
@@ -1111,8 +1090,7 @@ class Hist2d:
         return self.get_profile_along_x(option="")
 
     def get_profile_along_y(
-        self,
-        option: Literal["", "s", "i", "g"] = ""
+        self, option: Literal["", "s", "i", "g"] = ""
     ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
         r"""
         Get the y-profile.
@@ -1189,9 +1167,7 @@ class Hist2d:
         return self.get_profile_along_y(option="")
 
     @property
-    def without_zeros(
-        self
-    ) -> "Hist2d":
+    def without_zeros(self) -> "Hist2d":
         """
         Replace zeros with :code:`None`, removing them from colormaps
 
@@ -1206,16 +1182,12 @@ class Hist2d:
         _H[_H == 0] = None
         return Hist2d(_H, self.xedges, self.yedges)
 
-    def save_to_file(
-        self,
-        fname: str,
-        **kwargs
-    ) -> None:
+    def save_to_file(self, fname: str, **kwargs) -> None:
         """
         Save the histogram to a file.
 
         The first column in the file will be y, the second x, the third z.
-        (this is chosen as such because the the standard hist2ascii-macro of 
+        (this is chosen as such because the the standard hist2ascii-macro of
         our group outputs this order)
 
         Parameters
@@ -1225,12 +1197,11 @@ class Hist2d:
         **kwargs
             keyword arguments for :func:`numpy.savetxt`
         """
-        apio.save_2d_as_txt(
-            self.H, self.xedges, self.yedges, fname, **kwargs)
+        apio.save_2d_as_txt(self.H, self.xedges, self.yedges, fname, **kwargs)
 
     @property
     def column_normalized_to_sum(self) -> "Hist2d":
-        """ Normalize each column to their sum.
+        """Normalize each column to their sum.
 
         Returns
         -------
@@ -1238,13 +1209,12 @@ class Hist2d:
             A new histogram where the columns are normalized.
         """
         return Hist2d(
-            self.H / self.H.sum(axis=1, keepdims=True),
-            self.xedges,
-            self.yedges)
+            self.H / self.H.sum(axis=1, keepdims=True), self.xedges, self.yedges
+        )
 
     @property
     def column_normalized_to_max(self) -> "Hist2d":
-        """ Normalize each column to their maximum.
+        """Normalize each column to their maximum.
 
         Returns
         -------
@@ -1252,13 +1222,12 @@ class Hist2d:
             A new histogram where the columns are normalized.
         """
         return Hist2d(
-            self.H / self.H.max(axis=1, keepdims=True),
-            self.xedges,
-            self.yedges)
+            self.H / self.H.max(axis=1, keepdims=True), self.xedges, self.yedges
+        )
 
     @property
     def row_normalized_to_sum(self) -> "Hist2d":
-        """ Normalize each row to their sum.
+        """Normalize each row to their sum.
 
         Returns
         -------
@@ -1266,13 +1235,12 @@ class Hist2d:
             A new histogram where the rows are normalized.
         """
         return Hist2d(
-            self.H / self.H.sum(axis=0, keepdims=True),
-            self.xedges,
-            self.yedges)
+            self.H / self.H.sum(axis=0, keepdims=True), self.xedges, self.yedges
+        )
 
     @property
     def row_normalized_to_max(self) -> "Hist2d":
-        """ Normalize each row to their maximum.
+        """Normalize each row to their maximum.
 
         Returns
         -------
@@ -1280,9 +1248,8 @@ class Hist2d:
             A new histogram where the rows are normalized.
         """
         return Hist2d(
-            self.H / self.H.max(axis=0, keepdims=True),
-            self.xedges,
-            self.yedges)
+            self.H / self.H.max(axis=0, keepdims=True), self.xedges, self.yedges
+        )
 
 
 if __name__ == "__main__":

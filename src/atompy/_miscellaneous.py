@@ -10,9 +10,7 @@ from dataclasses import dataclass
 from . import _errors
 
 
-def get_all_dividers(
-    n: int
-) -> tuple[int, ...]:
+def get_all_dividers(n: int) -> tuple[int, ...]:
     """
     Return possible rebins of the integer `n`.
 
@@ -41,10 +39,7 @@ def get_all_dividers(
 
 
 def crop(
-    x: npt.ArrayLike,
-    y: npt.ArrayLike,
-    lower: float = -np.inf,
-    upper: float = np.inf
+    x: npt.ArrayLike, y: npt.ArrayLike, lower: float = -np.inf, upper: float = np.inf
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any]]:
     """
     Return x,y data where lower <= x <= upper
@@ -86,15 +81,13 @@ def crop(
     if not isinstance(y, np.ndarray):
         y = np.array(y)
     xi = np.flatnonzero(np.logical_and(x >= lower, x <= upper))
-    xout = x[xi[0]:xi[-1] + 1]
-    yout = y[xi[0]:xi[-1] + 1]
+    xout = x[xi[0] : xi[-1] + 1]
+    yout = y[xi[0] : xi[-1] + 1]
     return xout, yout
 
 
 def convert_cosine_to_angles(
-    cos_angles: npt.ArrayLike,
-    y_data: npt.ArrayLike,
-    full_range: bool = False
+    cos_angles: npt.ArrayLike, y_data: npt.ArrayLike, full_range: bool = False
 ) -> tuple[npt.NDArray[np.float64], npt.NDArray[Any]]:
     """
     Convert data given as a cosine to radians
@@ -147,7 +140,7 @@ def integral_sum(
     bincenters: npt.ArrayLike,
     y_data: npt.ArrayLike,
     lower: float = -np.inf,
-    upper: float = np.inf
+    upper: float = np.inf,
 ) -> float:
     """
     Get the integral of a histogram by summing the counts weighted by the
@@ -191,7 +184,7 @@ def integral_polyfit(
     lower: float = -np.inf,
     upper: float = np.inf,
     fit_degree: int = 5,
-    showfit: bool = False
+    showfit: bool = False,
 ) -> float:
     """
     Get the integral of the data. The integral is determined with by
@@ -225,7 +218,7 @@ def integral_polyfit(
         >>> x, y
         ([0.  0.5 1.  1.5 2. ], [ 0.  1.  4.  9. 16.])
         >>> ap.integral_polyfit(x, y, fit_degree=2)
-        10.66 
+        10.66
     """
     x, y = crop(x, y, lower, upper)
     if lower == -np.inf:
@@ -235,8 +228,8 @@ def integral_polyfit(
     coeffs = np.polynomial.polynomial.polyfit(x, y, deg=fit_degree)
     upper_lim, lower_lim = 0.0, 0.0
     for i, coeff in enumerate(coeffs):
-        upper_lim += coeff / (i + 1) * upper**(i + 1)
-        lower_lim += coeff / (i + 1) * lower**(i + 1)
+        upper_lim += coeff / (i + 1) * upper ** (i + 1)
+        lower_lim += coeff / (i + 1) * lower ** (i + 1)
     integral = upper_lim - lower_lim
     if showfit:
         xt = np.linspace(lower, upper, 500)
@@ -250,9 +243,7 @@ def integral_polyfit(
     return integral
 
 
-def edges_to_centers(
-        edges: npt.NDArray[np.float64]
-) -> npt.NDArray:
+def edges_to_centers(edges: npt.NDArray[np.float64]) -> npt.NDArray:
     """
     Return centers of bins discribed by ``edges``.
 
@@ -286,7 +277,7 @@ def centers_to_edges(
     lower, uppper : float, optional
         Lower and upper limits of the bins.
 
-        At least one limit must be provided if bins don't have a constant 
+        At least one limit must be provided if bins don't have a constant
         size. If both lower and upper limits are provided, the lower one
         will be prioritized.
 
@@ -307,13 +298,13 @@ def centers_to_edges(
             # take lower edge and work out binsize forward
             edges[0] = lower
             for i in range(len(centers)):
-                edges[i+1] = 2.0 * centers[i] - edges[i]
+                edges[i + 1] = 2.0 * centers[i] - edges[i]
 
         elif upper is not None:
             # take upper edge and work out binsize backward
             edges[-1] = upper
             for i in reversed(range(len(centers))):
-                edges[i] = 2.0 * centers[i] - edges[i+1]
+                edges[i] = 2.0 * centers[i] - edges[i + 1]
         else:
             # cannot determine binsize, throw exception
             raise _errors.UnderdeterminedBinsizeError
@@ -336,11 +327,9 @@ def work_out_bin_edges(
 
 
 def sample_distribution(
-    edges: npt.NDArray[np.float64],
-    values: npt.NDArray[np.float64],
-    size: int
+    edges: npt.NDArray[np.float64], values: npt.NDArray[np.float64], size: int
 ) -> npt.NDArray:
-    """ 
+    """
     Sample a distribution described by ``edges`` and ``values``.
 
     Parameters
@@ -357,7 +346,7 @@ def sample_distribution(
     Returns
     -------
     sample : ndarray, shape(size,)
-        A sample ranging from ``edges[0]`` to ``edges[-1]`` with 
+        A sample ranging from ``edges[0]`` to ``edges[-1]`` with
         a distribution corresponding to ``values``.
 
     Notes
@@ -387,10 +376,11 @@ def sample_distribution(
 
         edges_index = np.digitize(sample, edges[1:-2])
 
-        sample = np.ma.compressed(np.ma.masked_array(
-            sample, test > values[edges_index]))
+        sample = np.ma.compressed(
+            np.ma.masked_array(sample, test > values[edges_index])
+        )
 
-        output[output_size:output_size + sample.size] = sample
+        output[output_size : output_size + sample.size] = sample
         output_size += sample.size
 
     t1 = time.time()
@@ -441,7 +431,7 @@ def sample_distribution_func(
     Returns
     -------
     sample : ndarray, shape(size,)
-        A sample ranging from ``xlimits[0]`` to ``xlimits[1]`` with 
+        A sample ranging from ``xlimits[0]`` to ``xlimits[1]`` with
         a distribution corresponding to ``f``.
 
     Notes
@@ -478,10 +468,11 @@ def sample_distribution_func(
         sample = rng.uniform(xlimits[0], xlimits[-1], buffer)
         test = rng.uniform(ylimits[0], ylimits[1], buffer)
 
-        sample = np.ma.compressed(np.ma.masked_array(
-            sample, test > f(sample, *args, **kwargs)))
+        sample = np.ma.compressed(
+            np.ma.masked_array(sample, test > f(sample, *args, **kwargs))
+        )
 
-        output[output_size:output_size + sample.size] = sample
+        output[output_size : output_size + sample.size] = sample
         output_size += sample.size
 
     t1 = time.time()
@@ -491,9 +482,7 @@ def sample_distribution_func(
 
 
 def sample_distribution_discrete(
-    values: npt.NDArray[np.float64],
-    probabilities: npt.NDArray[np.float64],
-    size: int
+    values: npt.NDArray[np.float64], probabilities: npt.NDArray[np.float64], size: int
 ) -> npt.NDArray[np.float64]:
     """
     Sample a discrete distribution of ``values``, where the probability is
@@ -576,16 +565,14 @@ class ImshowData:
         plt.imshow(imdata[0], extent=imdata[1])
         plt.imshow(**imdata())
     """
+
     image: npt.NDArray[np.float64]
     extent: npt.NDArray[np.float64]
 
     def __iter__(self) -> _ImshowDataIter:
         return _ImshowDataIter(self.image, self.extent)
 
-    def __getitem__(
-        self,
-        index: Literal[0, 1]
-    ) -> npt.NDArray[np.float64]:
+    def __getitem__(self, index: Literal[0, 1]) -> npt.NDArray[np.float64]:
         if index == 0:
             return self.image
         elif index == 1:
@@ -601,8 +588,7 @@ class ImshowData:
     def __call__(self, index: None = None) -> dict: ...
 
     def __call__(
-        self,
-        index: Optional[Literal[0, 1]] = None
+        self, index: Optional[Literal[0, 1]] = None
     ) -> Union[npt.NDArray[np.float64], dict]:
         """ Get image, extent, or a dictionary of both.
 
@@ -689,6 +675,7 @@ class PcolormeshData:
         plt.pcolormesh(*pcolormesh_data)
         plt.pcolormesh(**pcolormesh_data())
     """
+
     x: npt.NDArray[np.float64]
     y: npt.NDArray[np.float64]
     c: npt.NDArray[np.float64]
@@ -704,10 +691,7 @@ class PcolormeshData:
     def z(self, arr: npt.NDArray[np.float64]):
         self.c
 
-    def __getitem__(
-        self,
-        index
-    ) -> npt.NDArray[np.float64]:
+    def __getitem__(self, index) -> npt.NDArray[np.float64]:
         if index == 0:
             return self.x
         if index == 1:
@@ -717,10 +701,9 @@ class PcolormeshData:
         raise IndexError
 
     def __call__(
-        self,
-        index: Optional[Literal[0, 1, 2]] = None
+        self, index: Optional[Literal[0, 1, 2]] = None
     ) -> Union[npt.NDArray[np.float64], dict]:
-        """ Return x, y, c or a dictionary of all three.
+        """Return x, y, c or a dictionary of all three.
 
         The dictionary can be unpacked to conveniently call
         :obj:`matplotlib.pyplot.pcolormesh`.
@@ -746,10 +729,7 @@ class PcolormeshData:
             return self[index]
 
 
-def eval_yl0_polynomial(
-    thetas: npt.ArrayLike,
-    *coeffs
-):
+def eval_yl0_polynomial(thetas: npt.ArrayLike, *coeffs):
     r"""
     Evaluate a polynomial of spherical harmonics.
 
@@ -777,7 +757,7 @@ def eval_yl0_polynomial(
     See `scipy.special.sph_harm <https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.sph_harm.html>`__.
     """
     if hasattr(thetas, "__len__"):
-        size = len(thetas) # type: ignore
+        size = len(thetas)  # type: ignore
     else:
         size = 1
 
@@ -788,10 +768,7 @@ def eval_yl0_polynomial(
 
 
 def fit_yl0_polynomial(
-    thetas: npt.ArrayLike,
-    intensity: npt.ArrayLike,
-    degree: int,
-    odd_terms: bool = True
+    thetas: npt.ArrayLike, intensity: npt.ArrayLike, degree: int, odd_terms: bool = True
 ):
     r"""
     Fit data to a polynomial of :math:`\sum_l Y_l^0(\theta, 0)`
@@ -800,7 +777,7 @@ def fit_yl0_polynomial(
     ----------
     thetas : array_like
         Polar angles of data in rad. :math:`0 \le \theta \le \pi`.
-    
+
     intensity : array_like
         Corresponding y-data.
 
@@ -831,22 +808,21 @@ def fit_yl0_polynomial(
     upper = np.full(degree, np.inf)
 
     if not odd_terms:
-        for i in range(1, degree+1, 2):
+        for i in range(1, degree + 1, 2):
             lower[i] = 0.0
             upper[i] = 0.0 + 1.0e-300
 
-    bounds = Bounds(lower, upper) # type: ignore
+    bounds = Bounds(lower, upper)  # type: ignore
 
-    coeffs, _ = curve_fit(
-        eval_yl0_polynomial, thetas, intensity, p0=p0, bounds=bounds)
+    coeffs, _ = curve_fit(eval_yl0_polynomial, thetas, intensity, p0=p0, bounds=bounds)
     return coeffs
 
 
 def fit_polar(
-        x: npt.NDArray[np.float64],
-        y: npt.NDArray[np.float64],
-        deg: int,
-        odd_terms: bool = True
+    x: npt.NDArray[np.float64],
+    y: npt.NDArray[np.float64],
+    deg: int,
+    odd_terms: bool = True,
 ) -> npt.NDArray[np.float64]:
     """
     DEPRECATED. Alias for :func:`.fit_yl0`.
@@ -862,15 +838,11 @@ def fit_polar(
     odd_terms : bool, default ``True``
         if ``True`` use even and odd terms in the Legendre polynomial.
     """
-    warnings.warn("fit_polar is deprecated. Use fit_pl0 instead",
-                  DeprecationWarning)
+    warnings.warn("fit_polar is deprecated. Use fit_pl0 instead", DeprecationWarning)
     return fit_yl0_polynomial(x, y, deg, odd_terms=odd_terms)
 
 
-def eval_polarfit(
-    theta: npt.ArrayLike,
-    *coeffs
-) -> npt.ArrayLike:
+def eval_polarfit(theta: npt.ArrayLike, *coeffs) -> npt.ArrayLike:
     """
     DEPRECATED. Alias for :func:`.eval_yl0`.
 
@@ -891,15 +863,13 @@ def eval_polarfit(
     output : array_like
         Evaluate Legendre polynomial squared.
     """
-    warnings.warn("eval_polarfit is deprecated. Use eval_pl0 instead",
-                  DeprecationWarning)
+    warnings.warn(
+        "eval_polarfit is deprecated. Use eval_pl0 instead", DeprecationWarning
+    )
     return eval_yl0_polynomial(theta, *coeffs)
 
 
-def eval_polarfit_even(
-    theta: npt.ArrayLike,
-    *coeffs
-) -> npt.ArrayLike:
+def eval_polarfit_even(theta: npt.ArrayLike, *coeffs) -> npt.ArrayLike:
     """
     DEPRECATED. Use :func:`.eval_yl0` instead.
 
@@ -920,14 +890,14 @@ def eval_polarfit_even(
     output : array_like
         Evaluate Legendre polynomial squared.
     """
-    warnings.warn("eval_polarfit_even is deprecated. Use eval_pl0 instead",
-                  DeprecationWarning)
+    warnings.warn(
+        "eval_polarfit_even is deprecated. Use eval_pl0 instead", DeprecationWarning
+    )
     coeffs_all = []
     for coeff_even in coeffs:
         coeffs_all.append(coeff_even)
         coeffs_all.append(0.0)
     return eval_yl0_polynomial(theta, *coeffs_all)
-
 
 
 def eval_sph_harm(
@@ -945,7 +915,6 @@ def fit_sph_harm(
     phi: float,
     l: int,
     m: int,
-    odd_terms: bool = True
+    odd_terms: bool = True,
 ) -> npt.NDArray[np.float64]:
     raise NotImplementedError
-

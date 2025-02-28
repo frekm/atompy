@@ -10,7 +10,7 @@ from . import _plotting
 from ._plotting import MM_PER_INCH
 import cycler
 
-FIGURE_WIDTH_PRL_1COL = 3.0 + 3.0/8.0
+FIGURE_WIDTH_PRL_1COL = 3.0 + 3.0 / 8.0
 FIGURE_WIDTH_PRL_2COL = 2.0 * FIGURE_WIDTH_PRL_1COL
 FIGURE_WIDTH_NATURE_1COL = 90.0 / MM_PER_INCH
 FIGURE_WIDTH_NATURE_2COL = 180.0 / MM_PER_INCH
@@ -97,7 +97,7 @@ def set_color_cycle(
         Irrelevant if a specific colors are passed in ``colors``.
 
     fig : :class:`matplotlib.figure.Figure`, optional
-        Optionally, provide a figure. The color cycle of all axes of that figure 
+        Optionally, provide a figure. The color cycle of all axes of that figure
         will be updated.
 
         If ``None``, check if a figure already exists. If so, update the color
@@ -132,8 +132,7 @@ def set_color_cycle(
         colors = PALETTE_OKABE_ITO[:nsteps]
     if len(colors) == 1 and colors[0] in plt.colormaps():
         cmap_ = plt.get_cmap(colors[0])
-        colors = tuple(
-            [mcolors.to_hex(cmap_(i / (nsteps-1))) for i in range(nsteps)])
+        colors = tuple([mcolors.to_hex(cmap_(i / (nsteps - 1))) for i in range(nsteps)])
 
     # no figure passed, but a figure exists
     if fig is None and plt.get_fignums():
@@ -156,9 +155,7 @@ def set_color_cycle(
     plt.rcParams["axes.prop_cycle"] = cycler_str
 
 
-def set_latex_backend(
-    font: Literal["FiraSans", "Times", "ScholaX"]
-) -> None:
+def set_latex_backend(font: Literal["FiraSans", "Times", "ScholaX"]) -> None:
     """
     Enable a latex backend for rendering figures.
 
@@ -166,7 +163,7 @@ def set_latex_backend(
 
     Parameters
     ----------
-    font : {``"FiraSans"``, ``"Times"``, ``"ScholaX"``} 
+    font : {``"FiraSans"``, ``"Times"``, ``"ScholaX"``}
         Choose a font. ``"FiraSans"`` uses ``lualatex`` (which is very slow)
         as backend, the other fonts use ``pdflatex`` (not as slow).
     """
@@ -175,13 +172,19 @@ def set_latex_backend(
 
     if font == "FiraSans":
         plt.rcParams["pgf.texsystem"] = "lualatex"
-        plt.rcParams["pgf.preamble"] = r"\usepackage[mathrm=sym]{unicode-math}\setmathfont{Fira Math}[Scale=MatchUppercase,Numbers=Tabular]\setsansfont{Fira Sans}[Scale=MatchUppercase,Numbers=Lining]\usepackage{picture,xcolor}\usepackage{nicefrac}"
+        plt.rcParams["pgf.preamble"] = (
+            r"\usepackage[mathrm=sym]{unicode-math}\setmathfont{Fira Math}[Scale=MatchUppercase,Numbers=Tabular]\setsansfont{Fira Sans}[Scale=MatchUppercase,Numbers=Lining]\usepackage{picture,xcolor}\usepackage{nicefrac}"
+        )
     elif font == "Times":
         plt.rcParams["pgf.texsystem"] = "pdflatex"
-        plt.rcParams["pgf.preamble"] = r"\usepackage[T1]{fontenc}\usepackage{newtxtext,newtxmath}\usepackage{picture,xcolor}\usepackage{nicefrac}"
+        plt.rcParams["pgf.preamble"] = (
+            r"\usepackage[T1]{fontenc}\usepackage{newtxtext,newtxmath}\usepackage{picture,xcolor}\usepackage{nicefrac}"
+        )
     elif font == "ScholaX":
         plt.rcParams["pgf.texsystem"] = "pdflatex"
-        plt.rcParams["pgf.preamble"] = r"\usepackage{scholax}\usepackage{amsmath,amsthm}\usepackage[scaled=1.075,ncf,vvarbb]{newtxmath}\usepackage{picture,xcolor}\usepackage{nicefrac}"
+        plt.rcParams["pgf.preamble"] = (
+            r"\usepackage{scholax}\usepackage{amsmath,amsthm}\usepackage[scaled=1.075,ncf,vvarbb]{newtxmath}\usepackage{picture,xcolor}\usepackage{nicefrac}"
+        )
 
 
 def _set_ticks_tight() -> None:
@@ -240,7 +243,18 @@ def _set_theme_atompy(
     """
     spines_sort = "".join(sorted(spines))
     valid_spines = (
-        "b", "l", "r", "t", "bl", "br", "bt", "blr", "blt", "brt", "blrt", ""
+        "b",
+        "l",
+        "r",
+        "t",
+        "bl",
+        "br",
+        "bt",
+        "blr",
+        "blt",
+        "brt",
+        "blrt",
+        "",
     )
     if spines_sort not in valid_spines:
         msg = (
@@ -265,7 +279,9 @@ def _set_theme_atompy(
         if use_serif:
             plt.rcParams["font.size"] = fontsize
             plt.rcParams["font.family"] = "serif"
-            plt.rcParams["font.serif"] = "STIXGeneral, DejaVu Serif, Bitstream Vera Serif, Computer Modern Roman, New Century Schoolbook, Century Schoolbook L, Utopia, ITC Bookman, Bookman, Nimbus Roman No9 L, Times New Roman, Times, Palatino, Charter, serif"
+            plt.rcParams["font.serif"] = (
+                "STIXGeneral, DejaVu Serif, Bitstream Vera Serif, Computer Modern Roman, New Century Schoolbook, Century Schoolbook L, Utopia, ITC Bookman, Bookman, Nimbus Roman No9 L, Times New Roman, Times, Palatino, Charter, serif"
+            )
             plt.rcParams["mathtext.fontset"] = "stix"
         else:
             plt.rcParams["font.size"] = fontsize * 0.9
@@ -354,13 +370,9 @@ def _create_plot_format_axes(
     if axes_width_inch is None and axes_height_inch is None:
         ax.set_box_aspect(aspect_ratio)
     elif axes_width_inch is None and axes_height_inch is not None:
-        _plotting.set_axes_size(axes_height_inch / aspect_ratio,
-                                axes_height_inch,
-                                ax)
+        _plotting.set_axes_size(axes_height_inch / aspect_ratio, axes_height_inch, ax)
     elif axes_width_inch is not None and axes_height_inch is None:
-        _plotting.set_axes_size(axes_width_inch,
-                                axes_width_inch * aspect_ratio,
-                                ax)
+        _plotting.set_axes_size(axes_width_inch, axes_width_inch * aspect_ratio, ax)
     elif axes_width_inch is not None and axes_height_inch is not None:
         _plotting.set_axes_size(axes_width_inch, axes_height_inch)
 
@@ -403,7 +415,7 @@ def create_1d_plot(
         those will take precedence.
 
     plot_function : ``"plot"`` or ``"step"``, default ``"plot"``
-        Use :func:`matplotlib.pyplot.plot` or 
+        Use :func:`matplotlib.pyplot.plot` or
         :func:`matplotlib.pyplot.step` for plotting.
 
     plot_kwargs_all : dict, optional
@@ -517,8 +529,19 @@ def create_1d_plot(
     if lines_have_labels:
         ax.legend(**legend_kwargs)
 
-    _create_plot_format_axes(ax, xlabel, ylabel, title, xmin, xmax, ymin, ymax,
-                             aspect_ratio, axes_width_inch, axes_height_inch)
+    _create_plot_format_axes(
+        ax,
+        xlabel,
+        ylabel,
+        title,
+        xmin,
+        xmax,
+        ymin,
+        ymax,
+        aspect_ratio,
+        axes_width_inch,
+        axes_height_inch,
+    )
 
     if make_me_nice:
         if axes_width_inch is not None or axes_height_inch is not None:
@@ -590,8 +613,7 @@ def create_2d_plot(
     axes_height_inch: Optional[float] = None,
     make_me_nice: bool = True,
     make_me_nice_kwargs: dict[str, Any] = {},
-) -> Union[tuple[Figure, Axes],
-           tuple[Figure, Axes, Colorbar]]:
+) -> Union[tuple[Figure, Axes], tuple[Figure, Axes, Colorbar]]:
     """
     Plot 2D data.
 
@@ -684,8 +706,19 @@ def create_2d_plot(
         msg = f"invalid shape of data"
         raise ValueError(msg)
 
-    _create_plot_format_axes(ax, xlabel, ylabel, title, xmin, xmax, ymin, ymax,
-                             aspect_ratio, axes_width_inch, axes_height_inch)
+    _create_plot_format_axes(
+        ax,
+        xlabel,
+        ylabel,
+        title,
+        xmin,
+        xmax,
+        ymin,
+        ymax,
+        aspect_ratio,
+        axes_width_inch,
+        axes_height_inch,
+    )
 
     if add_colorbar:
         cb = _plotting.add_colorbar(im, ax, **colorbar_kwargs)

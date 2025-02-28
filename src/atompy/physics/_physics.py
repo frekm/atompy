@@ -6,10 +6,9 @@ from .._vector import Vector
 
 
 def subtract_binding_energy(
-    pin: Vector,
-    Ebind: Union[float, npt.NDArray[np.float64]]
+    pin: Vector, Ebind: Union[float, npt.NDArray[np.float64]]
 ) -> Vector:
-    """ Substracts binding energy from p, conserves direction of p
+    """Substracts binding energy from p, conserves direction of p
 
     Parameters
     ----------
@@ -24,47 +23,45 @@ def subtract_binding_energy(
         shortened momentum vector
     """
     if isinstance(Ebind, np.ndarray) and len(Ebind) != len(pin):
-        m = (
-            f"Length mismatch of Ebind ({len(Ebind)}) and pin ({len(pin)})"
-        )
+        m = f"Length mismatch of Ebind ({len(Ebind)}) and pin ({len(pin)})"
         raise ValueError(m)
 
     radicands = 2 * (pin.mag**2 / 2.0 - Ebind)
-    pmag_new = np.array([
-        np.sqrt(radicand) if radicand > 0 else -1.0 for radicand in radicands])
+    pmag_new = np.array(
+        [np.sqrt(radicand) if radicand > 0 else -1.0 for radicand in radicands]
+    )
 
     thetas = pin.theta
     phis = pin.phi
-    pout = np.array([
-        [p * np.sin(theta) * np.cos(phi),
-         p * np.sin(theta) * np.sin(phi),
-         p * np.cos(theta)]
-        for p, theta, phi in zip(pmag_new, thetas, phis)
-        if p > 0.0])
+    pout = np.array(
+        [
+            [
+                p * np.sin(theta) * np.cos(phi),
+                p * np.sin(theta) * np.sin(phi),
+                p * np.cos(theta),
+            ]
+            for p, theta, phi in zip(pmag_new, thetas, phis)
+            if p > 0.0
+        ]
+    )
 
     return Vector(pout)
 
 
 @overload
 def rho_p_microcanonical(
-    pmag: float,
-    E_bind: float,
-    normalize: bool = True
+    pmag: float, E_bind: float, normalize: bool = True
 ) -> float: ...
 
 
 @overload
 def rho_p_microcanonical(
-    pmag: npt.NDArray[np.float64],
-    E_bind: float,
-    normalize: bool = True
+    pmag: npt.NDArray[np.float64], E_bind: float, normalize: bool = True
 ) -> npt.NDArray[np.float64]: ...
 
 
 def rho_p_microcanonical(
-    pmag: Union[float, npt.NDArray[np.float64]],
-    E_bind: float,
-    normalize: bool = True
+    pmag: Union[float, npt.NDArray[np.float64]], E_bind: float, normalize: bool = True
 ) -> Union[float, npt.NDArray[np.float64]]:
     """
     Momentum distribution of one component in hydrogen-like system
@@ -86,15 +83,11 @@ def rho_p_microcanonical(
     float or `np.ndarray`
     """
     p0 = np.sqrt(2.0 * E_bind)
-    out = 8.0 * p0**5 / np.pi**2 / (pmag**2 + p0**2)**4
+    out = 8.0 * p0**5 / np.pi**2 / (pmag**2 + p0**2) ** 4
     return out / np.amax(out) if normalize else out
 
 
-def mom_init_distr_elec(
-    size: int,
-    E_bind_au: float,
-    scale: float = 3.0
-) -> Vector:
+def mom_init_distr_elec(size: int, E_bind_au: float, scale: float = 3.0) -> Vector:
     """
     Dice-throw three momentum components following a microcanonical
     distribution
@@ -116,16 +109,12 @@ def mom_init_distr_elec(
         Momentum vectors of the distribution
     """
     t0 = time.time()
-    line0 = ("Generating random microcanonical momentum distribution "
-             f"(size {size}). ")
+    line0 = "Generating random microcanonical momentum distribution " f"(size {size}). "
 
     succesful_throws = 0
     p = np.zeros((size, 3))
     while succesful_throws < size:
-        line = (
-            "\r" + line0
-            + "%.0lf percent done." % (100.0 * succesful_throws / size)
-        )
+        line = "\r" + line0 + "%.0lf percent done." % (100.0 * succesful_throws / size)
         print(line, end="")
 
         buffer = size - succesful_throws
@@ -134,23 +123,23 @@ def mom_init_distr_elec(
 
         pmag = np.random.uniform(0, p0 * scale, buffer)
 
-        density = 8.0 * p0**5 / np.pi**2 / (pmag**2 + p0**2)**4 * pmag**2
+        density = 8.0 * p0**5 / np.pi**2 / (pmag**2 + p0**2) ** 4 * pmag**2
         density /= np.max(density)
 
         second = np.random.random(buffer)
 
-        pmag = np.ma.compressed(
-            np.ma.masked_array(pmag, mask=second >= density))
+        pmag = np.ma.compressed(np.ma.masked_array(pmag, mask=second >= density))
 
         theta = np.arccos(2.0 * np.random.random(pmag.size) - 1.0)
         phi = 2.0 * np.pi * np.random.random(pmag.size)
 
-        p[succesful_throws:succesful_throws + pmag.size, 0] = \
+        p[succesful_throws : succesful_throws + pmag.size, 0] = (
             pmag * np.sin(theta) * np.cos(phi)
-        p[succesful_throws:succesful_throws + pmag.size, 1] = \
+        )
+        p[succesful_throws : succesful_throws + pmag.size, 1] = (
             pmag * np.sin(theta) * np.sin(phi)
-        p[succesful_throws:succesful_throws + pmag.size, 2] = \
-            pmag * np.cos(theta)
+        )
+        p[succesful_throws : succesful_throws + pmag.size, 2] = pmag * np.cos(theta)
 
         succesful_throws += pmag.size
 
@@ -162,8 +151,7 @@ def mom_init_distr_elec(
 
 
 def mom_init_distr_elec_mol(
-    distr_atomic: Vector,
-    stretch_factor: float
+    distr_atomic: Vector, stretch_factor: float
 ) -> tuple[Vector, Vector]:
     """
     Create molecular momentum distribution
@@ -212,8 +200,7 @@ def mom_init_distr_elec_mol(
     molecular_orientation[:, 1] = np.sin(theta) * np.sin(phi)
     molecular_orientation[:, 2] = np.cos(theta)
 
-    distr_molecular = \
-        distr_molecular.rotated_around_y(theta).rotated_around_z(phi)
+    distr_molecular = distr_molecular.rotated_around_y(theta).rotated_around_z(phi)
 
     t1 = time.time()
 

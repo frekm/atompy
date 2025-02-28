@@ -40,10 +40,7 @@ class Vector:
         [1. 4.]
     """
 
-    def __init__(
-        self,
-        vectors: npt.ArrayLike
-    ) -> None:
+    def __init__(self, vectors: npt.ArrayLike) -> None:
         vectors_ = np.array(vectors)
         if vectors_.ndim == 1:
             self._data = np.array([vectors]).astype(np.float64)
@@ -51,13 +48,17 @@ class Vector:
             self._data = np.array(vectors).astype(np.float64)
 
         if self._data.ndim != 2:
-            msg = (f"dimension of input array is {vectors_.ndim}, but it "
-                   "needs to be 1 or 2")
+            msg = (
+                f"dimension of input array is {vectors_.ndim}, but it "
+                "needs to be 1 or 2"
+            )
             raise ValueError(msg)
 
         if self._data.shape[1] != 3:
-            msg = (f"Shape of input array is {vectors_.shape}, but it needs "
-                   " to be (N, 3) or (3,)")
+            msg = (
+                f"Shape of input array is {vectors_.shape}, but it needs "
+                " to be (N, 3) or (3,)"
+            )
             raise ValueError(msg)
 
     def __getitem__(self, key) -> npt.NDArray[Any]:
@@ -72,53 +73,35 @@ class Vector:
     def __str__(self):
         return self._data.__str__()
 
-    def __add__(
-        self,
-        other: "Vector"
-    ) -> "Vector":
+    def __add__(self, other: "Vector") -> "Vector":
         if not isinstance(other, Vector):
             return NotImplemented
         return Vector(self._data + other._data)
 
-    def __sub__(
-        self,
-        other: "Vector"
-    ) -> "Vector":
+    def __sub__(self, other: "Vector") -> "Vector":
         if not isinstance(other, Vector):
             return NotImplemented
         return Vector(self._data - other._data)
 
-    def __mul__(
-        self,
-        other: npt.ArrayLike
-    ) -> "Vector":
+    def __mul__(self, other: npt.ArrayLike) -> "Vector":
         output = np.empty(self._data.shape, dtype=np.float64)
         for i in range(3):
             output[:, i] = self._data[:, i] * np.array(other)
         return Vector(output)
 
-    def __rmul__(
-        self,
-        other: npt.ArrayLike
-    ) -> "Vector":
+    def __rmul__(self, other: npt.ArrayLike) -> "Vector":
         output = np.empty(self._data.shape, dtype=np.float64)
         for i in range(3):
             output[:, i] = self._data[:, i] * np.array(other)
         return Vector(output)
 
-    def __truediv__(
-        self,
-        other: npt.ArrayLike
-    ) -> "Vector":
+    def __truediv__(self, other: npt.ArrayLike) -> "Vector":
         output = np.empty(self._data.shape, dtype=np.float64)
         for i in range(3):
             output[:, i] = self._data[:, i] / np.array(other)
         return Vector(output)
 
-    def __floordiv__(
-        self,
-        other: npt.ArrayLike
-    ) -> "Vector":
+    def __floordiv__(self, other: npt.ArrayLike) -> "Vector":
         output = np.empty(self._data.shape, dtype=np.float64)
         for i in range(3):
             output[:, i] = self._data[:, i] // np.array(other)
@@ -132,14 +115,12 @@ class Vector:
 
     def __iter__(self) -> _VectorIterator:
         if len(self) == 1:
-            raise TypeError(
-                "Cannot iterate through a single Vector"
-            )
+            raise TypeError("Cannot iterate through a single Vector")
         return _VectorIterator(self)
 
     @property
     def ndarray(self) -> npt.NDArray[np.float64]:
-        """ Get the underlying numpy array.
+        """Get the underlying numpy array.
 
         Examples
         --------
@@ -161,33 +142,29 @@ class Vector:
 
     @property
     def x(self) -> npt.NDArray[np.float64]:
-        """ x-Component of Vector """
+        """x-Component of Vector"""
         return self[:, 0]
 
     @x.setter
     def x(self, value: npt.ArrayLike) -> None:
         if self[:, 0].shape != np.array(value).shape:
-            raise ValueError(
-                "New x-values have wrong length"
-            )
+            raise ValueError("New x-values have wrong length")
         self[:, 0] = value
 
     @property
     def y(self) -> npt.NDArray[np.float64]:
-        """ y-Component of Vector """
+        """y-Component of Vector"""
         return self[:, 1]
 
     @y.setter
     def y(self, value: npt.ArrayLike) -> None:
         if self[:, 1].shape != np.array(value).shape:
-            raise ValueError(
-                "New y-values have wrong length"
-            )
+            raise ValueError("New y-values have wrong length")
         self[:, 1] = value
 
     @property
     def z(self) -> npt.NDArray[np.float64]:
-        """ z-Component of Vector """
+        """z-Component of Vector"""
         return self[:, 2]
 
     @z.setter
@@ -201,17 +178,17 @@ class Vector:
 
     @property
     def magnitude(self) -> npt.NDArray[np.float64]:
-        """ Return magnitude of vector """
+        """Return magnitude of vector"""
         return np.sqrt(self.x**2 + self.y**2 + self.z**2)
 
     @property
     def mag(self) -> npt.NDArray[np.float64]:
-        """ Alias for :attr:`.Vector.magnitude` """
+        """Alias for :attr:`.Vector.magnitude`"""
         return self.magnitude
 
     @property
     def norm(self) -> "Vector":
-        """ Return normalized Vector """
+        """Return normalized Vector"""
         result = self.copy()
         mag = self.mag
         result.x /= mag
@@ -221,39 +198,39 @@ class Vector:
 
     @property
     def phi(self) -> npt.NDArray[np.float64]:
-        """ Return azimuth angle in rad from -PI to PI """
+        """Return azimuth angle in rad from -PI to PI"""
         return np.arctan2(self.y, self.x)
 
     @property
     def phi_deg(self) -> npt.NDArray[np.float64]:
-        """ Return azimuth angle in degree from -180 to 180 """
+        """Return azimuth angle in degree from -180 to 180"""
         return self.phi * 180.0 / np.pi
 
     @property
     def cos_theta(self) -> npt.NDArray[np.float64]:
-        """ Return cosine of polar angle from -1 to 1 """
+        """Return cosine of polar angle from -1 to 1"""
         return self.z / self.mag
 
     @property
     def theta(self) -> npt.NDArray[np.float64]:
-        """ Return polar angle in rad from 0 to PI e"""
+        """Return polar angle in rad from 0 to PI e"""
         return np.arccos(self.cos_theta)
 
     @property
     def theta_deg(self) -> npt.NDArray[np.float64]:
-        """ Return polar angle in degree from 0 to 180 """
+        """Return polar angle in degree from 0 to 180"""
         return self.theta * 180.0 / np.pi
 
     def copy(self) -> "Vector":
-        """ Return deep copy """
+        """Return deep copy"""
         return Vector(self._data.copy())
 
     def dot(self, other: "Vector") -> npt.NDArray[np.float64]:
-        """ Returrn dot product of Vector with *other*"""
+        """Returrn dot product of Vector with *other*"""
         return self.x * other.x + self.y * other.y + self.z * other.z
 
     def cross(self, other: "Vector") -> "Vector":
-        """ 
+        """
         Return cross product between *self* and *other*
         """
         if self.x.shape[0] == 1:
@@ -281,10 +258,7 @@ class Vector:
         """
         return np.arccos(self.dot(other) / self.mag / other.mag)
 
-    def rotated_around_x(
-        self,
-        angle: npt.ArrayLike
-    ) -> "Vector":
+    def rotated_around_x(self, angle: npt.ArrayLike) -> "Vector":
         """
         Return a new vector which is rotated around the x-axis by *angle*
 
@@ -303,10 +277,7 @@ class Vector:
         output.z = np.sin(angle) * self.y + np.cos(angle) * self.z
         return output
 
-    def rotated_around_y(
-        self,
-        angle: npt.ArrayLike
-    ) -> "Vector":
+    def rotated_around_y(self, angle: npt.ArrayLike) -> "Vector":
         """
         Return a new vector which is rotated around the y-axis by *angle*
 
@@ -322,13 +293,10 @@ class Vector:
         output = Vector(np.empty(self._data.shape))
         output.x = np.cos(angle) * self.x + np.sin(angle) * self.z
         output.y = self.y
-        output.z = - np.sin(angle) * self.x + np.cos(angle) * self.z
+        output.z = -np.sin(angle) * self.x + np.cos(angle) * self.z
         return output
 
-    def rotated_around_z(
-        self,
-        angle: npt.ArrayLike
-    ) -> "Vector":
+    def rotated_around_z(self, angle: npt.ArrayLike) -> "Vector":
         """
         Return a new vector which is rotated around the z-axis by *angle*
 
@@ -347,16 +315,13 @@ class Vector:
         output.z = self.z
         return output
 
-    def remove_where(
-        self,
-        mask: npt.NDArray[np.bool_]
-    ) -> "Vector":
+    def remove_where(self, mask: npt.NDArray[np.bool_]) -> "Vector":
         """
         Remove every vector `i` where `mask[i] == True`
 
         Parameters
         ----------
-        mask : `numpy.ndarray`, shape `(len(self),)` 
+        mask : `numpy.ndarray`, shape `(len(self),)`
             Array of booleans.
 
         Returns
@@ -373,24 +338,18 @@ class Vector:
             >>> vec.remove_where(vec.z == 3)
             [[4. 5. 6.]]
         """
-        result_x = np.ma.compressed(
-            np.ma.masked_where(mask, self.x, copy=True))
-        result_y = np.ma.compressed(
-            np.ma.masked_where(mask, self.y, copy=True))
-        result_z = np.ma.compressed(
-            np.ma.masked_where(mask, self.z, copy=True))
+        result_x = np.ma.compressed(np.ma.masked_where(mask, self.x, copy=True))
+        result_y = np.ma.compressed(np.ma.masked_where(mask, self.y, copy=True))
+        result_z = np.ma.compressed(np.ma.masked_where(mask, self.z, copy=True))
         return Vector(np.array([result_x, result_y, result_z]).T)
 
-    def keep_where(
-        self,
-        mask: npt.NDArray[np.bool_]
-    ) -> "Vector":
+    def keep_where(self, mask: npt.NDArray[np.bool_]) -> "Vector":
         """
         Keep every vector `i` where `mask[i] == True`
 
         Parameters
         ----------
-        mask : `numpy.ndarray`, shape `(len(self),)` 
+        mask : `numpy.ndarray`, shape `(len(self),)`
             Array of booleans.
 
         Returns
@@ -430,7 +389,8 @@ class SingleVector:
         >>> vec.x
         1.0
     """
-    def __init__(self, x: float, y: float, z:float) -> None:
+
+    def __init__(self, x: float, y: float, z: float) -> None:
         self._data = Vector([x, y, z])
 
     def __getitem__(self, key) -> float:
@@ -448,17 +408,13 @@ class SingleVector:
     def __add__(self, other: "SingleVector") -> "SingleVector":
         if not isinstance(other, SingleVector):
             return NotImplemented
-        return SingleVector(self.x + other.x,
-                            self.y + other.y,
-                            self.z + other.z)
+        return SingleVector(self.x + other.x, self.y + other.y, self.z + other.z)
 
     def __sub__(self, other: "SingleVector") -> "SingleVector":
         if not isinstance(other, "SingleVector"):
             return NotImplemented
         else:
-            return SingleVector(self.x - other.x,
-                                self.y - other.y,
-                                self.z - other.z)
+            return SingleVector(self.x - other.x, self.y - other.y, self.z - other.z)
 
     def __mul__(self, scale: float) -> "SingleVector":
         if not isinstance(scale, float):
@@ -489,10 +445,9 @@ class SingleVector:
     def __iter__(self) -> Iterator[float]:
         return [self.x, self.y, self.z].__iter__()
 
-
     @property
     def x(self) -> float:
-        """ x-Component of Vector """
+        """x-Component of Vector"""
         return self.x
 
     @x.setter
@@ -501,7 +456,7 @@ class SingleVector:
 
     @property
     def y(self) -> float:
-        """ y-Component of Vector """
+        """y-Component of Vector"""
         return self.y
 
     @y.setter
@@ -510,7 +465,7 @@ class SingleVector:
 
     @property
     def z(self) -> float:
-        """ z-Component of Vector """
+        """z-Component of Vector"""
         return self.z
 
     @z.setter
@@ -519,51 +474,51 @@ class SingleVector:
 
     @property
     def magnitude(self) -> float:
-        """ Return magnitude of vector """
+        """Return magnitude of vector"""
         return math.sqrt(self.x**2 + self.y**2 + self.z**2)
 
     @property
     def mag(self) -> float:
-        """ Alias for :attr:`.SingleVector.magnitude` """
+        """Alias for :attr:`.SingleVector.magnitude`"""
         return self.magnitude
 
     @property
     def norm(self) -> "SingleVector":
-        """ Return normalized Vector """
+        """Return normalized Vector"""
         mag = self.mag
-        return SingleVector(self.x/mag, self.y/mag, self.z/mag)
+        return SingleVector(self.x / mag, self.y / mag, self.z / mag)
 
     @property
     def phi(self) -> float:
-        """ Return azimuth angle in rad from -PI to PI """
+        """Return azimuth angle in rad from -PI to PI"""
         return np.arctan2(self.y, self.x)
 
     @property
     def phi_deg(self) -> float:
-        """ Return azimuth angle in degree from -180 to 180 """
+        """Return azimuth angle in degree from -180 to 180"""
         return self.phi * 180.0 / np.pi
 
     @property
     def cos_theta(self) -> float:
-        """ Return cosine of polar angle from -1 to 1 """
+        """Return cosine of polar angle from -1 to 1"""
         return self.z / self.mag
 
     @property
     def theta(self) -> float:
-        """ Return polar angle in rad from 0 to PI e"""
+        """Return polar angle in rad from 0 to PI e"""
         return np.arccos(self.cos_theta)
 
     @property
     def theta_deg(self) -> float:
-        """ Return polar angle in degree from 0 to 180 """
+        """Return polar angle in degree from 0 to 180"""
         return self.theta * 180.0 / np.pi
 
     def dot(self, other: "SingleVector") -> float:
-        """ Returrn dot product of Vector with *other*"""
+        """Returrn dot product of Vector with *other*"""
         return self.x * other.x + self.y * other.y + self.z * other.z
 
     def cross(self, other: "SingleVector") -> "SingleVector":
-        """ 
+        """
         Return cross product between *self* and *other*
         """
         result_x = self.y * other.z - self.z * other.y
@@ -620,7 +575,7 @@ class SingleVector:
         """
         output_x = np.cos(angle) * self.x + np.sin(angle) * self.z
         output_y = self.y
-        output_z = - np.sin(angle) * self.x + np.cos(angle) * self.z
+        output_z = -np.sin(angle) * self.x + np.cos(angle) * self.z
         return SingleVector(output_x, output_y, output_z)
 
     def rotated_around_z(self, angle: float) -> "SingleVector":
@@ -648,7 +603,7 @@ class CoordinateSystem:
 
     The new coordinate system will be defined by the following unit
     vectors:
-    
+
     - `z` will exactly align with `vec1`.
     - `y` is a unit vector along ``vec1.cross(vec2)``
     - `x` is a unit vector along ``y.cross(vec1)``
@@ -672,10 +627,7 @@ class CoordinateSystem:
     """
 
     def __init__(
-        self,
-        vec1: Vector,
-        vec2: Vector,
-        vec3: Optional[Vector] = None
+        self, vec1: Vector, vec2: Vector, vec3: Optional[Vector] = None
     ) -> None:
         if vec3 is not None:
             self.x_axis = vec1.norm
@@ -696,13 +648,10 @@ class CoordinateSystem:
         else:
             raise IndexError
 
-    def project_vector(
-        self,
-        vec: Vector
-    ) -> Vector:
+    def project_vector(self, vec: Vector) -> Vector:
         """
         Project vector into coordinate system
-        
+
         Parameters
         ----------
         vec : :class:`.Vector`
@@ -718,10 +667,7 @@ class CoordinateSystem:
         result.z = vec.dot(self.z_axis)
         return result
 
-    def remove_where(
-        self,
-        mask
-    ) -> "CoordinateSystem":
+    def remove_where(self, mask) -> "CoordinateSystem":
         """
         Remove every CoordinateSystem ``i`` where ``mask[i] == True``
 
@@ -734,15 +680,12 @@ class CoordinateSystem:
         -------
         :class:`.CoordinateSystem`
         """
-        result_x = Vector(self.x_axis[mask==False])
-        result_y = Vector(self.y_axis[mask==False])
-        result_z = Vector(self.z_axis[mask==False])
+        result_x = Vector(self.x_axis[mask == False])
+        result_y = Vector(self.y_axis[mask == False])
+        result_z = Vector(self.z_axis[mask == False])
         return CoordinateSystem(result_x, result_y, result_z)
 
-    def keep_where(
-        self,
-        mask
-    ) -> "CoordinateSystem":
+    def keep_where(self, mask) -> "CoordinateSystem":
         """
         Keep every CoordinateSystem ``i`` where ``mask[i] == True``.
 

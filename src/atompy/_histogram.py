@@ -4,7 +4,7 @@ from numpy.typing import NDArray
 from dataclasses import dataclass
 from . import _io as apio
 from . import _miscellaneous as _misc
-from typing import Literal, Union
+from typing import Literal
 
 
 def _check_hist1d_compatibility(h1: "Hist1d", h2: "Hist1d") -> None:

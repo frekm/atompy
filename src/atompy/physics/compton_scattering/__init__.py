@@ -8,5 +8,6 @@ from ._compton_scattering import (
     mom_transfer_approx,
     stretch_Compton_electron_onto_sphere,
     subtract_binding_energy,
+    compton_photon_energy_out,
     calculate_Q_neglecting_mom_init,
 )

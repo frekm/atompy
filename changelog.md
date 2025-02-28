@@ -5,6 +5,7 @@
 - Added `xbins`, `ybins`, `xbinwidths`, `ybinwidths`, `binareas`, and
   `histogram` properties to `Hist2d`
 - Bugfixes in `Hist1d` and `Hist2d` caused by shallow copies
+- Updated documentation
 
 # v4.19.0
 

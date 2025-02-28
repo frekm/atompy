@@ -100,9 +100,9 @@ Python
     "python.analysis.typeCheckingMode": "basic",
     "[python]": {
         "editor.insertSpaces": true,
-        "editor.formatOnSave": false,
-         "editor.formatOnType": false,
-        "editor.defaultFormatter": "ms-python.autopep8",
+        "editor.formatOnSave": true,
+        "editor.formatOnType": false,
+        "editor.defaultFormatter": "ms-python.black-formatter", // opinionated but best
     },
 
 VIM
@@ -123,10 +123,7 @@ General
 
     "editor.autoClosingBrackets": "never",
     "editor.autoClosingQuotes": "never",
-    "editor.rulers": [
-        80,
-        100
-    ],
+    "editor.rulers": [88], // 90-ish is good
     "editor.lineNumbers": "relative",
     "editor.indentSize": "tabSize",
     "editor.inlayHints.enabled": "offUnlessPressed",

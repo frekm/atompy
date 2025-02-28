@@ -103,6 +103,11 @@ def set_color_cycle(
         If ``None``, check if a figure already exists. If so, update the color
         cycle of all axes of the last active figure.
 
+    Notes
+    -----
+    For some color palettes included in `atompy`,
+    see :ref:`Color Palettes <constants palettes>`.
+
     Examples
     --------
 

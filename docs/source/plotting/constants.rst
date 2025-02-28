@@ -95,6 +95,8 @@ access these, e.g., like :code:`colors.RED`.
 Color Palettes
 **************
 
+.. _constants palettes:
+
 See the excellent book
 `Fundamentals of Data Visualization <https://f0nzie.github.io/dataviz-rsuite/color-basics.html>`__
 by Claus O. Wilke for a motivation of these color palettes.

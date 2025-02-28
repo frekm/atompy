@@ -55,34 +55,34 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             raise NotImplemented
         _check_hist1d_compatibility(self, other)
-        return Hist1d(self._histogram + other._histogram, self._edges)
+        return Hist1d(self._histogram + other._histogram, self._edges.copy())
 
     def __sub__(self, other: "Hist1d") -> "Hist1d":
         if not isinstance(other, Hist1d):
             raise NotImplemented
         _check_hist1d_compatibility(self, other)
-        return Hist1d(self._histogram - other._histogram, self._edges)
+        return Hist1d(self._histogram - other._histogram, self._edges.copy())
 
     def __mul__(self, other: "Hist1d") -> "Hist1d":
         if not isinstance(other, Hist1d):
             raise NotImplemented
         _check_hist1d_compatibility(self, other)
-        return Hist1d(self._histogram * other._histogram, self._edges)
+        return Hist1d(self._histogram * other._histogram, self._edges.copy())
 
     def __truediv__(self, other: "Hist1d") -> "Hist1d":
         if not isinstance(other, Hist1d):
             raise NotImplemented
         _check_hist1d_compatibility(self, other)
-        return Hist1d(self._histogram / other._histogram, self._edges)
+        return Hist1d(self._histogram / other._histogram, self._edges.copy())
 
     def __floordiv__(self, other: "Hist1d") -> "Hist1d":
         if not isinstance(other, Hist1d):
             raise NotImplemented
         _check_hist1d_compatibility(self, other)
-        return Hist1d(self._histogram // other._histogram, self._edges)
+        return Hist1d(self._histogram // other._histogram, self._edges.copy())
 
     def __neg__(self) -> "Hist1d":
-        return Hist1d(-1.0 * self._histogram, self._edges)
+        return Hist1d(-1.0 * self._histogram, self._edges.copy())
 
     def __pos__(self) -> "Hist1d":
         return self
@@ -307,7 +307,7 @@ class Hist1d:
             :include-source:
 
         """
-        return Hist1d(self.histogram / self.integral, self.edges)
+        return Hist1d(self.histogram / self.integral, self.edges.copy())
 
     @property
     def sum(self) -> np.float64:
@@ -338,7 +338,7 @@ class Hist1d:
             :include-source:
 
         """
-        return Hist1d(self.histogram / self.sum, self.edges)
+        return Hist1d(self.histogram / self.sum, self.edges.copy())
 
     @property
     def normalized_to_max(self) -> "Hist1d":
@@ -362,7 +362,7 @@ class Hist1d:
         Hist1d.normalized_to_sum
 
         """
-        return Hist1d(self.histogram / self.histogram.max(), self.edges)
+        return Hist1d(self.histogram / self.histogram.max(), self.edges.copy())
 
     def within_range(
         self, range_: tuple[float, float], keepdims: bool = False
@@ -396,11 +396,12 @@ class Hist1d:
         if keepdims:
             _H = np.zeros_like(self.histogram)
             _H[idx[0] : idx[-1]] = self.histogram[idx[0] : idx[-1]]
-            rtn = Hist1d(_H, self.edges)
+            rtn = Hist1d(_H, self.edges.copy())
 
         else:
             rtn = Hist1d(
-                self.histogram[idx[0] : idx[-1]], self.edges[idx[0] : idx[-1] + 1]
+                self.histogram.copy()[idx[0] : idx[-1]],
+                self.edges.copy()[idx[0] : idx[-1] + 1],
             )
         return rtn
 
@@ -434,7 +435,7 @@ class Hist1d:
         )
         _H = self.histogram.copy()
         _H[idx[0] : idx[-1]] = np.nan
-        return Hist1d(_H, self.edges)
+        return Hist1d(_H, self.edges.copy())
 
 
 @dataclass
@@ -689,7 +690,7 @@ class Hist2d:
         new_xedges = np.full(new_hist.shape[0] + 1, self.xedges[-1])
         for i in range(new_xedges.size):
             new_xedges[i] = self.xedges[i * factor]
-        return Hist2d(new_hist, new_xedges, self.yedges)
+        return Hist2d(new_hist, new_xedges, self.yedges.copy())
 
     def rebinned_y(self, factor: int) -> "Hist2d":
         """
@@ -721,7 +722,7 @@ class Hist2d:
         new_yedges = np.full(new_hist.shape[1] + 1, self.yedges[-1])
         for i in range(new_yedges.size):
             new_yedges[i] = self.yedges[i * factor]
-        return Hist2d(new_hist, self.xedges, new_yedges)
+        return Hist2d(new_hist, self.xedges.copy(), new_yedges)
 
     @property
     def for_pcolormesh(self) -> _misc.PcolormeshData:
@@ -827,13 +828,13 @@ class Hist2d:
         if keepdims:
             _H = np.zeros_like(self.H)
             _H[idx[0] : idx[-1], :] = self.H[idx[0] : idx[-1], :]
-            rtn = Hist2d(_H, self.xedges, self.yedges)
+            rtn = Hist2d(_H, self.xedges.copy(), self.yedges.copy())
 
         else:
             rtn = Hist2d(
-                self.H[idx[0] : idx[-1], :],
-                self.xedges[idx[0] : idx[-1] + 1],
-                self.yedges,
+                self.H.copy()[idx[0] : idx[-1], :],
+                self.xedges.copy()[idx[0] : idx[-1] + 1],
+                self.yedges.copy(),
             )
         return rtn
 
@@ -865,13 +866,13 @@ class Hist2d:
         if keepdims:
             _H = np.zeros_like(self.H)
             _H[:, idx[0] : idx[-1]] = self.H[:, idx[0] : idx[-1]]
-            rtn = Hist2d(_H, self.xedges, self.yedges)
+            rtn = Hist2d(_H, self.xedges.copy(), self.yedges.copy())
 
         else:
             rtn = Hist2d(
-                self.H[:, idx[0] : idx[-1]],
-                self.xedges,
-                self.yedges[idx[0] : idx[-1] + 1],
+                self.H.copy()[:, idx[0] : idx[-1]],
+                self.xedges.copy(),
+                self.yedges.copy()[idx[0] : idx[-1] + 1],
             )
         return rtn
 
@@ -905,7 +906,7 @@ class Hist2d:
         )
         _H = self.H.copy()
         _H[idx[0] : idx[-1], :] = np.nan
-        return Hist2d(_H, self.xedges, self.yedges)
+        return Hist2d(_H, self.xedges.copy(), self.yedges.copy())
 
     def without_yrange(
         self,
@@ -937,7 +938,7 @@ class Hist2d:
         )
         _H = self.H.copy()
         _H[:, idx[0] : idx[-1]] = np.nan
-        return Hist2d(_H, self.xedges, self.yedges)
+        return Hist2d(_H, self.xedges.copy(), self.yedges.copy())
 
     @property
     def projected_onto_x(self) -> "Hist1d":
@@ -956,7 +957,7 @@ class Hist2d:
         .. plot:: _examples/histogram/projection_x.py
             :include-source:
         """
-        return Hist1d(np.sum(self.H, axis=1), self.xedges)
+        return Hist1d(np.sum(self.H, axis=1), self.xedges.copy())
 
     @property
     def prox(self) -> "Hist1d":
@@ -982,7 +983,7 @@ class Hist2d:
         .. plot:: _examples/histogram/projection_y.py
             :include-source:
         """
-        return Hist1d(np.sum(self.H, axis=0), self.yedges)
+        return Hist1d(np.sum(self.H, axis=0), self.yedges.copy())
 
     @property
     def proy(self) -> "Hist1d":
@@ -1188,7 +1189,7 @@ class Hist2d:
         """
         _H = self.H.copy()
         _H[_H == 0] = None
-        return Hist2d(_H, self.xedges, self.yedges)
+        return Hist2d(_H, self.xedges.copy(), self.yedges.copy())
 
     def save_to_file(self, fname: str, **kwargs) -> None:
         """
@@ -1217,7 +1218,9 @@ class Hist2d:
             A new histogram where the columns are normalized.
         """
         return Hist2d(
-            self.H / self.H.sum(axis=1, keepdims=True), self.xedges, self.yedges
+            self.H / self.H.sum(axis=1, keepdims=True),
+            self.xedges.copy(),
+            self.yedges.copy(),
         )
 
     @property
@@ -1230,7 +1233,9 @@ class Hist2d:
             A new histogram where the columns are normalized.
         """
         return Hist2d(
-            self.H / self.H.max(axis=1, keepdims=True), self.xedges, self.yedges
+            self.H / self.H.max(axis=1, keepdims=True),
+            self.xedges.copy(),
+            self.yedges.copy(),
         )
 
     @property
@@ -1243,7 +1248,9 @@ class Hist2d:
             A new histogram where the rows are normalized.
         """
         return Hist2d(
-            self.H / self.H.sum(axis=0, keepdims=True), self.xedges, self.yedges
+            self.H / self.H.sum(axis=0, keepdims=True),
+            self.xedges.copy(),
+            self.yedges.copy(),
         )
 
     @property
@@ -1256,7 +1263,9 @@ class Hist2d:
             A new histogram where the rows are normalized.
         """
         return Hist2d(
-            self.H / self.H.max(axis=0, keepdims=True), self.xedges, self.yedges
+            self.H / self.H.max(axis=0, keepdims=True),
+            self.xedges.copy(),
+            self.yedges.copy(),
         )
 
     @property

@@ -571,6 +571,10 @@ class Hist2d:
         Returns
         -------
         H : ndarray
+
+        See also
+        --------
+        histogram
         """
         return self._H
 
@@ -582,6 +586,10 @@ class Hist2d:
         Parameters
         ----------
         _H : ndarray
+
+        See also
+        --------
+        histogram
         """
         self._H = _H
 
@@ -1250,6 +1258,133 @@ class Hist2d:
         return Hist2d(
             self.H / self.H.max(axis=0, keepdims=True), self.xedges, self.yedges
         )
+
+    @property
+    def normalized_to_integral(self) -> "Hist2d":
+        """
+        Normalize histogram to it's integral.
+
+        The integral is calculated as the sum of all bins weighted by their area.
+
+        Returns
+        -------
+        normalized_hist2d : :class:`.Hist2d`
+            The normalized histogram.
+
+        See also
+        --------
+        normalized_to_max
+        normalized_to_sum
+
+        Examples
+        --------
+
+        .. plot:: _examples/histogram/normalize_hist2d.py
+            :include-source:
+        """
+        integral = np.sum(self.H * self.binareas)
+        return Hist2d(self.H / integral, self.xedges.copy(), self.yedges.copy())
+
+    @property
+    def normalized_to_max(self) -> "Hist2d":
+        """
+        Normalize histogram to it's maximum.
+
+        Returns
+        -------
+        normalized_hist2d : :class:`.Hist2d`
+            A new histogram where each bin value is divided by the histogram's maximum.
+
+        See also
+        --------
+        normalized_to_integral
+        normalized_to_sum
+
+        Examples
+        --------
+
+        .. plot:: _examples/histogram/normalize_hist2d.py
+            :include-source:
+        """
+        return Hist2d(self.H / np.amax(self.H), self.xedges.copy(), self.yedges.copy())
+
+    @property
+    def normalized_to_sum(self) -> "Hist2d":
+        """
+        Normalize histogram to it's maximum.
+
+        Returns
+        -------
+        normalized_hist2d : :class:`.Hist2d`
+            A new histogram where each bin value is divided by the histogram's sum.
+
+        See also
+        --------
+        normalized_to_integral
+        normalized_to_max
+
+        Examples
+        --------
+
+        .. plot:: _examples/histogram/normalize_hist2d.py
+            :include-source:
+        """
+        return Hist2d(self.H / np.sum(self.H), self.xedges.copy(), self.yedges.copy())
+
+    @property
+    def xbins(self) -> int:
+        """Return number of xbins."""
+        return self.H.shape[0]
+
+    @property
+    def xbinwidths(self) -> NDArray[np.float64]:
+        """Return number of xbins."""
+        return np.diff(self.xedges)
+
+    @property
+    def ybins(self) -> int:
+        """Return number of ybins."""
+        return self.H.shape[1]
+
+    @property
+    def ybinwidths(self) -> NDArray[np.float64]:
+        """Return number of xbins."""
+        return np.diff(self.yedges)
+
+    @property
+    def binareas(self) -> NDArray[np.float64]:
+        """
+        Get areas of each bin.
+
+        Returns
+        -------
+        areas : ndarray
+            ``areas[i ,j]`` is the area of bin :attr:`Hist2d.H[i, j] <.Hist2d.H>`.
+        """
+        areas = self.xbinwidths[:, np.newaxis] * self.ybinwidths[np.newaxis, :]
+        return areas
+
+    @property
+    def histogram(self) -> NDArray[np.float64]:
+        """
+        Alias for :attr:`.Hist2d.H`.
+
+        See also
+        --------
+        H
+        """
+        return self.H
+
+    @histogram.setter
+    def histogram(self, _H: NDArray[np.float64]) -> None:
+        """
+        Alias for :attr:`.Hist2d.H`.
+
+        See also
+        --------
+        H
+        """
+        self._H = _H
 
 
 if __name__ == "__main__":

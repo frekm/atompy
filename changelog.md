@@ -1,4 +1,4 @@
-# v4.20.0-dev
+# v4.20.0
 
 - Added more normalization methods to `Hist1d` and `Hist2d`
 - Added `bins` and `binwidth` properties to `Hist1d`

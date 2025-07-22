@@ -1838,6 +1838,7 @@ def make_me_nice(
             fix_figwidth=next_fix_figwidth,
             max_figwidth=np.inf,
             margin_pad_pts=margin_pad_pts,
+            margin_pad_ignores_labels=margin_pad_ignores_labels,
             row_pad_pts=row_pad_pts,
             row_pad_ignores_labels=row_pad_ignores_labels,
             col_pad_pts=col_pad_pts,
@@ -1855,7 +1856,7 @@ def make_me_nice(
         relevant_bottom_bboxes = tbboxes_inch
     new_fh_inch = (
         (
-            np.max([t.y1 for t in tbboxes_inch[0]])
+            np.max([t.y1 for t in relevant_bottom_bboxes[0]])
             - np.min([t.y0 for t in relevant_bottom_bboxes[-1]])
         )
         - np.sum(extra_hspaces_inch[1:])

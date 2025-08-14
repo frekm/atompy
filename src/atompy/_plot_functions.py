@@ -178,7 +178,7 @@ def set_latex_backend(font: Literal["FiraSans", "Times", "ScholaX"]) -> None:
     if font == "FiraSans":
         plt.rcParams["pgf.texsystem"] = "lualatex"
         plt.rcParams["pgf.preamble"] = (
-            r"\usepackage[mathrm=sym]{unicode-math}\setmathfont{Fira Math}[Scale=MatchUppercase,Numbers=Tabular]\setsansfont{Fira Sans}[Scale=MatchUppercase,Numbers=Lining]\usepackage{picture,xcolor}\usepackage{nicefrac}"
+            r"\usepackage[mathrm=sym]{unicode-math}\setmathfont{Fira Math}[Scale=MatchUppercase,Numbers=Tabular]\setsansfont{Fira Sans}[Scale=MatchUppercase,Numbers=Tabular]\usepackage{picture,xcolor}\usepackage{nicefrac}"
         )
     elif font == "Times":
         plt.rcParams["pgf.texsystem"] = "pdflatex"

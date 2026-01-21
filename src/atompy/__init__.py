@@ -14,5 +14,8 @@ from ._misc import (
 from ._histogram1d import Hist1d
 
 
+from ._histogram2d import Hist2d
+
+
 from . import physics
 from ._version import __version__

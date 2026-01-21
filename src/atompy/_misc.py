@@ -1,9 +1,11 @@
+from os import PathLike
 from typing import Any, Literal, Callable, cast
 import numpy as np
 from numpy.random import Generator
 from numpy.typing import NDArray, ArrayLike
 from matplotlib.figure import Figure, SubFigure
 from matplotlib.axes import Axes
+import mplutils as mplu
 
 import time
 
@@ -69,6 +71,115 @@ def get_all_dividers(n: int) -> tuple[int, ...]:
             all_dividers.append(divider)
     all_dividers.append(n)
     return tuple(all_dividers)
+
+
+def for_pcolormesh_from_root(
+    fname: str | PathLike,
+    hname: str,
+) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
+    """
+    Load data from a `ROOT <https://root.cern.ch/>`__ file to plot it with
+    :func:`matplotlib.pyplot.pcolormesh`.
+
+    Parameters
+    ----------
+    fname : str
+        The ROOT filename.
+
+    hname : str
+        Within the file, the path/to/the/histogram.
+
+    Returns
+    -------
+    X, Y, C : ndarray
+        Output formatted to work with :func:`matplotlib.pyplot.pcolormesh`.
+
+    See also
+    --------
+    for_pcolormesh
+    for_pcolormesh_from_txt
+
+    Examples
+    --------
+
+    .. plot:: _examples/io/for_pcolormesh_from_root.py
+        :include-source:
+
+
+    """
+    with uproot.open(fname) as file:  # type: ignore
+        values, xedges, yedges = file[hname].to_numpy()  # type: ignore
+    return xedges, yedges, values.T
+
+
+def for_pcolormesh_from_txt(
+    fname: str | PathLike,
+    *,
+    iteration_order: Literal["x_first", "y_first"] = "x_first",
+    data_layout: Literal["rows", "columns"] = "columns",
+    xyz_indices: tuple[int, int, int] = (0, 1, 2),
+    xmin: float | None = None,
+    xmax: float | None = None,
+    ymin: float | None = None,
+    ymax: float | None = None,
+    **loadtxt_kwargs,
+) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
+    """
+    Load 2D data from a text file such that it can be plotted
+    with :func:`matplotlib.pyplot.pcolormesh`.
+
+    The file should contain three columns (or rows, depending on `data_layout`)
+    that represent the x, y, and z values of the 2D data.
+
+    Parameters
+    ----------
+    fname : str
+        Filename.
+
+    iteration_order : "x_first" or "y_first", default "x_first"
+        Specify if the outer iteration is along x or y.
+
+    data_layout : "rows" or "columns", default "columns"
+        Specify if the data in the text file is given in rows or columns.
+
+    xyz_indices : (int, int, int), default (0, 1, 2)
+        Specify which column (or row) corresponds to what.
+
+    xmin, xmax, ymin, ymax : float, optional
+        If x (y) bins do not have constant size, at least one corresponding
+        limit has to be provided.
+
+        .. note::
+
+            This does not refer to the limits of the bin centers, but the limits of
+            the bin edges!
+
+    **loadtxt_kwargs
+        Extra keyword arguments for :func:`numpy.loadtxt`.
+
+        This can be used, e.g., to skip a certain number of lines, or to
+        change the column separator.
+
+    See also
+    --------
+    for_pcolormesh
+    for_pcolormesh_from_root
+    """
+    data = np.loadtxt(fname, **loadtxt_kwargs)
+    if data_layout == "columns":
+        data = data.T
+    elif data_layout != "rows":
+        raise ValueError(f"{data_layout=}, but it must be 'rows' or 'columns'")
+    return mplu.for_pcolormesh(
+        data[xyz_indices[0]],
+        data[xyz_indices[1]],
+        data[xyz_indices[2]],
+        iteration_order=iteration_order,
+        xmin=xmin,
+        xmax=xmax,
+        ymin=ymin,
+        ymax=ymax,
+    )
 
 
 def convert_cosine_to_angles(

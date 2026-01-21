@@ -1,0 +1,1008 @@
+from typing import Any, Iterator, Literal
+import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
+
+import mplutils as mplu
+
+from os import PathLike
+
+import numpy as np
+from numpy.typing import NDArray, ArrayLike
+
+from ._misc import (
+    get_all_dividers,
+    _raise_unmatching_edges,
+    centers_to_edges,
+    _get_topmost_figure,
+)
+
+
+class Hist1d:
+    """
+    A histogram class providing basic histogram methods.
+
+    .. tip::
+
+        Histogram your data using :func:`numpy.histogram`, then wrap the results
+        in :class:`.Hist1d`::
+
+            hist = ap.Hist1d(*np.histogram(data))
+
+    Parameters
+    ----------
+    values : array_like
+        The histogram values, e.g., counts.
+
+    edges : array_like
+        The edges of the histogram bins. Note that
+        ``len(values) = len(edges) + 1``
+
+        .. note::
+
+            If you want to initialize a :class:`.Hist1d` from centers instead of edges,
+            use :meth:`.Hist1d.from_centers`.
+
+    Attributes
+    ----------
+    edges : ndarray
+
+    values : ndarray
+
+    centers : ndarray
+
+    limits : (float, float)
+
+    nbins : int
+    """
+
+    def __init__(self, values: ArrayLike, edges: ArrayLike):
+        self._values = np.asarray(values).astype(np.float64)
+        self._edges = np.asarray(edges).astype(np.float64)
+        if len(self._values) != len(self._edges) - 1:
+            raise ValueError("shape of values does not match shape of edges")
+        self._centers = self._calculate_centers(self._edges)
+
+    @staticmethod
+    def from_centers(
+        values: ArrayLike,
+        centers: ArrayLike,
+        lower: None | float = None,
+        upper: None | float = None,
+    ) -> "Hist1d":
+        """
+        Initiate a :class:`.Hist1d` instance from values and bin-centers.
+
+        If the bins don't have constant size, at least one limit has to be
+        provided, from which the edges can be determined
+
+        .. attention::
+
+            If `centers` are not the centers of *all* bins, or if `lower` or `upper`
+            are not indeed the lower or upper edge, `from_centers` will silently
+            produce nonsense.
+
+        Parameters
+        ----------
+        centers : ndarray, shape(n)
+            centers of the bins
+
+        lower, uppper : float, optional
+            Lower/upper limits of the range.
+
+            At least one limit must be provided if bins don't have a constant
+            size. If both lower and upper limits are provided, the lower one
+            will be prioritized.
+
+        See also
+        --------
+        centers_to_edges
+
+        Examples
+        --------
+        Initiate a histogram with constant bin sizes::
+
+            >>> x = 0.5, 1.5, 2.5, 3.5, 4.5
+            >>> y =   1,   2,   3,   4,   5
+            >>> hist = ap.Hist1d.from_centers(x, y)
+            >>> hist.edges
+            [0. 1. 2. 3. 4. 5.]
+
+        Initiate a histogram with non-constant bin sizes. Then, a lower (or upper)
+        bound has to be passed::
+
+            >>> x = 0.5, 1.5, 3.0, 4.5, 5.5
+            >>> y =   1,   2,   3,   4,   5
+            >>> hist = ap.Hist1d.from_centers(x, y, lower=0.0)
+            >>> hist.edges
+            [0. 1. 2. 4. 5. 6.]
+        """
+        edges = centers_to_edges(centers, lower, upper)
+        values = np.asarray(values, copy=True).astype(np.float64)
+        if len(values) != len(edges) - 1:
+            raise ValueError("shape of values does not match shape of centers")
+        return Hist1d(values, edges)
+
+    @staticmethod
+    def from_txt(
+        fname: str | PathLike,
+        data_layout: Literal["rows", "columns"] = "columns",
+        idx_centers: int = 0,
+        idx_values: int = 1,
+        lower: None | float = None,
+        upper: None | float = None,
+        **loadtxt_kwargs,
+    ):
+        """
+        Initiate a :class:`.Hist1d` from a text file.
+
+        Assumes that the histogram is saved as bin-centers, bin-values. The file is
+        loaded using :func:`numpy.loadtxt`.
+
+        Parameters
+        ----------
+        fname : str or PathLike
+            The filename.
+
+        data_layout : "rows" or "columns", default "columns"
+            Specify if centers and values are saved in the text file in rows or
+            in columns.
+
+        idx_centers : int, default 0
+            The index that corresponds to the histogram bin centers.
+
+        idx_values : int, default 1
+            The index that corresponds to the histogram values.
+
+        lower, upper : float, optional
+            If the histogram bins do not have equal size, at least `lower` or `upper`
+            has to be provided in order to properly calculate the bin edges.
+
+            See :func:`.centers_to_edges`.
+
+        Other parameters
+        ----------------
+        **loadtxt_kwargs
+            Additional :func:`numpy.loadtxt` keyword arguments.
+
+        Examples
+        --------
+        Assume a ``data.txt`` with::
+
+            # data.txt
+            0.5    1
+            1.5    2
+            2.5    3
+            3.5    4
+            4.5    5
+
+        Initiate a histogram from it::
+
+            >>> hist = ap.Hist1d.from_txt("data.txt")
+            >>> hist.values
+            array([1. 2. 3. 4. 5.])
+            >>> hist.edges
+            array([0. 1. 2. 3. 4. 5])
+
+        If the bins do not have a constant binsize, e.g.::
+
+            # data.txt
+            0.5    1
+            1.5    2
+            3.0    3
+            4.5    4
+            5.5    5
+
+        one can load it, but needs to specify either `lower` or `upper`::
+
+            >>> hist = ap.Hist1d.from_txt("data.txt", lower=0.0)
+            >>> hist.values
+            array([1. 2. 3. 4. 5.])
+            >>> hist.edges
+            array([0. 1. 2. 4. 5. 6])
+
+        If multiple datasets are within one textfile, e.g.::
+
+            # manydata.txt
+            # values1   values2   centers
+              1         11        0.5
+              2         12        1.5
+              3         13        2.5
+              4         14        3.5
+              5         15        4.5
+
+        one can load specify which data to load using the `idx_*` keywords::
+
+            >>> hist1 = ap.Hist1d.from_txt("manydata.txt", idx_centers=2, idx_values=0)
+            >>> hist2 = ap.Hist1d.from_txt("manydata.txt", idx_centers=2, idx_values=1)
+            >>> hist1.values
+            array([1. 2. 3. 4. 5.])
+            >>> hist2.values
+            array([11. 12. 13. 14. 15.])
+        """
+        data = np.loadtxt(fname, **loadtxt_kwargs)
+        if data_layout == "columns":
+            data = data.T
+        elif data_layout != "rows":
+            raise ValueError(f"{data_layout=}, but it should be 'rows' or 'columns'")
+        return Hist1d.from_centers(data[idx_values], data[idx_centers], lower, upper)
+
+    @staticmethod
+    def from_root(fname: str | PathLike, hname: str) -> "Hist1d":
+        """
+        Initiate a :class:`.Hist1d` from a `ROOT <https://root.cern.ch/>`__ file.
+
+        Parameters
+        ----------
+        fname : str or PathLike
+            The filename of the ROOT file, e.g., ``important_data.root``
+
+        hname : str
+            The name of the histogram within the ROOT file,
+            e.g., ``path/to/histogram1d``.
+        """
+        with uproot.open(fname) as file:  # type: ignore
+            return Hist1d(*file[hname].to_numpy())  # type: ignore
+
+    @staticmethod
+    def _calculate_centers(edges: NDArray[np.float64]) -> NDArray[np.float64]:
+        return edges[:-1] + 0.5 * np.diff(edges).astype(np.float64)
+
+    @property
+    def values(self) -> NDArray[np.float64]:
+        """Histogram's values (e.g., counts)."""
+        return self._values
+
+    @values.setter
+    def values(self, values: ArrayLike) -> None:
+        values = np.asarray(values, copy=True).astype(np.float64)
+        if len(values) != len(self.values):
+            raise ValueError(f"shape of new values does not match shape of old values")
+        self._values = values
+
+    @property
+    def edges(self) -> NDArray[np.float64]:
+        """Edges of the histogram's bins."""
+        return self._edges
+
+    @edges.setter
+    def edges(self, edges: ArrayLike) -> None:
+        edges = np.asarray(edges, copy=True).astype(np.float64)
+        if len(edges) != len(self.edges):
+            raise ValueError(f"shape of new edges does not match shape of old edges")
+        self._edges = edges
+        self._centers = self._calculate_centers(self._edges)
+
+    @property
+    def centers(self) -> NDArray[np.float64]:
+        """Centers of the histogram's bins."""
+        return self._centers
+
+    @property
+    def nbins(self) -> int:
+        """Number of bins."""
+        return len(self.values)
+
+    @property
+    def limits(self) -> tuple[Any, Any]:
+        """Limits of the histogram's edges."""
+        return self.edges[0], self.edges[-1]
+
+    def __add__(self, other: "Hist1d") -> "Hist1d":
+        if not isinstance(other, Hist1d):
+            return NotImplemented
+        _raise_unmatching_edges(self.edges, other.edges)
+        return Hist1d(self.values + other.values, self.edges.copy())
+
+    def __iadd__(self, other: "Hist1d") -> "Hist1d":
+        if not isinstance(other, Hist1d):
+            return NotImplemented
+        self.values += other.values
+        return self
+
+    def __sub__(self, other: "Hist1d") -> "Hist1d":
+        if not isinstance(other, Hist1d):
+            return NotImplemented
+        _raise_unmatching_edges(self.edges, other.edges)
+        return Hist1d(self.values - other.values, self.edges.copy())
+
+    def __isub__(self, other: "Hist1d") -> "Hist1d":
+        if not isinstance(other, Hist1d):
+            return NotImplemented
+        self.values -= other.values
+        return self
+
+    def __mul__(self, other: "Hist1d") -> "Hist1d":
+        if not isinstance(other, Hist1d):
+            return NotImplemented
+        _raise_unmatching_edges(self.edges, other.edges)
+        return Hist1d(self.values * other.values, self.edges.copy())
+
+    def __imul__(self, other: "Hist1d") -> "Hist1d":
+        if not isinstance(other, Hist1d):
+            return NotImplemented
+        self.values *= other.values
+        return self
+
+    def __truediv__(self, other: "Hist1d") -> "Hist1d":
+        if not isinstance(other, Hist1d):
+            return NotImplemented
+        _raise_unmatching_edges(self.edges, other.edges)
+        return Hist1d(self.values / other.values, self.edges.copy())
+
+    def __itruediv__(self, other: "Hist1d") -> "Hist1d":
+        if not isinstance(other, Hist1d):
+            return NotImplemented
+        self.values /= other.values
+        return self
+
+    def __floordiv__(self, other: "Hist1d") -> "Hist1d":
+        if not isinstance(other, Hist1d):
+            return NotImplemented
+        _raise_unmatching_edges(self.edges, other.edges)
+        return Hist1d(self.values // other.values, self.edges.copy())
+
+    def __ifloordiv__(self, other: "Hist1d") -> "Hist1d":
+        if not isinstance(other, Hist1d):
+            return NotImplemented
+        self.values //= other.values
+        return self
+
+    def __neg__(self) -> "Hist1d":
+        return Hist1d(-self.values, self.edges)
+
+    def __iter__(self) -> Iterator[NDArray[Any]]:
+        return iter([self.values, self.edges])
+
+    def __str__(self) -> str:
+        edges_str = str(self.edges)
+        values_str = str(self.values)
+        hist_str = f"Hist1d with (values, edges) =\n{values_str}\n{edges_str}"
+        return hist_str
+
+    def convert_cosine_to_angles(self, full_range: bool = True) -> "Hist1d":
+        """
+        Convert edges which represent `cosine(angle)` to `angle`.
+
+        Edges must not exceed the interval [-1, 1].
+
+        Parameters
+        ----------
+        full_range : bool, default True
+            Control the output range.
+
+            - If False, return a histogram ranging from 0 to π.
+            - If True, return a histogram ranging from 0 to 2π, where the second half
+              is a mirror image of the first.
+
+        Raises
+        ------
+        ValueError
+            Raised if the edges do not represent cosine values.
+
+        Returns
+        -------
+        hist : :class:`.Hist1d`
+
+        See also
+        --------
+        convert_cosine_to_angles
+        """
+        cosines = np.flip(self.edges)
+        values = np.flip(self.values)
+
+        angles = np.arccos(cosines)
+
+        if full_range:
+            angles = np.append(angles, angles[1:] + np.pi)
+            values = np.append(values, np.flip(values))
+
+        return Hist1d(values, angles)
+
+    def rebin(self, factor: int) -> "Hist1d":
+        """
+        Rebin histogram.
+
+        Parameters
+        ----------
+        factor : int
+            This is how many old bins will be combined to a new bin.
+            Number of old bins divided by factor must be an integer.
+
+            .. note::
+
+                Use :func:`.get_all_dividers` to find all possible rebin factors.
+
+        Returns
+        -------
+        new_histogram : :class:`.Hist1d`
+            The new, rebinned histogram
+
+        Examples
+        --------
+
+        .. plot:: _examples/histogram1d/rebin.py
+            :include-source:
+        """
+        old_n = self.nbins
+
+        if old_n % factor != 0:
+            raise ValueError(
+                f"Invalid {factor=}. Possible factors for this histogram are {get_all_dividers(old_n)}."
+            )
+
+        new_hist = np.empty(self.values.size // factor)
+        for i in range(new_hist.size):
+            new_hist[i] = np.sum(self.values[i * factor : i * factor + factor])
+
+        new_edges = np.full(new_hist.size + 1, self.edges[-1])
+        for i in range(new_edges.size - 1):
+            new_edges[i] = self.edges[i * factor]
+
+        return Hist1d(new_hist, new_edges)
+
+    def calculate_binwidths(self) -> NDArray[np.float64]:
+        """
+        Return the widths of all bins.
+
+        Returns
+        -------
+        binwidths : ndarray or float
+            If the bins have constant width, a single value is returned.
+            Otherwise an array with length :attr:`.Hist1d.bins` is returned.
+
+        Examples
+        --------
+        ::
+
+            >>> ap.Hist1d((1, 2, 3), (0, 1, 2, 3).calculate_binwidths()
+            1.0
+            >>> ap.Hist1d((1, 2, 3), (0, 1, 3, 4).calculate_binwidths()
+            [1. 2. 1.]
+        """
+        widths = np.diff(self.edges)
+        unique_widths = np.unique(widths)
+        return unique_widths[0] if len(unique_widths) == 1 else widths
+
+    def integrate(self) -> float:
+        """
+        Return the integral of the histogram.
+
+        The integral is calculated as bin-value * bin-width.
+
+        Returns
+        -------
+        integral : float
+
+        See also
+        --------
+        max
+        min
+        sum
+        """
+        return np.sum(self.values * self.calculate_binwidths())
+
+    def sum(self) -> float:
+        """
+        Return the sum of the histogram's values.
+
+        Returns
+        -------
+        sum : float
+
+        See also
+        --------
+        integrate
+        max
+        min
+        """
+        return np.sum(self.values)
+
+    def max(self) -> float:
+        """
+        Return the maximum of the histogram.
+
+        Returns
+        -------
+        max : float
+
+        See also
+        --------
+        integrate
+        min
+        sum
+        """
+        return np.amax(self.values)
+
+    def min(self) -> float:
+        """
+        Return the minimum of the histogram.
+
+        Returns
+        -------
+        min : float
+
+        See also
+        --------
+        integrate
+        max
+        sum
+        """
+        return np.amin(self.values)
+
+    def norm_to_integral(self) -> "Hist1d":
+        """
+        Return the histogram normalized to :meth:`.Hist1d.integrate`.
+
+        Returns
+        -------
+        hist : :class:`Hist1d`
+            The normalized histogram.
+
+        See also
+        --------
+        norm_to_max
+        norm_to_sum
+        """
+        new_values = np.divide(self.values, self.integrate()).copy()
+        new_edges = self.edges.copy()
+        return Hist1d(new_values, new_edges)
+
+    def norm_to_max(self) -> "Hist1d":
+        """
+        Return the histogram normalized to :meth:`.Hist1d.max`.
+
+        Returns
+        -------
+        hist : :class:`Hist1d`
+            The normalized histogram.
+
+        See also
+        --------
+        norm_to_integral
+        norm_to_sum
+        """
+        new_values = np.divide(self.values, self.values.max()).copy()
+        new_edges = self.edges.copy()
+        return Hist1d(new_values, new_edges)
+
+    def norm_to_sum(self) -> "Hist1d":
+        """
+        Return the histogram normalized to :meth:`.Hist1d.sum`.
+
+        .. note::
+
+            When comparing two histograms, :meth:`.Hist1d.norm_to_integral` may be more
+            appropriate!
+
+        Returns
+        -------
+        hist : :class:`Hist1d`
+            The normalized histogram.
+
+        See also
+        --------
+        norm_to_integral
+        norm_to_max
+        """
+        new_values = np.divide(self.values, self.sum()).copy()
+        new_edges = self.edges.copy()
+        return Hist1d(new_values, new_edges)
+
+    def for_step(
+        self, extent_to: None | float = None
+    ) -> tuple[NDArray[Any], NDArray[Any]]:
+        """
+        Return arrays appropriate for plotting with :obj:`plt.step <matplotlib.pyplot.step>`.
+
+        By default, ``plt.step`` needs the right edges of a
+        bin and the corresponding bin value. See the *where* keyword argument.
+
+        .. attention ::
+            Don't use anything else but ``where="pre"`` (which is the default) in
+            ``plt.step``. Otherwise the histogram will be shifted.
+
+        Parameters
+        ----------
+        extent_to : float, optional
+            Extent the edges to this value (useful if the resulting plot should start
+            at, e.g., zero).
+
+        Returns
+        -------
+        right_edges : ndarray
+            Right edges, that is, ``Hist1d.edges[1:]``.
+
+        values : ndarray
+            Bin values, that is, ``Hist1d.values``.
+
+        Examples
+        --------
+        Plot ``hist: Hist1d``::
+
+            plt.step(*hist.for_step())
+
+        If ``where != "pre"``, the resulting histogram will be shifted!::
+
+            plt.step(*hist.for_step(), where="mid") # this will have shifted bins
+
+        See also
+        --------
+        for_bar
+        for_plot
+        """
+        if extent_to is not None:
+            edges = np.append(self.edges, self.edges[-1])
+            values = np.concatenate([[extent_to], self.values, [extent_to]])
+            return edges, values
+        else:
+            return self.edges, np.append(self.values[0], self.values)
+
+    def for_plot(self) -> tuple[NDArray[Any], NDArray[Any]]:
+        """
+        Return arrays appropriate for plotting with :obj:`plt.plot <matplotlib.pyplot.plot>`.
+
+        Returns
+        -------
+        centers : ndarray
+
+        values : ndarray
+
+        Examples
+        --------
+        Plot ``hist: Hist1d``::
+
+            plt.plot(*hist.for_plot())
+
+        Convinient, if you want to chain histogram operations and then plot them.
+        E.g., this::
+
+            plt.plot(hist.keep(lower, upper).rebin(2).centers,
+                     hist.keep(lower, upper).rebin(2).norm_to_integral().values)
+
+        becomes::
+
+            plt.plot(*hist.keep(lower, upper).rebin(2).norm_to_integral().for_plot())
+
+
+        See also
+        --------
+        for_bar
+        for_step
+        """
+        return self.centers, self.values
+
+    def for_bar(self) -> tuple[NDArray[Any], NDArray[Any], NDArray[Any]]:
+        """
+        Return arrays appropriate for plotting with :obj:`plt.bar <matplotlib.pyplot.bar>`.
+
+        .. attention::
+
+            When using ``for_bar``, you cannot provide the ``widths`` keyword
+            in :obj:`plt.bar <matplotlib.pyplot.bar>`!
+
+        Returns
+        -------
+        centers : ndarray
+
+        values : ndarray
+
+        binwidths : ndarray
+
+        Examples
+        --------
+        Plot ``hist: Hist1d``::
+
+            plt.bar(*hist.for_bar())
+
+        Note that you cannot provide the ``widths`` keyword when using this::
+
+            plt.bar(*hist.for_bar(), widths=widths) # invalid!!!
+
+        If you want to provide your own binwidths, use :meth:`.Hist1d.for_plot`
+        instead::
+
+            plt.bar(*hist.for_plot(), widths=widths)
+
+        See also
+        --------
+        for_plot
+        for_step
+        """
+        return self.centers, self.values, self.calculate_binwidths()
+
+    def plot(
+        self,
+        ax: Axes | None = None,
+        fname: str | None = None,
+        xlabel: str | None = None,
+        ylabel: str | None = None,
+        title: str | None = None,
+        logscale: bool = False,
+        xlim: tuple[float, float] | None = None,
+        ylim: tuple[float, float] | None = None,
+        plot_fmt: str | None = None,
+        plot_kwargs: dict[str, Any] = {},
+        savefig_kwargs: dict[str, Any] = {},
+        make_me_nice: bool = True,
+        make_me_nice_kwargs: dict[str, Any] = {},
+    ) -> tuple[Figure, Axes]:
+        """
+        Plot the 1D histogram using :obj:`matplotlib.pyplot.plot`.
+
+        Parameters
+        ----------
+        fname : str, optional
+            If provided, the plot will be saved to this file.
+
+        xlabel : str, optional
+            Label for the x-axis.
+
+        ylabel : str, optional
+            Label for the y-axis.
+
+        title : str, optional
+            Title of the plot.
+
+        logscale : bool, optional
+            If True, use a logarithmic y scale.
+
+        xlim : tuple[float, float], optional
+            Limits for the x-axis.
+
+        ylim : tuple[float, float], optional
+            Limits for the y-axis.
+
+        plot_fmt : str, optional
+            format string for :obj:`matplotlib.pyplot.plot`.
+
+        plot_kwargs : dict, optional
+            Additional keyword arguments passed to
+            :obj:`matplotlib.pyplot.plot`.
+
+        savefig_kwargs : dict, optional
+            Additional keyword arguments passed to :func:`.savefig`.
+
+        make_me_nice : bool, default True
+            If True, call :func:`.make_me_nice`.
+
+        make_me_nice_kwargs : dict, optional
+            Additional keyword arguments passed to :func:`.make_me_nice`.
+
+        Returns
+        -------
+        tuple of :class:`matplotlib.figure.Figure`, :class:`matplotlib.axes.Axes`
+            A tuple containing the matplotlib Figure and Axes.
+
+        Examples
+        --------
+
+        .. plot:: _examples/histogram1d/plot.py
+            :include-source:
+
+        .. plot:: _examples/histogram1d/plot_in_axes.py
+            :include-source:
+
+        """
+        if ax is None:
+            fig, ax = plt.subplots(1, 1)
+        else:
+            fig = _get_topmost_figure(ax)
+        if plot_fmt is None:
+            ax.plot(*self.for_plot(), **plot_kwargs)
+        else:
+            ax.plot(*self.for_plot(), plot_fmt, **plot_kwargs)
+        if xlabel is not None:
+            ax.set_xlabel(xlabel)
+        if ylabel is not None:
+            ax.set_ylabel(ylabel)
+        if title is not None:
+            ax.set_title(title)
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        if logscale:
+            ax.set_yscale("log")
+        if make_me_nice:
+            mplu.make_me_nice(**make_me_nice_kwargs)
+        if fname is not None:
+            mplu.savefig(fname, **savefig_kwargs)
+        return fig, ax
+
+    def keep(
+        self,
+        lower: float,
+        upper: float,
+        squeeze: bool = False,
+        setval: float = 0.0,
+    ) -> "Hist1d":
+        """
+        Keep every entry of the histogram in-between `lower` and `upper`
+
+        Parameters
+        ----------
+        lower : float
+            Keep all data where the left :attr:`edges <Hist1d.edges>` are greater
+            or equal to `lower`.
+
+        upper : float
+            Keep all data where the right :attr:`edges <Hist1d.edges>` are lesser
+            or equal to `upper`.
+
+        squeeze : bool, default False
+            Controls if the resulting :class:`.Hist1d` has the same number of bins
+            as the original histogram.
+
+        setval : float, default 0.0
+            If `squeeze` is False, fill removed data with `setval`.
+
+        Returns
+        -------
+        hist : :class:`.Hist1d`
+
+        See also
+        --------
+        remove
+
+        Examples
+        --------
+        Create a histogram::
+
+            >>> hist = ap.Hist1d([1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5])
+
+        Only keep values within the interval [1, 4]::
+
+            >>> hist.keep(1, 4).values
+            [0. 2. 3. 4. 0.]
+
+        Fill removed values with a :data:`numpy.nan`
+
+            >>> hist.keep(1, 4, setval=np.nan).values
+            [nan 2. 3. 4. nan]
+
+        Squeeze length to only include kept values::
+
+            >>> hist.keep(1, 4, squeeze=True).edges
+            [1. 2. 3.]
+            >>> hist.keep(1, 4, squeeze=True).values
+            [2. 3]
+
+        Example plot:
+
+        .. plot:: _examples/histogram1d/keep.py
+            :include-source:
+        """
+        idx = np.flatnonzero(
+            np.logical_and(lower <= self.edges[:-1], self.edges[1:] <= upper)
+        )
+        if squeeze:
+            new_values = self.values.copy()[idx]
+            new_edges = self.edges.copy()[np.append(idx, idx[-1] + 1)]
+            return Hist1d(new_values, new_edges)
+        else:
+            new_values = np.full(self.values.shape, setval)
+            new_values[idx] = self.values[idx]
+            new_edges = self.edges.copy()
+            return Hist1d(new_values, new_edges)
+
+    def remove(
+        self,
+        lower: float,
+        upper: float,
+        setval: float = 0.0,
+    ) -> "Hist1d":
+        """
+        Remove every entry of the histogram in-between `lower` and `upper`
+
+        By default, the interval is [lower, upper).
+
+        Parameters
+        ----------
+        lower : float
+            Remove all data where the left :attr:`edges <Hist1d.edges>` are greater
+            (or equal) to `lower`.
+
+        upper : float
+            Remove all data where the right :attr:`edges <Hist1d.edges>` are lesser
+            (or equal) to `upper`.
+
+        setval : float, default 0.0
+            If `keepdims` is True, fill removed data with `setval`.
+
+        Returns
+        -------
+        hist : :class:`.Hist1d`
+
+        See also
+        --------
+        keep
+
+        Examples
+        --------
+        Create a histogram::
+
+            >>> hist = ap.Hist1d([1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5])
+
+        Only keep values in within the interval [1, 4]::
+
+            >>> hist.remove(1, 3).values
+            [1. 0. 0. 0. 5.]
+
+        Fill removed values with a :data:`numpy.nan`
+
+            >>> hist.keep(1, 4, setval=np.nan).values
+            [1. nan nan nan 5.]
+
+        Example plot:
+
+        .. plot:: _examples/histogram1d/remove.py
+            :include-source:
+        """
+        idx = np.flatnonzero(
+            np.logical_and(lower <= self.edges[:-1], self.edges[1:] <= upper)
+        )
+        new_hist = Hist1d(self.values.copy(), self.edges.copy())
+        new_hist.values[idx] = setval
+        return new_hist
+
+    def norm_diff(self, other: "Hist1d"):
+        """
+        Return the normalized difference between two histograms.
+
+        Calculates (self - other) / (self + other).
+
+        Parameters
+        ----------
+        other : :class:`.Hist1d`
+            The other histogram.
+
+            Both histograms must have matching edges.
+
+        Returns
+        -------
+        norm_diff : :class:`.Hist1d`
+            A new histgram of the normalized difference.
+
+        Examples
+        --------
+
+        .. plot:: _examples/histogram1d/norm_diff.py
+            :include-source:
+
+        """
+        _raise_unmatching_edges(self.edges, other.edges, "")
+        new_edges = self.edges.copy()
+        new_values = (self.values - other.values) / (self.values + other.values)
+        return Hist1d(new_values, new_edges)
+
+    def pad_with(self, value: float) -> "Hist1d":
+        """
+        Extent histogram left and right with `value`.
+
+        A bin is inserted before and after the histogram. The bin has the value `value`.
+
+        Parameters
+        ----------
+        value : floaa
+
+        Returns
+        -------
+        :class:`.Hist1d`
+            A new histogram with padding.
+
+        Examples
+        --------
+
+        .. plot:: _examples/histogram1d/pad_with.py
+            :include-source:
+
+        """
+        binwidths = np.diff(self.edges)
+        new_edges = np.empty(len(self.edges) + 2, dtype=np.float64)
+        new_edges[0] = self.edges[0] - binwidths[0]
+        new_edges[1:-1] = self.edges
+        new_edges[-1] = self.edges[-1] + binwidths[-1]
+        new_values = np.empty(self.nbins + 2, dtype=np.float64)
+        new_values[0] = value
+        new_values[1:-1] = self.values
+        new_values[-1] = value
+        return Hist1d(new_values, new_edges)

@@ -1,11 +1,33 @@
-from typing import NamedTuple, Any, Literal, Type, Callable
+from typing import Any, Literal, Callable, cast
 import numpy as np
 from numpy.random import Generator
 from numpy.typing import NDArray, ArrayLike
+from matplotlib.figure import Figure, SubFigure
+from matplotlib.axes import Axes
 
 import time
 
 from ._errors import UnmatchingEdgesError
+
+
+def _get_topmost_figure(ax: Axes) -> Figure:
+    """
+    Get the parent figure of `ax`.
+
+    Parameters
+    ----------
+    ax : :class:`matplotlib.axes.Axes`
+
+    Returns
+    -------
+    figure : :class:`matplotlib.figure.Figure`
+    """
+    fig = ax.get_figure()
+    if fig is None:
+        raise ValueError("'ax' is not assigned to any figure")
+    while isinstance(fig, SubFigure):
+        fig = fig.get_figure()
+    return cast(Figure, fig)
 
 
 def _raise_unmatching_edges(

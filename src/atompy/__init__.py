@@ -11,6 +11,8 @@ from ._misc import (
     sample_distribution_func,
 )
 
+from ._histogram1d import Hist1d
+
 
 from . import physics
 from ._version import __version__

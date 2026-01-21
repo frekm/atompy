@@ -10,30 +10,6 @@ analysis and to create plots. Plotting is done using `matplotlib
 The source code can be found on `GitHub <https://github.com/frekm/
 atompy/>`_.
 
-Overview
-========
-
-+----------------------------------------+---------------------------------------------------+
-| :doc:`Plotting <plotting/index>`       | Documentation of functionality related to         |
-|                                        | manipulating ``matplotlib`` plots.                |
-+----------------------------------------+---------------------------------------------------+
-| :doc:`Data Analysis <analysis/index>`  | Documentation of provided functionality related   |
-|                                        | to data analysis, most notably                    |
-|                                        | :doc:`Vector <analysis/vector/index>`,            |
-|                                        | :doc:`Hist1d <analysis/histograms/hist1d/index>`, |
-|                                        | and                                               |
-|                                        | :doc:`Hist2d <analysis/histograms/hist1d/index>`  |
-+----------------------------------------+---------------------------------------------------+
-| :doc:`Input/Output <io/index>`         | Documentation of convenience functions that load  |
-|                                        | (from text or                                     |
-|                                        | `ROOT <https://root.cern.ch/>`_                   |
-|                                        | files) or save data (to text files).              |
-+----------------------------------------+---------------------------------------------------+
-| :doc:`Physics <physics/index>`         | Documentation of the physics submodule.           |
-+----------------------------------------+---------------------------------------------------+
-| :doc:`Examples <examples/index>`       | Examples on how to use ``atompy`` functionality.  |
-+----------------------------------------+---------------------------------------------------+
-
 .. _installation:
 
 Installation
@@ -79,7 +55,7 @@ Using ``git``
 
 .. code-block:: shell
 
-  pip install git+https//github.com/frekm/atompy
+    pip install git+https//github.com/frekm/atompy
 
 From source
 -----------
@@ -88,16 +64,8 @@ From source
 
 .. code-block:: shell
 
-  pip install <path>/atompy-<version>/src
-
-
-
+    pip install <path>/atompy-<version>/src
 
 .. toctree::
-  :hidden:
 
-  plotting/index
-  analysis/index
-  io/index
-  physics/index
-  examples/index
+    physics/index

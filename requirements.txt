@@ -1,0 +1,12 @@
+scipy
+numpy
+matplotlib
+uproot
+pytest
+black
+sphinx
+numpydoc
+intersphinx_registry
+pydata_sphinx_theme
+mplutils @ https://github.com/frekm/mpl-utils/archive/refs/tags/v0.1.0.zip
+-e .

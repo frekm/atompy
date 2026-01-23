@@ -44,6 +44,15 @@ class Hist1d:
             If you want to initialize a :class:`.Hist1d` from centers instead of edges,
             use :meth:`.Hist1d.from_centers`.
 
+    title : str, default ""
+        Optional title of the histogram.
+
+    xlabel : str, default ""
+        Optional x-label of the histogram.
+
+    ylabel : str, default ""
+        Optional y-label of the histogram.
+
     Attributes
     ----------
     edges : ndarray
@@ -57,12 +66,22 @@ class Hist1d:
     nbins : int
     """
 
-    def __init__(self, values: ArrayLike, edges: ArrayLike):
+    def __init__(
+        self,
+        values: ArrayLike,
+        edges: ArrayLike,
+        title: str = "",
+        xlabel: str = "",
+        ylabel: str = "",
+    ):
         self._values = np.asarray(values).astype(np.float64)
         self._edges = np.asarray(edges).astype(np.float64)
         if len(self._values) != len(self._edges) - 1:
             raise ValueError("shape of values does not match shape of edges")
         self._centers = self._calculate_centers(self._edges)
+        self.title = title
+        self.xlabel = xlabel
+        self.ylabel = ylabel
 
     @staticmethod
     def from_centers(
@@ -70,6 +89,9 @@ class Hist1d:
         centers: ArrayLike,
         lower: None | float = None,
         upper: None | float = None,
+        title: str = "",
+        xlabel: str = "",
+        ylabel: str = "",
     ) -> "Hist1d":
         """
         Initiate a :class:`.Hist1d` instance from values and bin-centers.
@@ -94,6 +116,15 @@ class Hist1d:
             At least one limit must be provided if bins don't have a constant
             size. If both lower and upper limits are provided, the lower one
             will be prioritized.
+
+        title : str, default ""
+            Optional title of the histogram.
+
+        xlabel : str, default ""
+            Optional x-label of the histogram.
+
+        ylabel : str, default ""
+            Optional y-label of the histogram.
 
         See also
         --------
@@ -122,7 +153,7 @@ class Hist1d:
         values = np.asarray(values, copy=True).astype(np.float64)
         if len(values) != len(edges) - 1:
             raise ValueError("shape of values does not match shape of centers")
-        return Hist1d(values, edges)
+        return Hist1d(values, edges, title, xlabel, ylabel)
 
     @staticmethod
     def from_txt(
@@ -132,6 +163,9 @@ class Hist1d:
         idx_values: int = 1,
         lower: None | float = None,
         upper: None | float = None,
+        title: str = "",
+        xlabel: str = "",
+        ylabel: str = "",
         **loadtxt_kwargs,
     ):
         """
@@ -160,6 +194,15 @@ class Hist1d:
             has to be provided in order to properly calculate the bin edges.
 
             See :func:`.centers_to_edges`.
+
+        title : str, default ""
+            Optional title of the histogram.
+
+        xlabel : str, default ""
+            Optional x-label of the histogram.
+
+        ylabel : str, default ""
+            Optional y-label of the histogram.
 
         Other parameters
         ----------------
@@ -226,10 +269,18 @@ class Hist1d:
             data = data.T
         elif data_layout != "rows":
             raise ValueError(f"{data_layout=}, but it should be 'rows' or 'columns'")
-        return Hist1d.from_centers(data[idx_values], data[idx_centers], lower, upper)
+        return Hist1d.from_centers(
+            data[idx_values], data[idx_centers], lower, upper, title, xlabel, ylabel
+        )
 
     @staticmethod
-    def from_root(fname: str | PathLike, hname: str) -> "Hist1d":
+    def from_root(
+        fname: str | PathLike,
+        hname: str,
+        title: str | None = None,
+        xlabel: str | None = None,
+        ylabel: str | None = None,
+    ) -> "Hist1d":
         """
         Initiate a :class:`.Hist1d` from a `ROOT <https://root.cern.ch/>`__ file.
 
@@ -243,7 +294,16 @@ class Hist1d:
             e.g., ``path/to/histogram1d``.
         """
         with uproot.open(fname) as file:  # type: ignore
-            return Hist1d(*file[hname].to_numpy())  # type: ignore
+            hist: Any = file[hname]
+            title_: str = hist.title if title is None else title
+            xlabel_: str = (
+                hist.member("fXaxis").member("fTitle") if xlabel is None else xlabel
+            )
+            ylabel_: str = (
+                hist.member("fXaxis").member("fTitle") if ylabel is None else ylabel
+            )
+            values, edges = hist.to_numpy()
+            return Hist1d(values, edges, title_, xlabel_, ylabel_)
 
     @staticmethod
     def _calculate_centers(edges: NDArray[np.float64]) -> NDArray[np.float64]:
@@ -293,7 +353,13 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         _raise_unmatching_edges(self.edges, other.edges)
-        return Hist1d(self.values + other.values, self.edges.copy())
+        return Hist1d(
+            self.values + other.values,
+            self.edges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+        )
 
     def __iadd__(self, other: "Hist1d") -> "Hist1d":
         if not isinstance(other, Hist1d):
@@ -305,7 +371,13 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         _raise_unmatching_edges(self.edges, other.edges)
-        return Hist1d(self.values - other.values, self.edges.copy())
+        return Hist1d(
+            self.values - other.values,
+            self.edges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+        )
 
     def __isub__(self, other: "Hist1d") -> "Hist1d":
         if not isinstance(other, Hist1d):
@@ -317,7 +389,13 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         _raise_unmatching_edges(self.edges, other.edges)
-        return Hist1d(self.values * other.values, self.edges.copy())
+        return Hist1d(
+            self.values * other.values,
+            self.edges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+        )
 
     def __imul__(self, other: "Hist1d") -> "Hist1d":
         if not isinstance(other, Hist1d):
@@ -329,7 +407,13 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         _raise_unmatching_edges(self.edges, other.edges)
-        return Hist1d(self.values / other.values, self.edges.copy())
+        return Hist1d(
+            self.values / other.values,
+            self.edges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+        )
 
     def __itruediv__(self, other: "Hist1d") -> "Hist1d":
         if not isinstance(other, Hist1d):
@@ -341,7 +425,13 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         _raise_unmatching_edges(self.edges, other.edges)
-        return Hist1d(self.values // other.values, self.edges.copy())
+        return Hist1d(
+            self.values // other.values,
+            self.edges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+        )
 
     def __ifloordiv__(self, other: "Hist1d") -> "Hist1d":
         if not isinstance(other, Hist1d):
@@ -350,7 +440,7 @@ class Hist1d:
         return self
 
     def __neg__(self) -> "Hist1d":
-        return Hist1d(-self.values, self.edges)
+        return Hist1d(-self.values, self.edges, self.title, self.xlabel, self.ylabel)
 
     def __iter__(self) -> Iterator[NDArray[Any]]:
         return iter([self.values, self.centers])
@@ -398,7 +488,7 @@ class Hist1d:
             angles = np.append(angles, angles[1:] + np.pi)
             values = np.append(values, np.flip(values))
 
-        return Hist1d(values, angles)
+        return Hist1d(values, angles, self.title, self.xlabel, self.ylabel)
 
     def rebin(self, factor: int) -> "Hist1d":
         """
@@ -440,7 +530,7 @@ class Hist1d:
         for i in range(new_edges.size - 1):
             new_edges[i] = self.edges[i * factor]
 
-        return Hist1d(new_hist, new_edges)
+        return Hist1d(new_hist, new_edges, self.title, self.xlabel, self.ylabel)
 
     def binsizes(self) -> NDArray[np.float64]:
         """
@@ -543,7 +633,7 @@ class Hist1d:
         """
         new_values = np.divide(self.values, self.integrate()).copy()
         new_edges = self.edges.copy()
-        return Hist1d(new_values, new_edges)
+        return Hist1d(new_values, new_edges, self.title, self.xlabel, self.ylabel)
 
     def norm_to_max(self) -> "Hist1d":
         """
@@ -561,7 +651,7 @@ class Hist1d:
         """
         new_values = np.divide(self.values, self.values.max()).copy()
         new_edges = self.edges.copy()
-        return Hist1d(new_values, new_edges)
+        return Hist1d(new_values, new_edges, self.title, self.xlabel, self.ylabel)
 
     def norm_to_sum(self) -> "Hist1d":
         """
@@ -584,7 +674,7 @@ class Hist1d:
         """
         new_values = np.divide(self.values, self.sum()).copy()
         new_edges = self.edges.copy()
-        return Hist1d(new_values, new_edges)
+        return Hist1d(new_values, new_edges, self.title, self.xlabel, self.ylabel)
 
     def for_step(
         self, extent_to: None | float = None
@@ -874,12 +964,12 @@ class Hist1d:
         if squeeze:
             new_values = self.values.copy()[idx]
             new_edges = self.edges.copy()[np.append(idx, idx[-1] + 1)]
-            return Hist1d(new_values, new_edges)
+            return Hist1d(new_values, new_edges, self.title, self.xlabel, self.ylabel)
         else:
             new_values = np.full(self.values.shape, setval)
             new_values[idx] = self.values[idx]
             new_edges = self.edges.copy()
-            return Hist1d(new_values, new_edges)
+            return Hist1d(new_values, new_edges, self.title, self.xlabel, self.ylabel)
 
     def remove(
         self,
@@ -937,7 +1027,9 @@ class Hist1d:
         idx = np.flatnonzero(
             np.logical_and(lower <= self.edges[:-1], self.edges[1:] <= upper)
         )
-        new_hist = Hist1d(self.values.copy(), self.edges.copy())
+        new_hist = Hist1d(
+            self.values.copy(), self.edges.copy(), self.title, self.xlabel, self.ylabel
+        )
         new_hist.values[idx] = setval
         return new_hist
 
@@ -969,7 +1061,7 @@ class Hist1d:
         _raise_unmatching_edges(self.edges, other.edges, "")
         new_edges = self.edges.copy()
         new_values = (self.values - other.values) / (self.values + other.values)
-        return Hist1d(new_values, new_edges)
+        return Hist1d(new_values, new_edges, self.title, self.xlabel, self.ylabel)
 
     def pad_with(self, value: float) -> "Hist1d":
         """
@@ -1002,4 +1094,4 @@ class Hist1d:
         new_values[0] = value
         new_values[1:-1] = self.values
         new_values[-1] = value
-        return Hist1d(new_values, new_edges)
+        return Hist1d(new_values, new_edges, self.title, self.xlabel, self.ylabel)

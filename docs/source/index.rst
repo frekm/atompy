@@ -124,7 +124,13 @@ Alternatively, if you have `git` installed
     cd atompy
     pip install .
 
-.. .. toctree::
+
+.. toctree::
+    :hidden:
+
+    api_reference/index
+    tutorials/index
+
 
 
 

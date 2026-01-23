@@ -5,6 +5,7 @@ from ._misc import (
     centers_to_edges,
     edges_to_centers,
     gauss,
+    get_all_dividers,
     crop,
     sample_distribution,
     sample_distribution_discrete,

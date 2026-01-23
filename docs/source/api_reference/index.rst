@@ -1,0 +1,42 @@
+=============
+API reference
+=============
+
+.. currentmodule:: atompy
+
+
+Vectors
+=======
+
+.. autosummary::
+    :toctree: _autogen
+
+    Vector
+    VectorArray
+    asvector
+    asvectorarray
+
+Histograms
+==========
+
+.. autosummary::
+    :toctree: _autogen
+
+    Hist1d
+    Hist2d
+
+Miscellaenous
+=============
+
+.. autosummary::
+    :toctree: _autogen
+
+    get_all_dividers
+    centers_to_edges
+    edges_to_centers
+    convert_cosine_to_angles
+    sample_distribution
+    sample_distribution_func
+    sample_distribution_discrete
+    gauss
+    crop

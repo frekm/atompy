@@ -353,7 +353,7 @@ class Hist1d:
         return Hist1d(-self.values, self.edges)
 
     def __iter__(self) -> Iterator[NDArray[Any]]:
-        return iter([self.values, self.edges])
+        return iter([self.values, self.centers])
 
     def __str__(self) -> str:
         edges_str = str(self.edges)

@@ -500,7 +500,7 @@ class Hist1d:
 
     def max(self) -> float:
         """
-        Return the maximum of the histogram.
+        Return the maximum value of the histogram.
 
         Returns
         -------
@@ -516,7 +516,7 @@ class Hist1d:
 
     def min(self) -> float:
         """
-        Return the minimum of the histogram.
+        Return the minimum value of the histogram.
 
         Returns
         -------

@@ -35,7 +35,7 @@ def _get_topmost_figure(ax: Axes) -> Figure:
 def _raise_unmatching_edges(
     a: NDArray[Any], b: NDArray[Any], xy: Literal["x", "y", "xy", ""] = ""
 ) -> None:
-    if np.any(a != b):
+    if not np.allclose(a, b):
         raise UnmatchingEdgesError(xy)
 
 

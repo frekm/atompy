@@ -1,4 +1,4 @@
-from ._errors import AliasError, UnmatchingEdgesError
+from ._errors import UnmatchingEdgesError
 
 from ._misc import (
     convert_cosine_to_angles,

@@ -996,7 +996,7 @@ class Hist1d:
             :include-source:
 
         """
-        binwidths = np.diff(self.edges)
+        binwidths = self.binsizes()
         new_edges = np.empty(len(self.edges) + 2, dtype=np.float64)
         new_edges[0] = self.edges[0] - binwidths[0]
         new_edges[1:-1] = self.edges

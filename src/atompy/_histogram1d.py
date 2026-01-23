@@ -284,9 +284,9 @@ class Hist1d:
         return len(self.values)
 
     @property
-    def limits(self) -> tuple[Any, Any]:
+    def limits(self) -> tuple[float, float]:
         """Limits of the histogram's edges."""
-        return self.edges[0], self.edges[-1]
+        return float(self.edges[0]), float(self.edges[-1])
 
     def __add__(self, other: "Hist1d") -> "Hist1d":
         if not isinstance(other, Hist1d):

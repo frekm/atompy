@@ -1,3 +1,6 @@
+# v5.0.1
+- Fix bug in Hist1d.from_root()
+
 # v5.0.0
 - Removed layout manipulations of matplotlib figures
   (now available at https://github.com/frekm/mpl-utils)

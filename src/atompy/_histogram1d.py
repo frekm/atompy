@@ -441,28 +441,24 @@ class Hist1d:
 
         return Hist1d(new_hist, new_edges)
 
-    def calculate_binwidths(self) -> NDArray[np.float64]:
+    def binsizes(self) -> NDArray[np.float64]:
         """
         Return the widths of all bins.
 
         Returns
         -------
-        binwidths : ndarray or float
-            If the bins have constant width, a single value is returned.
-            Otherwise an array with length :attr:`.Hist1d.bins` is returned.
+        binsizes : ndarray
 
         Examples
         --------
         ::
 
-            >>> ap.Hist1d((1, 2, 3), (0, 1, 2, 3).calculate_binwidths()
-            1.0
-            >>> ap.Hist1d((1, 2, 3), (0, 1, 3, 4).calculate_binwidths()
+            >>> ap.Hist1d((1, 2, 3), (0, 1, 2, 3).binsizes()
+            [1. 1. 1.]
+            >>> ap.Hist1d((1, 2, 3), (0, 1, 3, 4).binsizes()
             [1. 2. 1.]
         """
-        widths = np.diff(self.edges)
-        unique_widths = np.unique(widths)
-        return unique_widths[0] if len(unique_widths) == 1 else widths
+        return np.diff(self.edges)
 
     def integrate(self) -> float:
         """
@@ -480,7 +476,7 @@ class Hist1d:
         min
         sum
         """
-        return np.sum(self.values * self.calculate_binwidths())
+        return np.sum(self.values * self.binsizes())
 
     def sum(self) -> float:
         """
@@ -709,7 +705,7 @@ class Hist1d:
         for_plot
         for_step
         """
-        return self.centers, self.values, self.calculate_binwidths()
+        return self.centers, self.values, self.binsizes()
 
     def plot(
         self,

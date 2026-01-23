@@ -556,7 +556,7 @@ class Hist2d:
             new_yedges[i] = self.yedges[i * fac]
         return Hist2d(new_values, self.xedges, new_yedges)
 
-    def calculate_xbinwidths(self) -> NDArray[np.float64]:
+    def binsizes_x(self) -> NDArray[np.float64]:
         """
         Compute the widths of the bins along the x-axis.
 
@@ -568,13 +568,13 @@ class Hist2d:
         Examples
         --------
         >>> h = Hist2d(values, xedges, yedges)
-        >>> xwidths = h.calculate_xbinwidths()
+        >>> xwidths = h.binsizes_x()
         >>> xwidths.shape == (h.xbins,)
         True
         """
         return np.diff(self.xedges)
 
-    def calculate_ybinwidths(self) -> NDArray[np.float64]:
+    def binsizes_y(self) -> NDArray[np.float64]:
         """
         Compute the widths of the bins along the y-axis.
 
@@ -586,13 +586,24 @@ class Hist2d:
         Examples
         --------
         >>> h = Hist2d(values, xedges, yedges)
-        >>> ywidths = h.calculate_ybinwidths()
+        >>> ywidths = h.binsizes_y()
         >>> ywidths.shape == (h.ybins,)
         True
         """
         return np.diff(self.yedges)
 
-    def calculate_binareas(self) -> NDArray[np.float64]:
+    def binsizes(self) -> NDArray[np.float64]:
+        """
+        Compute the binsizes along x and y.
+
+        Returns
+        -------
+        ndarray
+            Array of x and y binsizes. Shape (`self.xbins, self.ybins`)
+        """
+        return np.array((self.binsizes_x, self.binsizes_y))
+
+    def binareas(self) -> NDArray[np.float64]:
         """
         Compute the area of each 2D bin in the histogram.
 
@@ -605,12 +616,12 @@ class Hist2d:
         Examples
         --------
         >>> h = Hist2d(values, xedges, yedges)
-        >>> areas = h.calculate_binareas()
+        >>> areas = h.binareas()
         >>> areas.shape == h.values.shape
         True
         """
-        xwidths = self.calculate_xbinwidths()
-        ywidths = self.calculate_ybinwidths()
+        xwidths = self.binsizes_x()
+        ywidths = self.binsizes_y()
         return np.outer(xwidths, ywidths).astype(np.float64)
 
     def for_pcolormesh(
@@ -768,7 +779,7 @@ class Hist2d:
         max
         norm_to_integral
         """
-        return float(np.sum(self.values * self.calculate_binareas()))
+        return float(np.sum(self.values * self.binareas()))
 
     def sum(self) -> float:
         """
@@ -1167,7 +1178,7 @@ class Hist2d:
 
         """
         sums = self.values.sum(axis=1, keepdims=True)
-        areas = self.calculate_xbinwidths() * np.diff(self.ylim)
+        areas = self.binsizes_x() * np.diff(self.ylim)
         integrals = sums * areas
         return Hist2d(
             self.values / integrals,
@@ -1233,7 +1244,7 @@ class Hist2d:
 
         """
         sums = self.values.sum(axis=0, keepdims=True)
-        areas = self.calculate_ybinwidths() * np.diff(self.xlim)
+        areas = self.binsizes_y() * np.diff(self.xlim)
         integrals = sums * areas
         return Hist2d(
             self.values / integrals,

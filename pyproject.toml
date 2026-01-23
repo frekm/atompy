@@ -1,10 +1,9 @@
 [project]
 name = "atompy"
-version = "5.0.0-dev" # also update _version.py
+version = "5.0.0" # also update _version.py
 authors = [{ name = "Max Kircher", email = "kircher@atom.uni-frankfurt.de" }]
 description = """
-    A collection of utility functions to create plots and do
-    analysis.
+    Utility Methods for data analysis.
 """
 readme = "README.md"
 requires-python = ">=3.10"

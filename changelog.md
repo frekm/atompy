@@ -1,3 +1,10 @@
+# v5.0.0
+- Removed layout manipulations of matplotlib figures
+  (now available at https://github.com/frekm/mpl-utils)
+- Rework of `Hist1d`, `Hist2d`, and `Vector`
+- Removed physics submodule
+
+
 # v4.20.2
 - Fixed that no tabular numbers where used with `set_latex_backend`
 

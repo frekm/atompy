@@ -2,6 +2,7 @@ from typing import Any, Iterator, Literal
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+import uproot
 
 import mplutils as mplu
 

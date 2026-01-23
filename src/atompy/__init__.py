@@ -22,6 +22,4 @@ from ._vectors import (
     VectorArray,
 )
 
-from . import physics
-
 from ._version import __version__

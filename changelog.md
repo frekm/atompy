@@ -1,3 +1,9 @@
+# v4.20.2
+- Fixed that no tabular numbers where used with `set_latex_backend`
+
+# v4.20.1
+- Fixed margin_pad_ignores_labels not working properly
+
 # v4.20.0
 
 - Added more normalization methods to `Hist1d` and `Hist2d`

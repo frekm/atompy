@@ -96,7 +96,7 @@ To install a particular release, e.g., v5.0.0, use
 
 .. code-block:: shell
 
-    pip install https://github.com/frekm/atompy/archive/refs/heads/main.zip
+    pip install https://github.com/frekm/atompy/archive/refs/tags/v5.0.0.zip
 
 You can add a line to your `requirements.txt`
 

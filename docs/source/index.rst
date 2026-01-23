@@ -50,12 +50,62 @@ This method does not install the dependencies of ``atompy``. You'll have to
 install these manually (e.g., with ``pip``).
 
 
-Using ``git``
--------------
+Using the online repository
+---------------------------
+
+With `git`
+**********
+
+If you have `git` installed on your system, you can use it to download and install
+`atompy` using `pip`.
+
+To install the latest commit, use
 
 .. code-block:: shell
 
-    pip install git+https//github.com/frekm/atompy
+    pip install git+https://github.com/frekm/atompy.git
+
+
+To install a particular release, e.g., v5.0.0, use
+
+.. code-block:: shell
+
+    pip install git+https://github.com/frekm/atompy.git@v5.0.0
+
+You can add a line to your `requirements.txt`
+
+.. code-block::
+    :caption: requirements.txt
+
+    atompy @ git+https://github.com/frekm/atompy.git        # latest version
+    atompy @ git+https://github.com/frekm/atompy.git@v5.0.0 # particular version
+
+
+Without `git`
+*************
+
+If you don't have `git` installed on your system, you need to modify the above links.
+
+To install the latest commit, use
+
+.. code-block:: shell
+
+    pip install https://github.com/frekm/atompy/archive/refs/heads/main.zip
+
+To install a particular release, e.g., v5.0.0, use
+
+.. code-block:: shell
+
+    pip install https://github.com/frekm/atompy/archive/refs/heads/main.zip
+
+You can add a line to your `requirements.txt`
+
+.. code-block::
+    :caption: requirements.txt
+
+    atompy @ https://github.com/frekm/atompy/archive/refs/heads/main.zip  # latest version
+    atompy @ https://github.com/frekm/atompy/archive/refs/tags/v5.0.0.zip # particular version
+
 
 From source
 -----------
@@ -66,6 +116,15 @@ From source
 
     pip install <path>/atompy-<version>/src
 
-.. toctree::
+Alternatively, if you have `git` installed
 
-    physics/index
+.. code-block:: shell
+
+    git clone https://github.com/frekm/atompy.git
+    cd atompy
+    pip install .
+
+.. .. toctree::
+
+
+

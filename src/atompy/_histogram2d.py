@@ -1570,16 +1570,16 @@ class Hist2d:
             Limits for the y-axis.
 
         colorbar_kwargs: dict, optional
-            Additional keyword arguments passed to :func:`.add_colorbar`.
+            Additional keyword arguments passed to :func:`mplutils.add_colorbar`.
 
         savefig_kwargs : dict, optional
-            Additional keyword arguments passed to :func:`.savefig`.
+            Additional keyword arguments passed to :func:`mplutils.savefig`.
 
         make_me_nice : bool, default True
-            If True, call :func:`.make_me_nice`.
+            If True, call :func:`mplutils.make_me_nice`.
 
         make_me_nice_kwargs : dict, optional
-            Additional keyword arguments passed to :func:`.make_me_nice`.
+            Additional keyword arguments passed to :func:`mplutils.make_me_nice`.
 
         Other parameters
         ----------------
@@ -1624,18 +1624,13 @@ class Hist2d:
         ax.set_xlabel(xlabel if xlabel != "__auto__" else self.xlabel)
         ax.set_ylabel(ylabel if ylabel != "__auto__" else self.ylabel)
 
-        if xlabel is not None:
-            ax.set_xlabel(xlabel)
-        if ylabel is not None:
-            ax.set_ylabel(ylabel)
-        if zlabel is not None:
-            cb.set_label(zlabel)
-        if title is not None:
-            ax.set_title(title)
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
+
         if make_me_nice:
             mplu.make_me_nice(**make_me_nice_kwargs)
+
         if fname is not None:
             mplu.savefig(fname, **savefig_kwargs)
+
         return fig, ax, cb

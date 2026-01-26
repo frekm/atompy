@@ -75,3 +75,4 @@ html_theme_options = {
 intersphinx_mapping = get_intersphinx_mapping(
     packages=["python", "numpy", "matplotlib"]  # type: ignore
 )
+intersphinx_mapping["mplutils"] = ("https://mpl-utils.readthedocs.io/en/latest/", None)

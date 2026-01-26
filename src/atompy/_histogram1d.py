@@ -861,13 +861,13 @@ class Hist1d:
             format string for :obj:`matplotlib.pyplot.plot`.
 
         savefig_kwargs : dict, optional
-            Additional keyword arguments passed to :func:`.savefig`.
+            Additional keyword arguments passed to :func:`mplutils.savefig`.
 
         make_me_nice : bool, default True
-            If True, call :func:`.make_me_nice`.
+            If True, call :func:`mplutils.make_me_nice`.
 
         make_me_nice_kwargs : dict, optional
-            Additional keyword arguments passed to :func:`.make_me_nice`.
+            Additional keyword arguments passed to :func:`mplutils.make_me_nice`.
 
         Other parameters
         ----------------

@@ -75,7 +75,16 @@ class Hist2d:
     limits : ((float, float), (float, float))
     """
 
-    def __init__(self, values: ArrayLike, xedges: ArrayLike, yedges: ArrayLike):
+    def __init__(
+        self,
+        values: ArrayLike,
+        xedges: ArrayLike,
+        yedges: ArrayLike,
+        title: str = "",
+        xlabel: str = "",
+        ylabel: str = "",
+        zlabel: str = "",
+    ):
         self._values = np.asarray(values).astype(np.float64)
         self._xedges = np.asarray(xedges).astype(np.float64)
         self._yedges = np.asarray(yedges).astype(np.float64)
@@ -85,6 +94,10 @@ class Hist2d:
             raise ValueError("yedges and values don't match")
         self._xcenters = edges_to_centers(self._xedges)
         self._ycenters = edges_to_centers(self._yedges)
+        self.title = title
+        self.xlabel = xlabel
+        self.ylabel = ylabel
+        self.zlabel = zlabel
 
     @staticmethod
     def from_centers(
@@ -95,6 +108,10 @@ class Hist2d:
         xmax: float | None = None,
         ymin: float | None = None,
         ymax: float | None = None,
+        title: str = "",
+        xlabel: str = "",
+        ylabel: str = "",
+        zlabel: str = "",
     ) -> "Hist2d":
         """
         Initiate a :class:`.Hist2d` from centers (rather than edges).
@@ -155,6 +172,10 @@ class Hist2d:
         xmax: float | None = None,
         ymin: float | None = None,
         ymax: float | None = None,
+        title: str = "",
+        xlabel: str = "",
+        ylabel: str = "",
+        zlabel: str = "",
         **loadtxt_kwargs,
     ) -> "Hist2d":
         """
@@ -235,7 +256,14 @@ class Hist2d:
         return Hist2d(data[2].T, data[0], data[1])
 
     @staticmethod
-    def from_root(fname: str | PathLike, hname: str) -> "Hist2d":
+    def from_root(
+        fname: str | PathLike,
+        hname: str,
+        title: str | Literal["__auto__"] = "__auto__",
+        xlabel: str | Literal["__auto__"] = "__auto__",
+        ylabel: str | Literal["__auto__"] = "__auto__",
+        zlabel: str = "",
+    ) -> "Hist2d":
         """
         Initiate a :class:`.Hist2d` from a `ROOT <https://root.cern/>`__ file.
 
@@ -253,8 +281,21 @@ class Hist2d:
             A new :class:`.Hist2d` instance.
         """
         with uproot.open(fname) as file:  # type: ignore
-            values, xedges, yedges = file[hname].to_numpy()  # type: ignore
-        return Hist2d(values, xedges, yedges)
+            hist: Any = file[hname]
+            values, xedges, yedges = hist.to_numpy()  # type: ignore
+            title_: str = hist.title if title == "__auto__" else title
+            xlabel_: str = (
+                hist.member("fXaxis").member("fTitle")
+                if xlabel == "__auto__"
+                else xlabel
+            )
+            ylabel_: str = (
+                hist.member("fYaxis").member("fTitle")
+                if ylabel == "__auto__"
+                else ylabel
+            )
+            zlabel_ = zlabel if zlabel != "__auto__" else ""
+        return Hist2d(values, xedges, yedges, title_, xlabel_, ylabel_, zlabel_)
 
     @property
     def values(self) -> NDArray[np.float64]:
@@ -356,13 +397,20 @@ class Hist2d:
         _raise_unmatching_edges(self.xedges, other.xedges, "x")
         _raise_unmatching_edges(self.yedges, other.yedges, "y")
         return Hist2d(
-            self.values + other.values, self.xedges.copy(), self.yedges.copy()
+            self.values + other.values,
+            self.xedges.copy(),
+            self.yedges.copy(),
+            f"{self.title} + {other.title}",
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
         )
 
     def __iadd__(self, other: "Hist2d") -> "Hist2d":
         if not isinstance(other, Hist2d):
             return NotImplemented
         self.values += other.values
+        self.title = f"{self.title} + {other.title}"
         return self
 
     def __sub__(self, other: "Hist2d") -> "Hist2d":
@@ -371,13 +419,20 @@ class Hist2d:
         _raise_unmatching_edges(self.xedges, other.xedges, "x")
         _raise_unmatching_edges(self.yedges, other.yedges, "y")
         return Hist2d(
-            self.values - other.values, self.xedges.copy(), self.yedges.copy()
+            self.values - other.values,
+            self.xedges.copy(),
+            self.yedges.copy(),
+            f"{self.title} $-$ {other.title}",
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
         )
 
     def __isub__(self, other: "Hist2d") -> "Hist2d":
         if not isinstance(other, Hist2d):
             return NotImplemented
         self.values -= other.values
+        self.title = f"{self.title} $-$ {other.title}"
         return self
 
     def __mul__(self, other: "Hist2d") -> "Hist2d":
@@ -386,13 +441,20 @@ class Hist2d:
         _raise_unmatching_edges(self.xedges, other.xedges, "x")
         _raise_unmatching_edges(self.yedges, other.yedges, "y")
         return Hist2d(
-            self.values * other.values, self.xedges.copy(), self.yedges.copy()
+            self.values * other.values,
+            self.xedges.copy(),
+            self.yedges.copy(),
+            rf"{self.title} $\times$ {other.title}",
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
         )
 
     def __imul__(self, other: "Hist2d") -> "Hist2d":
         if not isinstance(other, Hist2d):
             return NotImplemented
         self.values *= other.values
+        self.title = rf"{self.title} $\times$ {other.title}"
         return self
 
     def __truediv__(self, other: "Hist2d") -> "Hist2d":
@@ -401,17 +463,54 @@ class Hist2d:
         _raise_unmatching_edges(self.xedges, other.xedges, "x")
         _raise_unmatching_edges(self.yedges, other.yedges, "y")
         return Hist2d(
-            self.values / other.values, self.xedges.copy(), self.yedges.copy()
+            self.values / other.values,
+            self.xedges.copy(),
+            self.yedges.copy(),
+            rf"{self.title} / {other.title}",
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
         )
 
     def __itruediv__(self, other: "Hist2d") -> "Hist2d":
         if not isinstance(other, Hist2d):
             return NotImplemented
         self.values /= other.values
+        self.title = rf"{self.title} / {other.title}"
+        return self
+
+    def __floordiv__(self, other: "Hist2d") -> "Hist2d":
+        if not isinstance(other, Hist2d):
+            return NotImplemented
+        _raise_unmatching_edges(self.xedges, other.xedges, "x")
+        _raise_unmatching_edges(self.yedges, other.yedges, "y")
+        return Hist2d(
+            self.values // other.values,
+            self.xedges.copy(),
+            self.yedges.copy(),
+            rf"$\lfloor${self.title} / {other.title}$\rfloor$",
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
+        )
+
+    def __ifloordiv__(self, other: "Hist2d") -> "Hist2d":
+        if not isinstance(other, Hist2d):
+            return NotImplemented
+        self.values //= other.values
+        self.title = rf"$\lfloor${self.title} / {other.title}$\rfloor$"
         return self
 
     def __neg__(self) -> "Hist2d":
-        return Hist2d(-self.values, self.xedges, self.yedges)
+        return Hist2d(
+            -self.values,
+            self.xedges,
+            self.yedges,
+            self.title,
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
+        )
 
     def __pos__(self) -> "Hist2d":
         return self
@@ -464,7 +563,15 @@ class Hist2d:
         new_xedges = self.xedges.copy()
         new_yedges = self.yedges.copy()
         new_values = (self.values - other.values) / (self.values + other.values)
-        return Hist2d(new_values, new_xedges, new_yedges)
+        return Hist2d(
+            new_values,
+            new_xedges,
+            new_yedges,
+            self.title,
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
+        )
 
     def rebin_x(self, fac: int) -> "Hist2d":
         """
@@ -509,7 +616,15 @@ class Hist2d:
         new_xedges[-1] = self.xedges[-1]
         for i in range(new_xedges.size):
             new_xedges[i] = self.xedges[i * fac]
-        return Hist2d(new_values, new_xedges, self.yedges.copy())
+        return Hist2d(
+            new_values,
+            new_xedges,
+            self.yedges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
+        )
 
     def rebin_y(self, fac: int) -> "Hist2d":
         """
@@ -554,7 +669,15 @@ class Hist2d:
         new_yedges[-1] = self.yedges[-1]
         for i in range(new_yedges.size):
             new_yedges[i] = self.yedges[i * fac]
-        return Hist2d(new_values, self.xedges, new_yedges)
+        return Hist2d(
+            new_values,
+            self.xedges,
+            new_yedges,
+            self.title,
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
+        )
 
     def binsizes_x(self) -> NDArray[np.float64]:
         """
@@ -699,7 +822,15 @@ class Hist2d:
                 )
             else:
                 new_values = np.full_like(self.values, fill_value=setval)
-                return Hist2d(new_values, self.xedges.copy(), self.yedges.copy())
+                return Hist2d(
+                    new_values,
+                    self.xedges.copy(),
+                    self.yedges.copy(),
+                    self.title,
+                    self.xlabel,
+                    self.ylabel,
+                    self.zlabel,
+                )
 
         if squeeze:
             new_values = self.values[np.ix_(xmask, ymask)]
@@ -709,11 +840,27 @@ class Hist2d:
             new_yedges = self.yedges[
                 np.concatenate(([False], ymask)) | np.concatenate((ymask, [False]))
             ]
-            return Hist2d(new_values, new_xedges, new_yedges)
+            return Hist2d(
+                new_values,
+                new_xedges,
+                new_yedges,
+                self.title,
+                self.xlabel,
+                self.ylabel,
+                self.zlabel,
+            )
         else:
             new_values = np.full_like(self.values, fill_value=setval)
             new_values[np.ix_(xmask, ymask)] = self.values[np.ix_(xmask, ymask)]
-            return Hist2d(new_values, self.xedges.copy(), self.yedges.copy())
+            return Hist2d(
+                new_values,
+                self.xedges.copy(),
+                self.yedges.copy(),
+                self.title,
+                self.xlabel,
+                self.ylabel,
+                self.zlabel,
+            )
 
     def remove(
         self,
@@ -761,7 +908,15 @@ class Hist2d:
 
         new_values[np.ix_(x_remove_mask, y_remove_mask)] = setval
 
-        return Hist2d(new_values, self.xedges.copy(), self.yedges.copy())
+        return Hist2d(
+            new_values,
+            self.xedges.copy(),
+            self.yedges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
+        )
 
     def integrate(self) -> float:
         """
@@ -859,7 +1014,9 @@ class Hist2d:
             :include-source:
 
         """
-        return Hist1d(np.sum(self.values, axis=1), self.xedges.copy())
+        return Hist1d(
+            np.sum(self.values, axis=1), self.xedges.copy(), self.title, self.xlabel
+        )
 
     def project_onto_y(self) -> Hist1d:
         """
@@ -883,7 +1040,9 @@ class Hist2d:
             :include-source:
 
         """
-        return Hist1d(np.sum(self.values, axis=0), self.yedges.copy())
+        return Hist1d(
+            np.sum(self.values, axis=0), self.yedges.copy(), self.title, self.ylabel
+        )
 
     def _calculate_profile(
         self,
@@ -1063,7 +1222,15 @@ class Hist2d:
         """
         no_zeros = self.values.copy()
         no_zeros[no_zeros == 0.0] = np.nan
-        return Hist2d(no_zeros, self.xedges.copy(), self.yedges.copy())
+        return Hist2d(
+            no_zeros,
+            self.xedges.copy(),
+            self.yedges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
+        )
 
     def norm_to_sum(self) -> "Hist2d":
         """
@@ -1086,7 +1253,13 @@ class Hist2d:
             :include-source:
         """
         return Hist2d(
-            self.values / np.sum(self.values), self.xedges.copy(), self.yedges.copy()
+            self.values / np.sum(self.values),
+            self.xedges.copy(),
+            self.yedges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
         )
 
     def norm_to_integral(self) -> "Hist2d":
@@ -1115,6 +1288,10 @@ class Hist2d:
             self.values / self.integrate(),
             self.xedges.copy(),
             self.yedges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
         )
 
     def norm_to_max(self) -> "Hist2d":
@@ -1138,7 +1315,13 @@ class Hist2d:
             :include-source:
         """
         return Hist2d(
-            self.values / np.amax(self.values), self.xedges.copy(), self.yedges.copy()
+            self.values / np.amax(self.values),
+            self.xedges.copy(),
+            self.yedges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
         )
 
     def norm_col_to_sum(self) -> "Hist2d":
@@ -1160,6 +1343,10 @@ class Hist2d:
             self.values / self.values.sum(axis=1, keepdims=True),
             self.xedges.copy(),
             self.yedges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
         )
 
     def norm_col_to_integral(self) -> "Hist2d":
@@ -1184,6 +1371,10 @@ class Hist2d:
             self.values / integrals,
             self.xedges.copy(),
             self.yedges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
         )
 
     def norm_col_to_max(self) -> "Hist2d":
@@ -1205,6 +1396,10 @@ class Hist2d:
             self.values / self.values.max(axis=1, keepdims=True),
             self.xedges.copy(),
             self.yedges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
         )
 
     def norm_row_to_sum(self) -> "Hist2d":
@@ -1226,6 +1421,10 @@ class Hist2d:
             self.values / self.values.sum(axis=0, keepdims=True),
             self.xedges.copy(),
             self.yedges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
         )
 
     def norm_row_to_integral(self) -> "Hist2d":
@@ -1250,6 +1449,10 @@ class Hist2d:
             self.values / integrals,
             self.xedges.copy(),
             self.yedges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
         )
 
     def norm_row_to_max(self) -> "Hist2d":
@@ -1271,6 +1474,10 @@ class Hist2d:
             self.values / self.values.max(axis=0, keepdims=True),
             self.xedges.copy(),
             self.yedges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
         )
 
     def save_to_file(self, fname: str, **savetxt_kwargs) -> None:
@@ -1302,24 +1509,28 @@ class Hist2d:
                 out[ix + iy * nx, 1] = y
                 out[ix + iy * nx, 2] = self.values[ix, iy]
         savetxt_kwargs.setdefault("delimiter", "\t")
-        savetxt_kwargs.setdefault("header", "x\ty\tvalues")
+        xlabel = "x" if self.xlabel == "" else self.xlabel
+        ylabel = "y" if self.ylabel == "" else self.ylabel
+        zlabel = "values" if self.zlabel == "" else self.zlabel
+        savetxt_kwargs.setdefault("header", f"{xlabel}\t{ylabel}\t{zlabel}")
         np.savetxt(fname, out, **savetxt_kwargs)
 
     def plot(
         self,
         ax: Axes | None = None,
         fname: str | None = None,
-        xlabel: str | None = None,
-        ylabel: str | None = None,
-        zlabel: str | None = None,
-        title: str | None = None,
+        xlabel: str | Literal["__auto__"] = "__auto__",
+        ylabel: str | Literal["__auto__"] = "__auto__",
+        zlabel: str | Literal["__auto__"] = "__auto__",
+        title: str | Literal["__auto__"] = "__auto__",
         logscale: bool = False,
         xlim: tuple[float, float] | None = None,
         ylim: tuple[float, float] | None = None,
-        pcolormesh_kwargs: dict[str, Any] = {},
+        colorbar_kwargs: dict[str, Any] = {},
         savefig_kwargs: dict[str, Any] = {},
         make_me_nice: bool = True,
         make_me_nice_kwargs: dict[str, Any] = {},
+        **pcolormesh_kwargs,
     ) -> tuple[Figure, Axes, Colorbar]:
         """
         Plot the 2D histogram using :obj:`matplotlib.pyplot.pcolormesh`.
@@ -1329,17 +1540,25 @@ class Hist2d:
         fname : str, optional
             If provided, the plot will be saved to this file.
 
-        xlabel : str, optional
+        xlabel : str, default "__auto__"
             Label for the x-axis.
 
-        ylabel : str, optional
+            If "__auto__", use `Hist2d.xlabel`.
+
+        ylabel : str, default "__auto__"
             Label for the y-axis.
 
-        zlabel : str, optional
+            If "__auto__", use `Hist2d.ylabel`.
+
+        zlabel : str, default "__auto__"
             Label for the colorbar (z-axis).
 
-        title : str, optional
+            If "__auto__", use `Hist2d.zlabel`.
+
+        title : str, default "__auto__"
             Title of the plot.
+
+            If "__auto__", use `Hist2d.title`.
 
         logscale : bool, optional
             If True, use a logarithmic color scale.
@@ -1350,9 +1569,8 @@ class Hist2d:
         ylim : tuple[float, float], optional
             Limits for the y-axis.
 
-        pcolormesh_kwargs : dict, optional
-            Additional keyword arguments passed to
-            :obj:`matplotlib.pyplot.pcolormesh`.
+        colorbar_kwargs: dict, optional
+            Additional keyword arguments passed to :func:`.add_colorbar`.
 
         savefig_kwargs : dict, optional
             Additional keyword arguments passed to :func:`.savefig`.
@@ -1362,6 +1580,11 @@ class Hist2d:
 
         make_me_nice_kwargs : dict, optional
             Additional keyword arguments passed to :func:`.make_me_nice`.
+
+        Other parameters
+        ----------------
+        pcolormesh_kwargs : dict, optional
+            Additional keyword arguments passed to :obj:`matplotlib.pyplot.pcolormesh`.
 
         Returns
         -------
@@ -1384,10 +1607,23 @@ class Hist2d:
         else:
             fig = _get_topmost_figure(ax)
         norm = LogNorm() if logscale else None
-        pcolormesh_kwargs.setdefault("norm", norm)
-        pcolormesh_kwargs.setdefault("rasterized", True)
-        im = ax.pcolormesh(*self.for_pcolormesh(), **pcolormesh_kwargs)
-        cb = mplu.add_colorbar(im, ax, location="right")
+        pcolormesh_kwargs_ = pcolormesh_kwargs.copy()
+        pcolormesh_kwargs_.setdefault("norm", norm)
+        pcolormesh_kwargs_.setdefault("rasterized", True)
+        im = ax.pcolormesh(*self.for_pcolormesh(), **pcolormesh_kwargs_)
+
+        cb_kwargs = colorbar_kwargs.copy()
+        cb_kwargs.setdefault("location", "right")
+        cb = mplu.add_colorbar(im, ax, **cb_kwargs)
+        cb.set_label(zlabel if zlabel != "__auto__" else self.zlabel)
+
+        title_ = title if title != "__auto__" else self.title
+        fig.canvas.manager.set_window_title(title_)  # type: ignore
+        ax.set_title(title_)
+
+        ax.set_xlabel(xlabel if xlabel != "__auto__" else self.xlabel)
+        ax.set_ylabel(ylabel if ylabel != "__auto__" else self.ylabel)
+
         if xlabel is not None:
             ax.set_xlabel(xlabel)
         if ylabel is not None:

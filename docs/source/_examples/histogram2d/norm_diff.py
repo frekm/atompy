@@ -16,6 +16,4 @@ for ax in axs:
 
 hist0.plot(axs[0], title="Histogram 1")
 hist1.plot(axs[1], title="Histogram 2")
-hist0.norm_diff(hist1).plot(
-    axs[2], pcolormesh_kwargs=dict(cmap="coolwarm"), title="Normalized Difference"
-)
+hist0.norm_diff(hist1).plot(axs[2], cmap="coolwarm", title="Normalized Difference")

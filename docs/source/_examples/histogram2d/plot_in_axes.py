@@ -22,5 +22,5 @@ for ax, cmap in zip(axs, cmaps):
         ylabel="Y Label",
         zlabel="Intensity",
         title=cmap,
-        pcolormesh_kwargs=dict(cmap=cmap),
+        cmap=cmap,
     )

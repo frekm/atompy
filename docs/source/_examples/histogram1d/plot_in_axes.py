@@ -2,6 +2,8 @@ import atompy as ap
 import matplotlib.pyplot as plt
 import mplutils as mplu
 
+plt.style.use("atom")
+
 hist = ap.Hist1d((1, 2, 3, 4), (0, 1, 2, 3, 4))
 
 _, axs = plt.subplots(1, 2)

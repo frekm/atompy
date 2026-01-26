@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import mplutils as mplu
 
+plt.style.use("atom")
+
 hist = ap.Hist1d(np.arange(4) + 1, np.arange(5))
 
 _, axs = plt.subplots(1, 2)

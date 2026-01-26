@@ -1,3 +1,12 @@
+import matplotlib.pyplot as plt
+from importlib.resources import files
+
+style_path = files("atompy.styles").joinpath("atom.mplstyle")
+plt.style.library["atom"] = str(style_path)  # type:ignore
+if "atom" not in plt.style.available:
+    plt.style.available.append("atom")
+
+
 from ._errors import UnmatchingEdgesError
 
 from ._misc import (

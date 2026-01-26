@@ -3,6 +3,8 @@ import atompy as ap
 import matplotlib.pyplot as plt
 import mplutils as mplu
 
+plt.style.use("atom")
+
 gen = np.random.default_rng(42)
 hist = ap.Hist2d(*np.histogram2d(*gen.normal(size=(2, 100))))
 

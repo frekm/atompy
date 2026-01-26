@@ -1,0 +1,55 @@
+font.size: 10.0
+
+figure.figsize: 3.15, 2.36
+figure.dpi: 600
+
+axes.spines.left: True
+axes.spines.right: True
+axes.spines.top: True
+axes.spines.bottom: True
+
+xtick.major.pad: 1.8
+xtick.minor.pad: 1.5
+ytick.major.pad: 1.8
+ytick.minor.pad: 1.5
+axes.labelpad: 2.0
+axes.titlepad: 5.0
+
+axes.grid: True
+axes.grid.axis: "both"
+axes.grid.which: "major"
+
+axes.prop_cycle: cycler("color", ["#56b4e9", "#e69f00", "#009e73", "#f0e442", "#0072b2", "#d55e00", "#cc79a7", "#000000"])
+
+axes.linewidth: 0.8
+grid.linewidth: 0.8
+
+lines.linewidth: 2.0
+lines.markersize: 3.0
+errorbar.capsize: 3.0
+
+xtick.major.size: 3.5
+xtick.minor.size: 2.0
+ytick.major.size: 3.5
+ytick.minor.size: 2.0
+xtick.major.width: 0.8
+xtick.minor.width: 0.4
+ytick.major.width: 0.8
+ytick.minor.width: 0.4
+
+axes.titlelocation: "left"
+
+grid.color: "#e2e2e2"
+grid.alpha: 1.0
+
+axes.edgecolor: "#afafaf"
+
+xtick.color: "#afafaf"
+ytick.color: "#afafaf"
+xtick.labelcolor: "k"
+ytick.labelcolor: "k"
+
+legend.frameon: False
+
+image.cmap: "atom"
+image.aspect: "auto"

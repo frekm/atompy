@@ -20,6 +20,9 @@ dependencies = [
     "mplutils @ https://github.com/frekm/mpl-utils/archive/refs/tags/v0.1.0.zip"
 ]
 
+[tool.setuptools.package-data]
+atompy = ["styles/*.mplstyle"]
+
 [project.urls]
 "Repository" = "https://github.com/frekm/atompy"
 "Documentation" = "https://atomphys-atompy.readthedocs.io/en/latest/"

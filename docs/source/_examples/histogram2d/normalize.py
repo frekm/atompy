@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patheffects as patheffects
 import mplutils as mplu
 
+plt.style.use("atom")
+
 
 # create a Histogram
 xedges = np.array([0, 1, 2, 3])

@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import atompy as ap
 import numpy as np
 
+plt.style.use("atom")
+
 x = np.linspace(-2, 2, 50)
 
 for scale in ("pdf", "integral", "sum", "max"):

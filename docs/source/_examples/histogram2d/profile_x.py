@@ -3,6 +3,8 @@ import atompy as ap
 import matplotlib.pyplot as plt
 import mplutils as mplu
 
+plt.style.use("atom")
+
 # get some random data
 gen = np.random.default_rng(42)
 x_sample = gen.uniform(-1, 1, size=10_000)

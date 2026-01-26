@@ -1,5 +1,8 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import atompy as ap
+
+plt.style.use("atom")
 
 rng = np.random.default_rng(42)
 lim = (-2, 2)

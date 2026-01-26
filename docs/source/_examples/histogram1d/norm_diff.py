@@ -3,6 +3,8 @@ import atompy as ap
 import mplutils as mplu
 import matplotlib.pyplot as plt
 
+plt.style.use("atom")
+
 rng = np.random.default_rng(42)
 data0 = rng.normal(-1, size=(2000))
 data1 = rng.normal(1, size=(3000))

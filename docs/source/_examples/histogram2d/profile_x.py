@@ -21,7 +21,7 @@ _, axs = plt.subplots(1, 2)
 
 for ax in axs.flat:
     ax.pcolormesh(*hist.for_pcolormesh())
-    ax.set_box_aspect(1.0)
+    mplu.set_axes_size_inches(3, ax=ax)
 
 kwargs = dict(fmt="o-", color="k")
 

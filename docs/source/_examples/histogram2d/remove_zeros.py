@@ -15,7 +15,7 @@ imgb = axs["b"].pcolormesh(*hist.remove_zeros().for_pcolormesh(), vmin=0)
 imgc = axs["c"].pcolormesh(*hist.remove_zeros().for_pcolormesh())
 
 for img, ax in zip([imga, imgb, imgc], axs.values()):
-    ax.set_box_aspect(1.0)
+    mplu.set_axes_size_inches(2, ax=ax)
     mplu.add_colorbar(img, ax, location="top")
 
 mplu.make_me_nice()

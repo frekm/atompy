@@ -1,9 +1,11 @@
-# v5.0.1
-- Fix bug in Hist1d.from_root()
+# v5.1.0
 - Add axis labels and histogram titles to Hist1d and Hist2d
 - Link to `mplutils` documentation in appropriate places
 - Add "atom" style (use with `plt.style.use("atom")`)
 - Improve documentation
+
+# v5.0.1
+- Fix bug in Hist1d.from_root()
 
 # v5.0.0
 - Removed layout manipulations of matplotlib figures

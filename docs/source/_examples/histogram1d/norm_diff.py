@@ -14,7 +14,7 @@ _, axs = plt.subplots(1, 3)
 for ax in axs:
     mplu.set_axes_size_inches(2, ax=ax)
 
-kwargs = dict(plot_kwargs=dict(drawstyle="steps-mid"))
+kwargs = dict(drawstyle="steps-mid")
 hist0.pad_with(0).plot(axs[0], title="Histogram 1", **kwargs)
 hist1.pad_with(0).plot(axs[1], title="Histogram 2", **kwargs)
 hist0.norm_diff(hist1).pad_with(0).plot(axs[2], title="Normalized Difference", **kwargs)

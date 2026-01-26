@@ -277,9 +277,9 @@ class Hist1d:
     def from_root(
         fname: str | PathLike,
         hname: str,
-        title: str | None = None,
-        xlabel: str | None = None,
-        ylabel: str | None = None,
+        title: str | Literal["__auto__"] = "__auto__",
+        xlabel: str | Literal["__auto__"] = "__auto__",
+        ylabel: str | Literal["__auto__"] = "__auto__",
     ) -> "Hist1d":
         """
         Initiate a :class:`.Hist1d` from a `ROOT <https://root.cern.ch/>`__ file.
@@ -295,12 +295,16 @@ class Hist1d:
         """
         with uproot.open(fname) as file:  # type: ignore
             hist: Any = file[hname]
-            title_: str = hist.title if title is None else title
+            title_: str = hist.title if title == "__auto__" else title
             xlabel_: str = (
-                hist.member("fXaxis").member("fTitle") if xlabel is None else xlabel
+                hist.member("fXaxis").member("fTitle")
+                if xlabel == "__auto__"
+                else xlabel
             )
             ylabel_: str = (
-                hist.member("fXaxis").member("fTitle") if ylabel is None else ylabel
+                hist.member("fYaxis").member("fTitle")
+                if ylabel == "__auto__"
+                else ylabel
             )
             values, edges = hist.to_numpy()
             return Hist1d(values, edges, title_, xlabel_, ylabel_)
@@ -356,7 +360,7 @@ class Hist1d:
         return Hist1d(
             self.values + other.values,
             self.edges.copy(),
-            self.title,
+            f"{self.title} + {other.title}",
             self.xlabel,
             self.ylabel,
         )
@@ -364,6 +368,7 @@ class Hist1d:
     def __iadd__(self, other: "Hist1d") -> "Hist1d":
         if not isinstance(other, Hist1d):
             return NotImplemented
+        self.title = f"{self.title} + {other.title}"
         self.values += other.values
         return self
 
@@ -374,7 +379,7 @@ class Hist1d:
         return Hist1d(
             self.values - other.values,
             self.edges.copy(),
-            self.title,
+            f"{self.title} $-$ {other.title}",
             self.xlabel,
             self.ylabel,
         )
@@ -383,6 +388,7 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         self.values -= other.values
+        self.title = f"{self.title} $-$ {other.title}"
         return self
 
     def __mul__(self, other: "Hist1d") -> "Hist1d":
@@ -392,7 +398,7 @@ class Hist1d:
         return Hist1d(
             self.values * other.values,
             self.edges.copy(),
-            self.title,
+            rf"{self.title} $\times$ {other.title}",
             self.xlabel,
             self.ylabel,
         )
@@ -401,6 +407,7 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         self.values *= other.values
+        self.title = rf"{self.title} $\times$ {other.title}"
         return self
 
     def __truediv__(self, other: "Hist1d") -> "Hist1d":
@@ -410,7 +417,7 @@ class Hist1d:
         return Hist1d(
             self.values / other.values,
             self.edges.copy(),
-            self.title,
+            f"{self.title} / {other.title}",
             self.xlabel,
             self.ylabel,
         )
@@ -419,6 +426,7 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         self.values /= other.values
+        self.title = f"{self.title} / {other.title}"
         return self
 
     def __floordiv__(self, other: "Hist1d") -> "Hist1d":
@@ -428,7 +436,7 @@ class Hist1d:
         return Hist1d(
             self.values // other.values,
             self.edges.copy(),
-            self.title,
+            rf"$\lfloor${self.title} / {other.title}$\rfloor$",
             self.xlabel,
             self.ylabel,
         )
@@ -437,10 +445,13 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         self.values //= other.values
+        self.title = rf"$\lfloor${self.title} / {other.title}$\rfloor$"
         return self
 
     def __neg__(self) -> "Hist1d":
-        return Hist1d(-self.values, self.edges, self.title, self.xlabel, self.ylabel)
+        return Hist1d(
+            -self.values, self.edges, f"$-$ {self.title}", self.xlabel, self.ylabel
+        )
 
     def __iter__(self) -> Iterator[NDArray[Any]]:
         return iter([self.values, self.centers])
@@ -448,7 +459,7 @@ class Hist1d:
     def __str__(self) -> str:
         edges_str = str(self.edges)
         values_str = str(self.values)
-        hist_str = f"Hist1d with (values, edges) =\n{values_str}\n{edges_str}"
+        hist_str = f"Hist1d with (values, xedges, yedges) =\n{values_str}\n{edges_str}"
         return hist_str
 
     def convert_cosine_to_angles(self, full_range: bool = True) -> "Hist1d":
@@ -802,17 +813,17 @@ class Hist1d:
         self,
         ax: Axes | None = None,
         fname: str | None = None,
-        xlabel: str | None = None,
-        ylabel: str | None = None,
-        title: str | None = None,
+        xlabel: str | Literal["__auto__"] = "__auto__",
+        ylabel: str | Literal["__auto__"] = "__auto__",
+        title: str | Literal["__auto__"] = "__auto__",
         logscale: bool = False,
         xlim: tuple[float, float] | None = None,
         ylim: tuple[float, float] | None = None,
         plot_fmt: str | None = None,
-        plot_kwargs: dict[str, Any] = {},
         savefig_kwargs: dict[str, Any] = {},
         make_me_nice: bool = True,
         make_me_nice_kwargs: dict[str, Any] = {},
+        **plot_kwargs,
     ) -> tuple[Figure, Axes]:
         """
         Plot the 1D histogram using :obj:`matplotlib.pyplot.plot`.
@@ -822,14 +833,20 @@ class Hist1d:
         fname : str, optional
             If provided, the plot will be saved to this file.
 
-        xlabel : str, optional
+        xlabel : str, default "__auto__"
             Label for the x-axis.
 
-        ylabel : str, optional
+            If "__auto__", use `Hist1d.xlabel`.
+
+        ylabel : str, default "__auto__"
             Label for the y-axis.
 
-        title : str, optional
+            If "__auto__", use `Hist1d.ylabel`.
+
+        title : str, default "__auto__"
             Title of the plot.
+
+            If "__auto__", use `Hist1d.title`.
 
         logscale : bool, optional
             If True, use a logarithmic y scale.
@@ -843,10 +860,6 @@ class Hist1d:
         plot_fmt : str, optional
             format string for :obj:`matplotlib.pyplot.plot`.
 
-        plot_kwargs : dict, optional
-            Additional keyword arguments passed to
-            :obj:`matplotlib.pyplot.plot`.
-
         savefig_kwargs : dict, optional
             Additional keyword arguments passed to :func:`.savefig`.
 
@@ -855,6 +868,13 @@ class Hist1d:
 
         make_me_nice_kwargs : dict, optional
             Additional keyword arguments passed to :func:`.make_me_nice`.
+
+        Other parameters
+        ----------------
+        plot_kwargs : dict, optional
+            Additional keyword arguments passed to
+            :obj:`matplotlib.pyplot.plot`.
+
 
         Returns
         -------
@@ -879,12 +899,11 @@ class Hist1d:
             ax.plot(*self.for_plot(), **plot_kwargs)
         else:
             ax.plot(*self.for_plot(), plot_fmt, **plot_kwargs)
-        if xlabel is not None:
-            ax.set_xlabel(xlabel)
-        if ylabel is not None:
-            ax.set_ylabel(ylabel)
-        if title is not None:
-            ax.set_title(title)
+        ax.set_xlabel(xlabel if xlabel != "__auto__" else self.xlabel)
+        ax.set_ylabel(ylabel if ylabel != "__auto__" else self.ylabel)
+        title_ = title if title != "__auto__" else self.title
+        ax.set_title(title_)
+        fig.canvas.manager.set_window_title(title_)  # type: ignore
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
         if logscale:

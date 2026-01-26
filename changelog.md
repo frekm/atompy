@@ -1,5 +1,7 @@
 # v5.0.1
 - Fix bug in Hist1d.from_root()
+- Add axis labels and histogram titles to Hist1d and Hist2d
+- Link to `mplutils` documentation in appropriate places
 
 # v5.0.0
 - Removed layout manipulations of matplotlib figures

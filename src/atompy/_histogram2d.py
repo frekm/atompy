@@ -1114,14 +1114,12 @@ class Hist2d:
 
         .. math::
 
-            \begin{align}
             H(j) &= \sum w Y \\
             E(j) &= \sum w Y^2 \\
             W(j) &= \sum w \\
             h(j) &= H(j) / W(j) \\
             s(j) &= \sqrt{E(j) / W(j) - h(j)^2} \\
             e(j) &= s(j) / \sqrt{W(j)}
-            \end{align}
 
         Here, :math:`w` are the counts of bin `j`.
 
@@ -1182,14 +1180,12 @@ class Hist2d:
 
         .. math::
 
-            \begin{align}
             H(j) &= \sum w X \\
             E(j) &= \sum w X^2 \\
             W(j) &= \sum w \\
             h(j) &= H(j) / W(j) \\
             s(j) &= \sqrt{E(j) / W(j) - h(j)^2} \\
             e(j) &= s(j) / \sqrt{W(j)}
-            \end{align}
 
         Here, :math:`w` are the counts of bin `j`.
 

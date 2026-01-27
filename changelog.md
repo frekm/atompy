@@ -1,3 +1,7 @@
+# v5.1.1
+- Refactoring
+- Add tutorial "Hist1d.plot and Hist2d.plot"
+
 # v5.1.0
 - Add axis labels and histogram titles to Hist1d and Hist2d
 - Link to `mplutils` documentation in appropriate places

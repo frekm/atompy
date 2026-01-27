@@ -1,6 +1,6 @@
 [project]
 name = "atompy"
-version = "5.1.0" # also update _version.py
+version = "5.1.1" # also update _version.py
 authors = [{ name = "Max Kircher", email = "kircher@atom.uni-frankfurt.de" }]
 description = """
     Utility methods for data analysis.

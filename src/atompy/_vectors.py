@@ -748,7 +748,7 @@ class VectorArray:
             return VectorArray(new_arr)
         else:
             if fac.ndim > 0:
-                np.einsum("ij,i-ij", self._arr, fac, out=self._arr)
+                np.einsum("ij,i->ij", self._arr, fac, out=self._arr)
             else:
                 np.multiply(self._arr, fac, out=self._arr)
             return self

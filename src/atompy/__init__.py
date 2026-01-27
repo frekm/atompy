@@ -32,4 +32,6 @@ from ._vectors import (
     VectorArray,
 )
 
+from ._coordinate_system import CoordinateSystem, CoordinateSystemArray
+
 from ._version import __version__

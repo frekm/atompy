@@ -7,4 +7,5 @@ Tutorials
 
     vectors
     histograms
+    hist_plot
     rand_distr

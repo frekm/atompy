@@ -1,3 +1,7 @@
+# v5.1.2-dev
+- Fix bug in `VectorArray.scale`
+- Add possibility to use slices in `VectorArray.__get/setitem__`
+
 # v5.1.1
 - Refactoring
 - Add tutorial "Hist1d.plot and Hist2d.plot"

@@ -1,7 +1,7 @@
 import numpy as np
 import collections
 from numpy.typing import NDArray, ArrayLike
-from typing import TypeVar, Union, overload, Sequence
+from typing import TypeVar, Union, overload, Sequence, Self
 
 T = TypeVar("T")
 
@@ -624,12 +624,24 @@ class VectorArray:
     def z(self, val: ArrayLike):
         self._arr[:, 2] = val
 
-    def __getitem__(self, i: int) -> Vector:
-        return Vector(*self._arr[i])
+    @overload
+    def __getitem__(self, i: int) -> Vector: ...
+    @overload
+    def __getitem__(self, i: slice) -> Self: ...
 
-    def __setitem__(self, i: int, val: ArrayLike | Vector):
-        if isinstance(val, Vector):
-            val = tuple(iter(val))
+    def __getitem__(self, i: int | slice) -> Vector | Self:
+        if isinstance(i, int):
+            return Vector(*self._arr[i])
+        elif isinstance(i, slice):
+            return type(self)(self._arr[i])
+        else:
+            raise TypeError(f"i must be int or slice, but is {type(i)}")
+
+    def __setitem__(self, i: int | slice, val: VectorArrayLike | VectorLike) -> None:
+        if isinstance(i, int):
+            val = tuple(iter(asvector(val)))  # type: ignore
+        elif isinstance(i, slice):
+            val = asvectorarray(val)._arr
         self._arr[i] = val
 
     def __str__(self) -> str:

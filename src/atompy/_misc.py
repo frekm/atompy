@@ -350,6 +350,11 @@ def edges_to_centers(edges: ArrayLike) -> NDArray[np.float64]:
     Returns
     -------
     centers : ndarray, shape (n-1,)
+
+    Examples
+    --------
+        >>> ap.edges_to_centers((0, 1, 2, 3, 4, 5))
+        array([0.5, 1.5, 2.5, 3.5, 4.5])
     """
     edges = np.asarray(edges).astype(np.float64)
     return edges[:-1] + 0.5 * np.diff(edges)

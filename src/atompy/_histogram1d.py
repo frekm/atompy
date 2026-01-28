@@ -834,7 +834,8 @@ class Hist1d:
         Parameters
         ----------
         fname : str, optional
-            If provided, the plot will be saved to this file.
+            If provided, the plot will be saved to this file
+            using :func:`mplutils.savefig`.
 
         xlabel : str, default "__auto__"
             Label for the x-axis.
@@ -854,10 +855,10 @@ class Hist1d:
         logscale : bool, optional
             If True, use a logarithmic y scale.
 
-        xlim : tuple[float, float], optional
+        xlim : tuple[float | None, float | None], optional
             Limits for the x-axis.
 
-        ylim : tuple[float, float], optional
+        ylim : tuple[float | None, float | None], optional
             Limits for the y-axis.
 
         plot_fmt : str, optional

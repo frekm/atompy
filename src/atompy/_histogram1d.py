@@ -919,6 +919,114 @@ class Hist1d:
             mplu.savefig(fname, **savefig_kwargs)
         return fig, ax
 
+    def plot_step(
+        self,
+        ax: Axes | None = None,
+        fname: str | None = None,
+        xlabel: str | Literal["__auto__"] = "__auto__",
+        ylabel: str | Literal["__auto__"] = "__auto__",
+        title: str | Literal["__auto__"] = "__auto__",
+        logscale: bool = False,
+        xlim: tuple[None | float, None | float] | None = None,
+        ylim: tuple[None | float, None | float] | None = None,
+        start_at: float | Literal["auto"] = 0.0,
+        savefig_kwargs: dict[str, Any] = {},
+        make_me_nice: bool = True,
+        make_me_nice_kwargs: dict[str, Any] = {},
+        **plot_kwargs,
+    ) -> tuple[Figure, Axes]:
+        """
+        Plot the 1D histogram using :obj:`matplotlib.pyplot.plot`.
+
+        Parameters
+        ----------
+        fname : str, optional
+            If provided, the plot will be saved to this file
+            using :func:`mplutils.savefig`.
+
+        xlabel : str, default "__auto__"
+            Label for the x-axis.
+
+            If "__auto__", use `Hist1d.xlabel`.
+
+        ylabel : str, default "__auto__"
+            Label for the y-axis.
+
+            If "__auto__", use `Hist1d.ylabel`.
+
+        title : str, default "__auto__"
+            Title of the plot.
+
+            If "__auto__", use `Hist1d.title`.
+
+        logscale : bool, optional
+            If True, use a logarithmic y scale.
+
+        xlim : tuple[float | None, float | None], optional
+            Limits for the x-axis.
+
+        ylim : tuple[float | None, float | None], optional
+            Limits for the y-axis.
+
+        start_at : float or "auto", default 0.0
+            Value at which the steps will start and end.
+
+            If "auto", start (end) at first (last) value of `Hist1d.values`.
+
+        savefig_kwargs : dict, optional
+            Additional keyword arguments passed to :func:`mplutils.savefig`.
+
+        make_me_nice : bool, default True
+            If True, call :func:`mplutils.make_me_nice`.
+
+        make_me_nice_kwargs : dict, optional
+            Additional keyword arguments passed to :func:`mplutils.make_me_nice`.
+
+        Other parameters
+        ----------------
+        plot_kwargs : dict, optional
+            Additional keyword arguments passed to :obj:`matplotlib.pyplot.plot`.
+
+            Should not contain the `drawstyle` keyword.
+
+        Returns
+        -------
+        tuple of :class:`matplotlib.figure.Figure`, :class:`matplotlib.axes.Axes`
+            A tuple containing the matplotlib Figure and Axes.
+
+        Examples
+        --------
+
+        .. plot:: _examples/histogram1d/plot_step.py
+            :include-source:
+
+        """
+        if ax is None:
+            fig, ax = plt.subplots(1, 1)
+        else:
+            fig = _get_topmost_figure(ax)
+        ax.set_xlabel(xlabel if xlabel != "__auto__" else self.xlabel)
+        ax.set_ylabel(ylabel if ylabel != "__auto__" else self.ylabel)
+        title_ = title if title != "__auto__" else self.title
+        ax.set_title(title_)
+        if title_ != "":
+            fig.canvas.manager.set_window_title(title_)  # type: ignore
+        x = np.repeat(self.edges, 2)
+        y = np.empty_like(x, dtype=np.float64)
+        y[0] = start_at if start_at != "auto" else self.values[0]
+        y[1:-1] = np.repeat(self.values, 2)
+        y[-1] = start_at if start_at != "auto" else self.values[-1]
+        ax.plot(x, y, "-", **plot_kwargs)
+        ax.set_xlim(xlim)  # type: ignore
+        ax.set_ylim(ylim)  # type: ignore
+        if logscale:
+            ax.set_yscale("log")
+        if make_me_nice:
+            mplu.make_me_nice(**make_me_nice_kwargs)
+        if fname is not None:
+            mplu.savefig(fname, **savefig_kwargs)
+        return fig, ax
+
     def keep(
         self,
         lower: float,

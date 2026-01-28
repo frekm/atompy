@@ -3,6 +3,7 @@
 - Add possibility to use slices in `VectorArray.__get/setitem__`
 - Add `Hist1d.plot_step`
 - Add "atom" and "atom_from_white" colormaps
+- Add `CoordinateSystem` and `CoordinateSystemArray`
 
 # v5.1.1
 - Refactoring

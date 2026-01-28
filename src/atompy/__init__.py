@@ -32,6 +32,8 @@ from ._vectors import (
     asvectorarray,
     Vector,
     VectorArray,
+    VectorLike,
+    VectorArrayLike,
 )
 
 from ._coordinate_system import CoordinateSystem, CoordinateSystemArray

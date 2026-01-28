@@ -16,6 +16,15 @@ Vectors
     asvector
     asvectorarray
 
+Coordinate Systems
+==================
+
+.. autosummary::
+    :toctree: _autogen
+
+    CoordinateSystem
+    CoordinateSystemArray
+
 Histograms
 ==========
 

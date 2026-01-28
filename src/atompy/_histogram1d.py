@@ -906,9 +906,10 @@ class Hist1d:
         ax.set_ylabel(ylabel if ylabel != "__auto__" else self.ylabel)
         title_ = title if title != "__auto__" else self.title
         ax.set_title(title_)
-        fig.canvas.manager.set_window_title(title_)  # type: ignore
-        ax.set_xlim(xlim)
-        ax.set_ylim(ylim)
+        if title_ != "":
+            fig.canvas.manager.set_window_title(title_)  # type: ignore
+        ax.set_xlim(xlim)  # type: ignore
+        ax.set_ylim(ylim)  # type: ignore
         if logscale:
             ax.set_yscale("log")
         if make_me_nice:

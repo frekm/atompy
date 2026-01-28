@@ -5,7 +5,7 @@ import matplotlib.patheffects as patheffects
 import mplutils as mplu
 
 plt.style.use("atom")
-
+plt.rcParams["axes.grid"] = False
 
 # create a Histogram
 xedges = np.array([0, 1, 2, 3])

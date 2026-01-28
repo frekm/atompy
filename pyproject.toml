@@ -17,7 +17,7 @@ dependencies = [
     "matplotlib",
     "uproot",
     "scipy",
-    "mplutils @ https://github.com/frekm/mpl-utils/archive/refs/tags/v0.1.0.zip"
+    "mplutils @ https://github.com/frekm/mpl-utils/archive/refs/tags/v0.2.0.zip"
 ]
 
 [tool.setuptools.package-data]

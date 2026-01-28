@@ -5,11 +5,35 @@ from numpy.random import Generator
 from numpy.typing import NDArray, ArrayLike
 from matplotlib.figure import Figure, SubFigure
 from matplotlib.axes import Axes
+import matplotlib.colors as mcolors
+import matplotlib
 import mplutils as mplu
 
 import time
 
 from ._errors import UnmatchingEdgesError
+
+cm_atom = mcolors.LinearSegmentedColormap.from_list(
+    "atom",
+    [
+        (0.0, (0.5, 1.0, 1.0)),
+        (0.3, (0.0, 0.0, 1.0)),
+        (0.7, (1.0, 0.0, 0.0)),
+        (1.0, (1.0, 1.0, 0.0)),
+    ],
+)
+matplotlib.colormaps.register(cm_atom, force=True)
+cm_atom_from_white = mcolors.LinearSegmentedColormap.from_list(
+    "atom_from_white",
+    [
+        (0.0, (1.0, 1.0, 1.0)),
+        (0.065, (0.5, 1.0, 1.0)),
+        (0.3, (0.0, 0.0, 1.0)),
+        (0.7, (1.0, 0.0, 0.0)),
+        (1.0, (1.0, 1.0, 0.0)),
+    ],
+)
+matplotlib.colormaps.register(cm_atom_from_white, force=True)
 
 
 def _get_topmost_figure(ax: Axes) -> Figure:

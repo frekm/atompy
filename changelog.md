@@ -1,7 +1,8 @@
-# v5.2.0-dev
+# v5.2.0
 - Fix bug in `VectorArray.scale`
 - Add possibility to use slices in `VectorArray.__get/setitem__`
 - Add `Hist1d.plot_step`
+- Add "atom" and "atom_from_white" colormaps
 
 # v5.1.1
 - Refactoring

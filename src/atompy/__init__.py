@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 from importlib.resources import files
 
-style_path = files("atompy.styles").joinpath("atom.mplstyle")
-plt.style.library["atom"] = str(style_path)  # type:ignore
+_style_path = files("atompy.styles").joinpath("atom.mplstyle")
+plt.style.library["atom"] = str(_style_path)  # type:ignore
 if "atom" not in plt.style.available:
     plt.style.available.append("atom")
 
@@ -19,6 +19,8 @@ from ._misc import (
     sample_distribution,
     sample_distribution_discrete,
     sample_distribution_func,
+    cm_atom,
+    cm_atom_from_white,
 )
 
 from ._histogram1d import Hist1d

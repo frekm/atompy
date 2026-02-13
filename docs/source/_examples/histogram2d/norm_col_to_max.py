@@ -11,9 +11,9 @@ size = 1_000
 
 hist = ap.Hist2d(*np.histogram2d(*rng.normal(size=(2, size)), range=(lim, lim)))
 
-_, axs = plt.subplots(1, 2)
+_, axs = plt.subplots(1, 2, layout=mplu.FixedLayoutEngine())
 for ax in axs:
-    mplu.set_axes_size_inches(2.0, ax=ax)
+    mplu.set_axes_size(2.0, ax=ax)
 
 hist.plot(ax=axs[0], title="Original histogram")
 hist.norm_col_to_max().plot(ax=axs[1], title="Column-normalized histogram")

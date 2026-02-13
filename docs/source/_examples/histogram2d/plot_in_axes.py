@@ -11,13 +11,13 @@ size = 1_000
 
 hist = ap.Hist2d(*np.histogram2d(*rng.normal(size=(2, size)), range=(lim, lim)))
 
-fig, axs = plt.subplots(ncols=2)
+fig, axs = plt.subplots(ncols=2, layout=mplu.FixedLayoutEngine())
 
 colorbars = []
 cmaps = "viridis", "cividis"
 
 for ax, cmap in zip(axs, cmaps):
-    mplu.set_axes_size_inches(2.0, ax=ax)
+    mplu.set_axes_size(2.0, ax=ax)
     hist.plot(
         ax=ax,
         xlabel="X Label",

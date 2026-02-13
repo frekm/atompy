@@ -9,7 +9,7 @@ MAX_MOMENTUM = 1.5
 
 class EnergyHist1d(ap.Hist1d):
     def plot(self, ax):
-        mplu.set_axes_size_inches(3, 1.0 / 1.618, ax=ax)
+        mplu.set_axes_size(3, 1.0 / 1.618, ax=ax)
         fig, ax = super().plot(ax=ax, drawstyle="steps-mid")
         ax.set_ylim(bottom=0)
         ax.set_xlim(self.limits[0], MAX_ENERGY)
@@ -18,7 +18,7 @@ class EnergyHist1d(ap.Hist1d):
 
 class EnergyVsAngleHist(ap.Hist2d):
     def plot(self, ax):
-        mplu.set_axes_size_inches(3, 1.0 / 1.618, ax=ax)
+        mplu.set_axes_size(3, 1.0 / 1.618, ax=ax)
         fig, ax, _ = super().plot(ax=ax, cmap="viridis")
         ax.set_ylim(0, MAX_ENERGY)
         return fig, ax
@@ -26,7 +26,7 @@ class EnergyVsAngleHist(ap.Hist2d):
 
 class MomentumMap(ap.Hist2d):
     def plot(self, ax):
-        mplu.set_axes_size_inches(3, ax=ax)
+        mplu.set_axes_size(3, ax=ax)
         fig, ax, _ = super().plot(ax=ax, cmap="atom")
         ax.set_xlim(-MAX_MOMENTUM, MAX_MOMENTUM)
         ax.set_ylim(-MAX_MOMENTUM, MAX_MOMENTUM)
@@ -50,5 +50,3 @@ fig, axs = plt.subplots(2, 3)
 
 for histo, ax in zip(histos, axs.flat):
     histo.plot(ax)
-
-mplu.make_me_nice()

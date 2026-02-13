@@ -1527,8 +1527,10 @@ class Hist2d:
         ylim: tuple[float, float] | None = None,
         colorbar_kwargs: dict[str, Any] = {},
         savefig_kwargs: dict[str, Any] = {},
-        make_me_nice: bool = True,
-        make_me_nice_kwargs: dict[str, Any] = {},
+        use_fixed_layout: bool = True,
+        fixed_layout_kwargs: dict[str, Any] = {},
+        make_me_nice: None = None,
+        make_me_nice_kwargs: None = None,
         **pcolormesh_kwargs,
     ) -> tuple[Figure, Axes, Colorbar]:
         """
@@ -1574,11 +1576,17 @@ class Hist2d:
         savefig_kwargs : dict, optional
             Additional keyword arguments passed to :func:`mplutils.savefig`.
 
+        use_fixed_layout : bool, default True
+            If True, use :class:`mplutils.FixedLayoutEngine`.
+
+        fixed_layout_kwargs : dict, optional
+            Additional keyword arguments passed to :class:`mplutils.FixedLayoutEngine`.
+
         make_me_nice : bool, default True
-            If True, call :func:`mplutils.make_me_nice`.
+            Deprecated. Use `use_fixed_layout` instead.
 
         make_me_nice_kwargs : dict, optional
-            Additional keyword arguments passed to :func:`mplutils.make_me_nice`.
+            Deprecated. Use `fixed_layout_kwargs` instead.
 
         Other parameters
         ----------------
@@ -1605,6 +1613,16 @@ class Hist2d:
             fig, ax = plt.subplots(1, 1)
         else:
             fig = _get_topmost_figure(ax)
+        if make_me_nice is not None:
+            msg = "The keyword 'make_me_nice' is deprecated. Use 'use_fixed_layout' instead"
+            warnings.warn(msg)
+            use_fixed_layout = make_me_nice
+        if make_me_nice_kwargs is not None:
+            msg = "The keyword 'make_me_nice_kwargs' is deprecated. Use 'fixed_layout_kwargs' instead"
+            warnings.warn(msg)
+            fixed_layout_kwargs = make_me_nice_kwargs.copy()
+        if use_fixed_layout:
+            fig.set_layout_engine(mplu.FixedLayoutEngine(**fixed_layout_kwargs))
         norm = LogNorm() if logscale else None
         pcolormesh_kwargs_ = pcolormesh_kwargs.copy()
         pcolormesh_kwargs_.setdefault("norm", norm)
@@ -1625,9 +1643,6 @@ class Hist2d:
 
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
-
-        if make_me_nice:
-            mplu.make_me_nice(**make_me_nice_kwargs)
 
         if fname is not None:
             mplu.savefig(fname, **savefig_kwargs)

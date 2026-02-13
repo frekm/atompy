@@ -12,9 +12,9 @@ data1 = rng.normal((0, 1), size=(3000, 2))
 hist0 = ap.Hist2d(*np.histogram2d(*data0.T, range=((-2, 2), (-2, 2))))
 hist1 = ap.Hist2d(*np.histogram2d(*data1.T, range=((-2, 2), (-2, 2))))
 
-_, axs = plt.subplots(1, 3)
+_, axs = plt.subplots(1, 3, layout=mplu.FixedLayoutEngine())
 for ax in axs:
-    mplu.set_axes_size_inches(2, ax=ax)
+    mplu.set_axes_size(2, ax=ax)
 
 hist0.plot(axs[0], title="Histogram 1")
 hist1.plot(axs[1], title="Histogram 2")

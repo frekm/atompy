@@ -28,12 +28,12 @@ hists = [
 # plot different normalizations
 titles = "original;norm. to integral;norm. to max;norm. to sum".split(";")
 
-_, (ax0, ax1, ax2, ax3) = plt.subplots(1, 4)
+_, (ax0, ax1, ax2, ax3) = plt.subplots(1, 4, layout=mplu.FixedLayoutEngine())
 
 for i, ax in enumerate((ax0, ax1, ax2, ax3)):
     ax.set_title(titles[i], pad=35)
     im = ax.pcolormesh(*hists[i].for_pcolormesh(), rasterized=True, cmap="atom")
-    mplu.set_axes_size_inches(2.0, ax=ax)
+    mplu.set_axes_size(2.0, ax=ax)
     mplu.add_colorbar(im, ax, location="top")
 
     # show values of bin in plot
@@ -48,5 +48,3 @@ for i, ax in enumerate((ax0, ax1, ax2, ax3)):
                     patheffects.Normal(),
                 ]
             )
-
-mplu.make_me_nice()

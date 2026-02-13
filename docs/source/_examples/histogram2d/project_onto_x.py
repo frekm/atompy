@@ -17,7 +17,7 @@ hist = ap.Hist2d(
     )
 )
 
-_, axs = plt.subplots(2, 2, squeeze=False)
+_, axs = plt.subplots(2, 2, squeeze=False, layout=mplu.FixedLayoutEngine())
 axs = axs.flat
 
 im = axs[0].pcolormesh(*hist.for_pcolormesh())
@@ -41,7 +41,5 @@ for ax in axs[1:]:
     ax.set_ylim(axs[1].get_ylim())
 
 for ax in axs:
-    mplu.set_axes_size_inches(3, ax=ax)
+    mplu.set_axes_size(3, ax=ax)
     ax.set_xlim(*lim)
-
-mplu.make_me_nice(min_runs=3)

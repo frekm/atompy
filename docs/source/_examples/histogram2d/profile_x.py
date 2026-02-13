@@ -17,11 +17,11 @@ hist = ap.Hist2d(
 mean, mean_errors = hist.profile_along_x()
 _, standard_deviation = hist.profile_along_x("s")
 
-_, axs = plt.subplots(1, 2)
+_, axs = plt.subplots(1, 2, layout=mplu.FixedLayoutEngine())
 
 for ax in axs.flat:
     ax.pcolormesh(*hist.for_pcolormesh())
-    mplu.set_axes_size_inches(3, ax=ax)
+    mplu.set_axes_size(3, ax=ax)
 
 kwargs = dict(fmt="o-", color="k")
 
@@ -30,5 +30,3 @@ axs[0].set_title("Errorbars = Mean errors")
 
 axs[1].errorbar(hist.xcenters, mean, yerr=standard_deviation, **kwargs)
 axs[1].set_title("Errorbars = Standard deviation")
-
-mplu.make_me_nice()

@@ -1,3 +1,6 @@
+# v5.2.1
+- Use new version of `mplutils`
+
 # v5.2.0
 - Fix bug in `VectorArray.scale`
 - Add possibility to use slices in `VectorArray.__get/setitem__`

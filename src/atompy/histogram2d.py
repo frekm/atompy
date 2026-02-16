@@ -15,15 +15,14 @@ import mplutils as mplu
 
 import uproot
 
-from ._misc import (
+from ._core import raise_unmatching_edges, get_topmost_figure
+from .utils import (
     centers_to_edges,
     edges_to_centers,
-    _raise_unmatching_edges,
     get_all_dividers,
     for_pcolormesh_from_txt,
 )
-from ._histogram1d import Hist1d
-from ._misc import _get_topmost_figure
+from .histogram1d import Hist1d
 
 
 class Hist2d:
@@ -397,8 +396,8 @@ class Hist2d:
     def __add__(self, other: "Hist2d") -> Self:
         if not isinstance(other, Hist2d):
             return NotImplemented
-        _raise_unmatching_edges(self.xedges, other.xedges, "x")
-        _raise_unmatching_edges(self.yedges, other.yedges, "y")
+        raise_unmatching_edges(self.xedges, other.xedges, "x")
+        raise_unmatching_edges(self.yedges, other.yedges, "y")
         return type(self)(
             self.values + other.values,
             self.xedges.copy(),
@@ -419,8 +418,8 @@ class Hist2d:
     def __sub__(self, other: "Hist2d") -> Self:
         if not isinstance(other, Hist2d):
             return NotImplemented
-        _raise_unmatching_edges(self.xedges, other.xedges, "x")
-        _raise_unmatching_edges(self.yedges, other.yedges, "y")
+        raise_unmatching_edges(self.xedges, other.xedges, "x")
+        raise_unmatching_edges(self.yedges, other.yedges, "y")
         return type(self)(
             self.values - other.values,
             self.xedges.copy(),
@@ -441,8 +440,8 @@ class Hist2d:
     def __mul__(self, other: "Hist2d") -> Self:
         if not isinstance(other, Hist2d):
             return NotImplemented
-        _raise_unmatching_edges(self.xedges, other.xedges, "x")
-        _raise_unmatching_edges(self.yedges, other.yedges, "y")
+        raise_unmatching_edges(self.xedges, other.xedges, "x")
+        raise_unmatching_edges(self.yedges, other.yedges, "y")
         return type(self)(
             self.values * other.values,
             self.xedges.copy(),
@@ -463,8 +462,8 @@ class Hist2d:
     def __truediv__(self, other: "Hist2d") -> Self:
         if not isinstance(other, Hist2d):
             return NotImplemented
-        _raise_unmatching_edges(self.xedges, other.xedges, "x")
-        _raise_unmatching_edges(self.yedges, other.yedges, "y")
+        raise_unmatching_edges(self.xedges, other.xedges, "x")
+        raise_unmatching_edges(self.yedges, other.yedges, "y")
         return type(self)(
             self.values / other.values,
             self.xedges.copy(),
@@ -485,8 +484,8 @@ class Hist2d:
     def __floordiv__(self, other: "Hist2d") -> Self:
         if not isinstance(other, Hist2d):
             return NotImplemented
-        _raise_unmatching_edges(self.xedges, other.xedges, "x")
-        _raise_unmatching_edges(self.yedges, other.yedges, "y")
+        raise_unmatching_edges(self.xedges, other.xedges, "x")
+        raise_unmatching_edges(self.yedges, other.yedges, "y")
         return type(self)(
             self.values // other.values,
             self.xedges.copy(),
@@ -561,8 +560,8 @@ class Hist2d:
             :include-source:
 
         """
-        _raise_unmatching_edges(self.xedges, other.xedges, "x")
-        _raise_unmatching_edges(self.yedges, other.yedges, "y")
+        raise_unmatching_edges(self.xedges, other.xedges, "x")
+        raise_unmatching_edges(self.yedges, other.yedges, "y")
         new_xedges = self.xedges.copy()
         new_yedges = self.yedges.copy()
         new_values = (self.values - other.values) / (self.values + other.values)
@@ -1612,7 +1611,7 @@ class Hist2d:
         if ax is None:
             fig, ax = plt.subplots(1, 1)
         else:
-            fig = _get_topmost_figure(ax)
+            fig = get_topmost_figure(ax)
         if make_me_nice is not None:
             msg = "The keyword 'make_me_nice' is deprecated. Use 'use_fixed_layout' instead"
             warnings.warn(msg)

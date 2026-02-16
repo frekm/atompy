@@ -1,17 +1,14 @@
 from os import PathLike
-from typing import Any, Literal, Callable, cast
+from typing import Any, Literal, Callable
 import numpy as np
 from numpy.random import Generator
 from numpy.typing import NDArray, ArrayLike
-from matplotlib.figure import Figure, SubFigure
-from matplotlib.axes import Axes
 import matplotlib.colors as mcolors
 import matplotlib
 import mplutils as mplu
 
 import time
 
-from ._errors import UnmatchingEdgesError
 
 cm_atom = mcolors.LinearSegmentedColormap.from_list(
     "atom",
@@ -34,33 +31,6 @@ cm_atom_from_white = mcolors.LinearSegmentedColormap.from_list(
     ],
 )
 matplotlib.colormaps.register(cm_atom_from_white, force=True)
-
-
-def _get_topmost_figure(ax: Axes) -> Figure:
-    """
-    Get the parent figure of `ax`.
-
-    Parameters
-    ----------
-    ax : :class:`matplotlib.axes.Axes`
-
-    Returns
-    -------
-    figure : :class:`matplotlib.figure.Figure`
-    """
-    fig = ax.get_figure()
-    if fig is None:
-        raise ValueError("'ax' is not assigned to any figure")
-    while isinstance(fig, SubFigure):
-        fig = fig.get_figure()
-    return cast(Figure, fig)
-
-
-def _raise_unmatching_edges(
-    a: NDArray[Any], b: NDArray[Any], xy: Literal["x", "y", "xy", ""] = ""
-) -> None:
-    if not np.allclose(a, b):
-        raise UnmatchingEdgesError(xy)
 
 
 def get_all_dividers(n: int) -> tuple[int, ...]:

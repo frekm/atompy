@@ -12,12 +12,9 @@ import warnings
 import numpy as np
 from numpy.typing import NDArray, ArrayLike
 
-from ._misc import (
-    get_all_dividers,
-    _raise_unmatching_edges,
-    centers_to_edges,
-    _get_topmost_figure,
-)
+from ._core import raise_unmatching_edges, get_topmost_figure
+
+from .utils import get_all_dividers, centers_to_edges
 
 
 class Hist1d:
@@ -360,7 +357,7 @@ class Hist1d:
     def __add__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
             return NotImplemented
-        _raise_unmatching_edges(self.edges, other.edges)
+        raise_unmatching_edges(self.edges, other.edges)
         return type(self)(
             self.values + other.values,
             self.edges.copy(),
@@ -379,7 +376,7 @@ class Hist1d:
     def __sub__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
             return NotImplemented
-        _raise_unmatching_edges(self.edges, other.edges)
+        raise_unmatching_edges(self.edges, other.edges)
         return type(self)(
             self.values - other.values,
             self.edges.copy(),
@@ -398,7 +395,7 @@ class Hist1d:
     def __mul__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
             return NotImplemented
-        _raise_unmatching_edges(self.edges, other.edges)
+        raise_unmatching_edges(self.edges, other.edges)
         return type(self)(
             self.values * other.values,
             self.edges.copy(),
@@ -417,7 +414,7 @@ class Hist1d:
     def __truediv__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
             return NotImplemented
-        _raise_unmatching_edges(self.edges, other.edges)
+        raise_unmatching_edges(self.edges, other.edges)
         return type(self)(
             self.values / other.values,
             self.edges.copy(),
@@ -436,7 +433,7 @@ class Hist1d:
     def __floordiv__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
             return NotImplemented
-        _raise_unmatching_edges(self.edges, other.edges)
+        raise_unmatching_edges(self.edges, other.edges)
         return type(self)(
             self.values // other.values,
             self.edges.copy(),
@@ -907,7 +904,7 @@ class Hist1d:
         if ax is None:
             fig, ax = plt.subplots(1, 1)
         else:
-            fig = _get_topmost_figure(ax)
+            fig = get_topmost_figure(ax)
         if make_me_nice is not None:
             msg = "The keyword 'make_me_nice' is deprecated. Use 'use_fixed_layout' instead"
             warnings.warn(msg)
@@ -1029,7 +1026,7 @@ class Hist1d:
         if ax is None:
             fig, ax = plt.subplots(1, 1)
         else:
-            fig = _get_topmost_figure(ax)
+            fig = get_topmost_figure(ax)
         if make_me_nice is not None:
             msg = "The keyword 'make_me_nice' is deprecated. Use 'use_fixed_layout' instead"
             warnings.warn(msg)
@@ -1227,7 +1224,7 @@ class Hist1d:
             :include-source:
 
         """
-        _raise_unmatching_edges(self.edges, other.edges, "x")
+        raise_unmatching_edges(self.edges, other.edges, "x")
         new_edges = self.edges.copy()
         new_values = (self.values - other.values) / (self.values + other.values)
         return type(self)(

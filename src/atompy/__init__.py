@@ -7,9 +7,7 @@ if "atom" not in plt.style.available:
     plt.style.available.append("atom")
 
 
-from ._errors import UnmatchingEdgesError
-
-from ._misc import (
+from .utils import (
     convert_cosine_to_angles,
     centers_to_edges,
     edges_to_centers,
@@ -23,11 +21,11 @@ from ._misc import (
     cm_atom_from_white,
 )
 
-from ._histogram1d import Hist1d
+from .histogram1d import Hist1d
 
-from ._histogram2d import Hist2d
+from .histogram2d import Hist2d
 
-from ._vectors import (
+from .vectors import (
     asvector,
     asvectorarray,
     Vector,
@@ -36,6 +34,6 @@ from ._vectors import (
     VectorArrayLike,
 )
 
-from ._coordinate_system import CoordinateSystem, CoordinateSystemArray
+from .coordinate_system import CoordinateSystem, CoordinateSystemArray
 
 from ._version import __version__

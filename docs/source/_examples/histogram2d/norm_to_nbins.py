@@ -1,13 +1,9 @@
+import matplotlib.pyplot as plt
 import atompy as ap
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.patheffects as patheffects
 import mplutils as mplu
+import matplotlib.patheffects as patheffects
 
-plt.style.use("atom")
-plt.rcParams["axes.grid"] = False
-
-# create a Histogram
 xedges = np.array([0, 1, 2, 3])
 yedges = np.array([0, 1, 3, 6, 10])
 values = np.array(
@@ -18,23 +14,21 @@ values = np.array(
     ]
 )
 hist = ap.Hist2d(values, xedges, yedges)
-hists = [
-    hist,
-    hist.norm_to_integral(),
-    hist.norm_to_max(),
-    hist.norm_to_sum(),
-]
+hists = (hist, hist.norm_to_xbins(), hist.norm_to_ybins())
 
-# plot different normalizations
-titles = "original", "norm. to integral", "norm. to max", "norm. to sum"
+_, axs = plt.subplots(1, len(hists), layout=mplu.FixedLayoutEngine())
 
-_, axs = plt.subplots(1, 4, layout=mplu.FixedLayoutEngine())
+titles = (
+    "original",
+    f"normed to xbins (={hist.xbins})",
+    f"normed to ybins (={hist.ybins})",
+)
 
 for i, ax in enumerate(axs):
-    ax.set_title(titles[i], pad=35)
+    ax.set_title(titles[i], pad=42)
     im = ax.pcolormesh(*hists[i].for_pcolormesh(), rasterized=True, cmap="atom")
-    mplu.set_axes_size(2.0, ax=ax)
-    mplu.add_colorbar(im, ax, location="top")
+    mplu.add_colorbar(im, ax, location="top", thickness_pts=8.0)
+    mplu.set_axes_size(2.5, ax=ax)
 
     # show values of bin in plot
     for j, x in enumerate(hists[i].xcenters):

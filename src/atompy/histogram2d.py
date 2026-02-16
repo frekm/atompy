@@ -1347,6 +1347,66 @@ class Hist2d:
             self.zlabel,
         )
 
+    def norm_to_xbins(self) -> Self:
+        """
+        Normalize values to the number of x bins.
+
+        Returns
+        -------
+        new_hist2d : :class:`.Hist2d`
+            A new histogram where all values are divided by the number of x bins.
+
+        See also
+        --------
+        norm_to_ybins
+
+        Examples
+        --------
+
+        .. plot:: _examples/histogram2d/norm_to_nbins.py
+            :include-source:
+
+        """
+        return type(self)(
+            self.values / self.xbins,
+            self.xedges.copy(),
+            self.yedges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
+        )
+
+    def norm_to_ybins(self) -> Self:
+        """
+        Normalize values to the number of y bins.
+
+        Returns
+        -------
+        new_hist2d : :class:`.Hist2d`
+            A new histogram where all values are divided by the number of y bins.
+
+        See also
+        --------
+        norm_to_xbins
+
+        Examples
+        --------
+
+        .. plot:: _examples/histogram2d/norm_to_nbins.py
+            :include-source:
+
+        """
+        return type(self)(
+            self.values / self.ybins,
+            self.xedges.copy(),
+            self.yedges.copy(),
+            self.title,
+            self.xlabel,
+            self.ylabel,
+            self.zlabel,
+        )
+
     def norm_col_to_integral(self) -> Self:
         """Normalize each column to their integral.
 

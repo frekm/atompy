@@ -1,3 +1,6 @@
+# v5.4.0
+- Add `Hist2d.norm_to_x/ybins`
+
 # v5.3.0
 - Add back physics submodule
 

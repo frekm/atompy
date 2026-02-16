@@ -1,3 +1,6 @@
+# v5.3.0
+- Add back physics submodule
+
 # v5.2.1
 - Use new version of `mplutils`
 

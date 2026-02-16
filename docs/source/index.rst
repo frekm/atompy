@@ -129,7 +129,9 @@ Alternatively, if you have `git` installed
     :hidden:
 
     api_reference/index
+    physics/index
     tutorials/index
+
 
 
 

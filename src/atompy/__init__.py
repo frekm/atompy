@@ -36,4 +36,6 @@ from .vectors import (
 
 from .coordinate_system import CoordinateSystem, CoordinateSystemArray
 
+from . import physics
+
 from ._version import __version__

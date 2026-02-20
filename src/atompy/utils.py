@@ -90,16 +90,7 @@ def for_pcolormesh_from_root(
 
     See also
     --------
-    for_pcolormesh
     for_pcolormesh_from_txt
-
-    Examples
-    --------
-
-    .. plot:: _examples/io/for_pcolormesh_from_root.py
-        :include-source:
-
-
     """
     with uproot.open(fname) as file:  # type: ignore
         values, xedges, yedges = file[hname].to_numpy()  # type: ignore
@@ -156,7 +147,6 @@ def for_pcolormesh_from_txt(
 
     See also
     --------
-    for_pcolormesh
     for_pcolormesh_from_root
     """
     data = np.loadtxt(fname, **loadtxt_kwargs)

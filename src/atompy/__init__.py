@@ -19,6 +19,8 @@ from .utils import (
     sample_distribution_func,
     cm_atom,
     cm_atom_from_white,
+    for_pcolormesh_from_txt,
+    for_pcolormesh_from_root,
 )
 
 from .histogram1d import Hist1d

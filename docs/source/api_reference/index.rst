@@ -44,6 +44,8 @@ Miscellaenous
     centers_to_edges
     edges_to_centers
     convert_cosine_to_angles
+    for_pcolormesh_from_txt
+    for_pcolormesh_from_root
     sample_distribution
     sample_distribution_func
     sample_distribution_discrete

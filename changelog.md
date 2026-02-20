@@ -1,5 +1,6 @@
 # v5.4.1
 - Expose `for_pcolormesh_from_txt` and `for_pcolormesh_from_root`
+- Add aliases to `Hist1d` and `Hist2d`
 
 # v5.4.0
 - Add `Hist2d.norm_to_x/ybins`

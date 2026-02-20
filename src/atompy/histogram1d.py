@@ -55,7 +55,11 @@ class Hist1d:
     ----------
     edges : ndarray
 
+    bin_edges : ndarray
+
     values : ndarray
+
+    hist : ndarray
 
     centers : ndarray
 
@@ -325,6 +329,24 @@ class Hist1d:
         if len(values) != len(self.values):
             raise ValueError(f"shape of new values does not match shape of old values")
         self._values = values
+
+    @property
+    def hist(self) -> NDArray[np.float64]:
+        """Alias for :attr:`.Hist1d.values`"""
+        return self.values
+
+    @hist.setter
+    def hist(self, new_hist: ArrayLike) -> None:
+        self.values = new_hist
+
+    @property
+    def bin_edges(self) -> NDArray[np.float64]:
+        """Alias for :attr:`.Hist1d.edges`"""
+        return self.edges
+
+    @bin_edges.setter
+    def bin_edges(self, new_edges: ArrayLike) -> None:
+        self.edges = new_edges
 
     @property
     def edges(self) -> NDArray[np.float64]:

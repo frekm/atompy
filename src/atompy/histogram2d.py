@@ -53,6 +53,8 @@ class Hist2d:
     ----------
     values : ndarray, shape(m, n)
 
+    H : ndarray, shape(m, n)
+
     xedges : ndarray, shape(m+1,)
 
     yedges : ndarray, shape(n+1,)
@@ -159,7 +161,7 @@ class Hist2d:
         """
         xedges = centers_to_edges(xcenters, lower=xmin, upper=xmax)
         yedges = centers_to_edges(ycenters, lower=ymin, upper=ymax)
-        return cls(values, xedges, yedges)
+        return cls(values, xedges, yedges, title, xlabel, ylabel, zlabel)
 
     @classmethod
     def from_txt(
@@ -254,7 +256,7 @@ class Hist2d:
             ymax=ymax,
             **loadtxt_kwargs,
         )
-        return cls(data[2].T, data[0], data[1])
+        return cls(data[2].T, data[0], data[1], title, xlabel, ylabel, zlabel)
 
     @classmethod
     def from_root(
@@ -314,6 +316,15 @@ class Hist2d:
                 f"{new_values.shape=}, but it must be {self._values.shape}"
             )
         self._values = new_values
+
+    @property
+    def H(self) -> NDArray[np.float64]:
+        """Alias for :attr:`.Hist2d.values`"""
+        return self.values
+
+    @H.setter
+    def H(self, new_H: ArrayLike) -> None:
+        self.values = new_H
 
     @property
     def xedges(self) -> NDArray[np.float64]:

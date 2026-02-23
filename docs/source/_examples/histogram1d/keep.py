@@ -8,6 +8,8 @@ plt.style.use("atom")
 bin_centers = np.linspace(-2, 2, 45)
 hist = ap.Hist1d.from_centers(ap.gauss(bin_centers), bin_centers)
 
-plt.step(*hist.for_step(extent_to=0), linewidth=2.0, label="original")
-plt.step(*hist.keep(-1, 1).for_step(extent_to=0), linewidth=1.0, label="with gate")
-plt.legend()
+# plot it
+ax = plt.subplot()
+hist.plot_step(ax, lw=3.0, label="original")
+hist.keep(-1, 1).plot_step(ax, lw=1.5, label="original")
+ax.legend()

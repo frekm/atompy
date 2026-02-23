@@ -4,15 +4,17 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 import uproot
 
-import mplutils as mplu
-
 from os import PathLike
 import warnings
 
 import numpy as np
 from numpy.typing import NDArray, ArrayLike
 
-from ._core import raise_unmatching_edges, get_topmost_figure
+from ._core import (
+    raise_unmatching_edges,
+    get_topmost_figure,
+    deprecated_keyword_doing_nothing_msg,
+)
 
 from .utils import get_all_dividers, centers_to_edges
 
@@ -844,8 +846,8 @@ class Hist1d:
         ylim: tuple[None | float, None | float] | None = None,
         plot_fmt: str | None = None,
         savefig_kwargs: dict[str, Any] = {},
-        use_fixed_layout: bool = True,
-        fixed_layout_kwargs: dict[str, Any] = {},
+        use_fixed_layout: None = None,
+        fixed_layout_kwargs: None = None,
         make_me_nice: None = None,
         make_me_nice_kwargs: None = None,
         **plot_kwargs,
@@ -857,7 +859,7 @@ class Hist1d:
         ----------
         fname : str, optional
             If provided, the plot will be saved to this file
-            using :func:`mplutils.savefig`.
+            using :func:`matplotlib.figure.Figure.savefig`.
 
         xlabel : str, default "__auto__"
             Label for the x-axis.
@@ -887,19 +889,20 @@ class Hist1d:
             format string for :obj:`matplotlib.pyplot.plot`.
 
         savefig_kwargs : dict, optional
-            Additional keyword arguments passed to :func:`mplutils.savefig`.
+            Additional keyword arguments passed to
+            :func:`~matplotlib.figure.Figure.savefig`.
 
         use_fixed_layout : bool, default True
-            If True, use :class:`mplutils.FixedLayoutEngine`.
+            Deprecated. Does nothing.
 
         fixed_layout_kwargs : dict, optional
-            Additional keyword arguments passed to :class:`mplutils.FixedLayoutEngine`.
+            Deprecated. Does nothing.
 
         make_me_nice : bool, default True
-            Deprecated. Use `use_fixed_layout` instead.
+            Deprecated. Does nothing.
 
         make_me_nice_kwargs : dict, optional
-            Deprecated. Use `fixed_layout_kwargs` instead.
+            Deprecated. Does nothing.
 
         Other parameters
         ----------------
@@ -928,15 +931,13 @@ class Hist1d:
         else:
             fig = get_topmost_figure(ax)
         if make_me_nice is not None:
-            msg = "The keyword 'make_me_nice' is deprecated. Use 'use_fixed_layout' instead"
-            warnings.warn(msg)
-            use_fixed_layout = make_me_nice
+            warnings.warn(deprecated_keyword_doing_nothing_msg("make_me_nice"))
         if make_me_nice_kwargs is not None:
-            msg = "The keyword 'make_me_nice_kwargs' is deprecated. Use 'fixed_layout_kwargs' instead"
-            warnings.warn(msg)
-            fixed_layout_kwargs = make_me_nice_kwargs.copy()
-        if use_fixed_layout:
-            fig.set_layout_engine(mplu.FixedLayoutEngine(**fixed_layout_kwargs))
+            warnings.warn(deprecated_keyword_doing_nothing_msg("make_me_nice_kwargs"))
+        if use_fixed_layout is not None:
+            warnings.warn(deprecated_keyword_doing_nothing_msg("use_fixed_layout"))
+        if fixed_layout_kwargs is not None:
+            warnings.warn(deprecated_keyword_doing_nothing_msg("fixed_layout_kwargs"))
         if plot_fmt is None:
             ax.plot(*self.for_plot(), **plot_kwargs)
         else:
@@ -952,7 +953,7 @@ class Hist1d:
         if logscale:
             ax.set_yscale("log")
         if fname is not None:
-            mplu.savefig(fname, **savefig_kwargs)
+            fig.savefig(fname, **savefig_kwargs)
         return fig, ax
 
     def plot_step(
@@ -967,8 +968,8 @@ class Hist1d:
         ylim: tuple[None | float, None | float] | None = None,
         start_at: float | Literal["auto"] = 0.0,
         savefig_kwargs: dict[str, Any] = {},
-        use_fixed_layout: bool = True,
-        fixed_layout_kwargs: dict[str, Any] = {},
+        use_fixed_layout: None = None,
+        fixed_layout_kwargs: None = None,
         make_me_nice: None = None,
         make_me_nice_kwargs: None = None,
         **plot_kwargs,
@@ -980,7 +981,7 @@ class Hist1d:
         ----------
         fname : str, optional
             If provided, the plot will be saved to this file
-            using :func:`mplutils.savefig`.
+            using :meth:`matplotlib.figure.Figure.savefig`.
 
         xlabel : str, default "__auto__"
             Label for the x-axis.
@@ -1012,19 +1013,20 @@ class Hist1d:
             If "auto", start (end) at first (last) value of `Hist1d.values`.
 
         savefig_kwargs : dict, optional
-            Additional keyword arguments passed to :func:`mplutils.savefig`.
+            Additional keyword arguments passed to
+            :func:`~matplotlib.figure.Figure.savefig`.
 
         use_fixed_layout : bool, default True
-            If True, use :class:`mplutils.FixedLayoutEngine`.
+            Deprecated. Does nothing.
 
         fixed_layout_kwargs : dict, optional
-            Additional keyword arguments passed to :class:`mplutils.FixedLayoutEngine`.
+            Deprecated. Does nothing.
 
         make_me_nice : bool, default True
-            Deprecated. Use `use_fixed_layout` instead.
+            Deprecated. Does nothing.
 
         make_me_nice_kwargs : dict, optional
-            Deprecated. Use `fixed_layout_kwargs` instead.
+            Deprecated. Does nothing.
 
         Other parameters
         ----------------
@@ -1050,15 +1052,13 @@ class Hist1d:
         else:
             fig = get_topmost_figure(ax)
         if make_me_nice is not None:
-            msg = "The keyword 'make_me_nice' is deprecated. Use 'use_fixed_layout' instead"
-            warnings.warn(msg)
-            use_fixed_layout = make_me_nice
+            warnings.warn(deprecated_keyword_doing_nothing_msg("make_me_nice"))
         if make_me_nice_kwargs is not None:
-            msg = "The keyword 'make_me_nice_kwargs' is deprecated. Use 'fixed_layout_kwargs' instead"
-            warnings.warn(msg)
-            fixed_layout_kwargs = make_me_nice_kwargs.copy()
-        if use_fixed_layout:
-            fig.set_layout_engine(mplu.FixedLayoutEngine(**fixed_layout_kwargs))
+            warnings.warn(deprecated_keyword_doing_nothing_msg("make_me_nice_kwargs"))
+        if use_fixed_layout is not None:
+            warnings.warn(deprecated_keyword_doing_nothing_msg("use_fixed_layout"))
+        if fixed_layout_kwargs is not None:
+            warnings.warn(deprecated_keyword_doing_nothing_msg("fixed_layout_kwargs"))
         ax.set_xlabel(xlabel if xlabel != "__auto__" else self.xlabel)
         ax.set_ylabel(ylabel if ylabel != "__auto__" else self.ylabel)
         title_ = title if title != "__auto__" else self.title
@@ -1076,7 +1076,7 @@ class Hist1d:
         if logscale:
             ax.set_yscale("log")
         if fname is not None:
-            mplu.savefig(fname, **savefig_kwargs)
+            fig.savefig(fname, **savefig_kwargs)
         return fig, ax
 
     def keep(

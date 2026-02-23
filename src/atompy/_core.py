@@ -34,3 +34,8 @@ def raise_unmatching_edges(
 ) -> None:
     if not np.allclose(a, b):
         raise UnmatchingEdgesError(xy)
+
+
+def deprecated_keyword_doing_nothing_msg(keyword: str):
+    msg = f"The keyword {keyword} is depcrecated and does nothing"
+    return msg

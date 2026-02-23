@@ -8,5 +8,5 @@ sphinx
 numpydoc
 intersphinx_registry
 pydata_sphinx_theme
-mplutils @ https://github.com/frekm/mpl-utils/archive/refs/tags/v0.2.0.zip
+mplutils @ https://github.com/frekm/mpl-utils/archive/refs/tags/v0.5.0.zip
 -e .

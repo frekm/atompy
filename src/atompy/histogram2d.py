@@ -11,11 +11,13 @@ from matplotlib.colorbar import Colorbar
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-import mplutils as mplu
-
 import uproot
 
-from ._core import raise_unmatching_edges, get_topmost_figure
+from ._core import (
+    raise_unmatching_edges,
+    get_topmost_figure,
+    deprecated_keyword_doing_nothing_msg,
+)
 from .utils import (
     centers_to_edges,
     edges_to_centers,
@@ -1597,8 +1599,8 @@ class Hist2d:
         ylim: tuple[float, float] | None = None,
         colorbar_kwargs: dict[str, Any] = {},
         savefig_kwargs: dict[str, Any] = {},
-        use_fixed_layout: bool = True,
-        fixed_layout_kwargs: dict[str, Any] = {},
+        use_fixed_layout: None = None,
+        fixed_layout_kwargs: None = None,
         make_me_nice: None = None,
         make_me_nice_kwargs: None = None,
         **pcolormesh_kwargs,
@@ -1641,27 +1643,29 @@ class Hist2d:
             Limits for the y-axis.
 
         colorbar_kwargs: dict, optional
-            Additional keyword arguments passed to :func:`mplutils.add_colorbar`.
+            Additional keyword arguments passed to
+            :meth:`~matplotlib.figure.Figure.add_colorbar`.
 
         savefig_kwargs : dict, optional
-            Additional keyword arguments passed to :func:`mplutils.savefig`.
+            Additional keyword arguments passed to
+            :meth:`~matplotlib.figure.Figure.savefig`.
 
         use_fixed_layout : bool, default True
-            If True, use :class:`mplutils.FixedLayoutEngine`.
+            Deprecated. Does nothing.
 
         fixed_layout_kwargs : dict, optional
-            Additional keyword arguments passed to :class:`mplutils.FixedLayoutEngine`.
+            Deprecated. Does nothing.
 
         make_me_nice : bool, default True
-            Deprecated. Use `use_fixed_layout` instead.
+            Deprecated. Does nothing.
 
         make_me_nice_kwargs : dict, optional
-            Deprecated. Use `fixed_layout_kwargs` instead.
+            Deprecated. Does nothing.
 
         Other parameters
         ----------------
         pcolormesh_kwargs : dict, optional
-            Additional keyword arguments passed to :obj:`matplotlib.pyplot.pcolormesh`.
+            Additional keyword arguments passed to :obj:`~matplotlib.pyplot.pcolormesh`.
 
         Returns
         -------
@@ -1683,25 +1687,13 @@ class Hist2d:
             fig, ax = plt.subplots(1, 1)
         else:
             fig = get_topmost_figure(ax)
-        if make_me_nice is not None:
-            msg = "The keyword 'make_me_nice' is deprecated. Use 'use_fixed_layout' instead"
-            warnings.warn(msg)
-            use_fixed_layout = make_me_nice
-        if make_me_nice_kwargs is not None:
-            msg = "The keyword 'make_me_nice_kwargs' is deprecated. Use 'fixed_layout_kwargs' instead"
-            warnings.warn(msg)
-            fixed_layout_kwargs = make_me_nice_kwargs.copy()
-        if use_fixed_layout:
-            fig.set_layout_engine(mplu.FixedLayoutEngine(**fixed_layout_kwargs))
         norm = LogNorm() if logscale else None
         pcolormesh_kwargs_ = pcolormesh_kwargs.copy()
         pcolormesh_kwargs_.setdefault("norm", norm)
         pcolormesh_kwargs_.setdefault("rasterized", True)
         im = ax.pcolormesh(*self.for_pcolormesh(), **pcolormesh_kwargs_)
 
-        cb_kwargs = colorbar_kwargs.copy()
-        cb_kwargs.setdefault("location", "right")
-        cb = mplu.add_colorbar(im, ax, **cb_kwargs)
+        cb = fig.colorbar(im, ax, **colorbar_kwargs)
         cb.set_label(zlabel if zlabel != "__auto__" else self.zlabel)
 
         title_ = title if title != "__auto__" else self.title
@@ -1715,6 +1707,6 @@ class Hist2d:
         ax.set_ylim(ylim)
 
         if fname is not None:
-            mplu.savefig(fname, **savefig_kwargs)
+            fig.savefig(fname, **savefig_kwargs)
 
         return fig, ax, cb

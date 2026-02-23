@@ -5,7 +5,6 @@ from numpy.random import Generator
 from numpy.typing import NDArray, ArrayLike
 import matplotlib.colors as mcolors
 import matplotlib
-import mplutils as mplu
 
 import time
 
@@ -65,6 +64,85 @@ def get_all_dividers(n: int) -> tuple[int, ...]:
             all_dividers.append(divider)
     all_dividers.append(n)
     return tuple(all_dividers)
+
+
+def for_pcolormesh(
+    xcenters: ArrayLike,
+    ycenters: ArrayLike,
+    z: ArrayLike,
+    *,
+    iteration_order: Literal["x_first", "y_first"] = "x_first",
+    xmin: float | None = None,
+    xmax: float | None = None,
+    ymin: float | None = None,
+    ymax: float | None = None,
+) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
+    """
+    Convert `xcenters, ycenters, z` such that they can be plotted by
+    :func:`matplotlib.pyplot.pcolormesh`.
+
+    Parameters
+    ----------
+    xcenters : array_like
+
+        A flat sequence of x-coordinates, representing the horizontal position of each
+        element in the grid.
+
+        If the bins are not all equal in size, `xmin` or `xmax` needs to be
+        specified.
+
+      ycenters : array_like
+
+        A flat sequence of y-coordinates, representing the vertical position of each
+        element in the grid.
+
+        If the bins are not all equal in size, `ymin` or `ymax` needs to be
+        specified.
+
+    z : array_like
+        A flat sequence of data values corresponding to each (xcenters, ycenters)
+        coordinate
+
+        The x, y, and z sequences must all be the same length, where each
+        z[i] corresponds to the position (xcenters[i], ycenters[i]) in a 2D grid.
+
+
+    iteration_order : {"x_first", "y_first"}, default "x_first"
+        Specify if the outer iteration is along x or y.
+
+    xmin, xmax, ymin, ymax : float, optional
+        If x (y) bins do not have constant size, at least one corresponding
+        limit has to be provided.
+
+        .. note::
+
+            This does not refer to the limits of the bin centers, but the limits of
+            the bin edges!
+
+    Returns
+    -------
+    X, Y, C : ndarray
+        Output formatted to work with :func:`~matplotlib.pyplot.pcolormesh`.
+    """
+    z_ = np.asarray(z)
+    if len(np.asarray(xcenters)) != len(np.asarray(ycenters)) != len(z_):
+        raise ValueError("xcenters, ycenters, and z must have the same length")
+
+    x_ = np.unique(xcenters)
+    y_ = np.unique(ycenters)
+
+    xedges = centers_to_edges(x_, xmin, xmax)
+    yedges = centers_to_edges(y_, ymin, ymax)
+
+    if iteration_order == "x_first":
+        z_ = z_.reshape(y_.size, x_.size)
+    elif iteration_order == "y_first":
+        z_ = z_.reshape(x_.size, y_.size).T
+    else:
+        msg = f"'{iteration_order=}', but it should be 'x_first' or 'y_first'"
+        raise ValueError(msg)
+
+    return xedges, yedges, z_
 
 
 def for_pcolormesh_from_root(
@@ -154,7 +232,7 @@ def for_pcolormesh_from_txt(
         data = data.T
     elif data_layout != "rows":
         raise ValueError(f"{data_layout=}, but it must be 'rows' or 'columns'")
-    return mplu.for_pcolormesh(
+    return for_pcolormesh(
         data[xyz_indices[0]],
         data[xyz_indices[1]],
         data[xyz_indices[2]],

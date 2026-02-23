@@ -1,6 +1,6 @@
 [project]
 name = "atompy"
-version = "5.4.1" # also update _version.py
+version = "5.4.2-dev"
 authors = [{ name = "Max Kircher", email = "kircher@atom.uni-frankfurt.de" }]
 description = """
     Utility methods for data analysis.
@@ -17,7 +17,6 @@ dependencies = [
     "matplotlib",
     "uproot",
     "scipy",
-    "mplutils @ https://github.com/frekm/mpl-utils/archive/refs/tags/v0.4.0.zip"
 ]
 
 [tool.setuptools.package-data]

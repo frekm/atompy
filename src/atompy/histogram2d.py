@@ -1742,7 +1742,8 @@ class Hist2d:
         cb.set_label(zlabel if zlabel != "__auto__" else self.zlabel)
 
         title_ = title if title != "__auto__" else self.title
-        fig.canvas.manager.set_window_title(title_)  # type: ignore
+        if title_ != "":
+            fig.canvas.manager.set_window_title(title_)  # type: ignore
         ax.set_title(title_)
 
         ax.set_xlabel(xlabel if xlabel != "__auto__" else self.xlabel)

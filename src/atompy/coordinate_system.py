@@ -99,7 +99,7 @@ class CoordinateSystemArray:
     .. tip::
 
         If you want to store a single coordinate systems, consider
-        :class:`.CoordinateSystemArray`.
+        :class:`.CoordinateSystem`.
 
     Parameters
     ----------

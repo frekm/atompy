@@ -1,3 +1,5 @@
+import copy
+
 from typing import Any, Iterator, Literal, Self
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -836,6 +838,16 @@ class Hist1d:
         for_step
         """
         return self.centers, self.values, self.binsizes()
+
+    def copy(self) -> Self:
+        """Return a copy of the histogram."""
+        return type(self)(
+            self.values.copy(),
+            self.edges.copy(),
+            copy.copy(self.title),
+            copy.copy(self.xlabel),
+            copy.copy(self.ylabel),
+        )
 
     def plot(
         self,

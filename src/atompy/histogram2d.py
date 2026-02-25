@@ -1,4 +1,5 @@
 from os import PathLike
+import copy
 
 import numpy as np
 from numpy.typing import NDArray, ArrayLike
@@ -1754,3 +1755,14 @@ class Hist2d:
             fig.savefig(fname, **savefig_kwargs)
 
         return fig, ax, cb
+
+    def copy(self) -> Self:
+        """Return a copy of the histogram."""
+        return type(self)(
+            self.values.copy(),
+            self.xedges.copy(),
+            self.yedges.copy(),
+            copy.copy(self.title),
+            copy.copy(self.xlabel),
+            copy.copy(self.ylabel),
+        )

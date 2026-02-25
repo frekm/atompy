@@ -1658,22 +1658,31 @@ class Hist2d:
             Additional keyword arguments passed to
             :meth:`~matplotlib.figure.Figure.savefig`.
 
-        use_fixed_layout : bool, default True
-            Deprecated. Does nothing.
-
-        fixed_layout_kwargs : dict, optional
-            Deprecated. Does nothing.
-
-        make_me_nice : bool, default True
-            Deprecated. Does nothing.
-
-        make_me_nice_kwargs : dict, optional
-            Deprecated. Does nothing.
-
         Other parameters
         ----------------
         pcolormesh_kwargs : dict, optional
             Additional keyword arguments passed to :obj:`~matplotlib.pyplot.pcolormesh`.
+
+
+        use_fixed_layout
+            .. version-deprecated:: 5.4.2
+
+                Does nothing.
+
+        fixed_layout_kwargs
+            .. version-deprecated:: 5.4.2
+
+                Does nothing.
+
+        make_me_nice
+            .. version-deprecated:: 5.4.2
+
+                Does nothing.
+
+        make_me_nice_kwargs
+            .. version-deprecated:: 5.4.2
+
+                Does nothing.
 
         Returns
         -------
@@ -1691,6 +1700,31 @@ class Hist2d:
             :include-source:
 
         """
+        if make_me_nice is not None:
+            warnings.warn(
+                deprecated_keyword_doing_nothing_msg("make_me_nice"),
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        if make_me_nice_kwargs is not None:
+            warnings.warn(
+                deprecated_keyword_doing_nothing_msg("make_me_nice_kwargs"),
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        if use_fixed_layout is not None:
+            warnings.warn(
+                deprecated_keyword_doing_nothing_msg("use_fixed_layout"),
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        if fixed_layout_kwargs is not None:
+            warnings.warn(
+                deprecated_keyword_doing_nothing_msg("fixed_layout_kwargs"),
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         if ax is None:
             fig, ax = plt.subplots(1, 1)
         else:
@@ -1701,7 +1735,7 @@ class Hist2d:
         pcolormesh_kwargs_.setdefault("rasterized", True)
         im = ax.pcolormesh(*self.for_pcolormesh(), **pcolormesh_kwargs_)
 
-        cb = fig.colorbar(im, ax, **colorbar_kwargs)
+        cb = fig.colorbar(im, ax=ax, **colorbar_kwargs)
         cb.set_label(zlabel if zlabel != "__auto__" else self.zlabel)
 
         title_ = title if title != "__auto__" else self.title

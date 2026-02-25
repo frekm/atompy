@@ -895,23 +895,31 @@ class Hist1d:
             Additional keyword arguments passed to
             :func:`~matplotlib.figure.Figure.savefig`.
 
-        use_fixed_layout : bool, default True
-            Deprecated. Does nothing.
-
-        fixed_layout_kwargs : dict, optional
-            Deprecated. Does nothing.
-
-        make_me_nice : bool, default True
-            Deprecated. Does nothing.
-
-        make_me_nice_kwargs : dict, optional
-            Deprecated. Does nothing.
-
         Other parameters
         ----------------
         plot_kwargs : dict, optional
             Additional keyword arguments passed to
             :obj:`matplotlib.pyplot.plot`.
+
+        use_fixed_layout
+            .. version-deprecated:: 5.4.2
+
+                Does nothing.
+
+        fixed_layout_kwargs
+            .. version-deprecated:: 5.4.2
+
+                Does nothing.
+
+        make_me_nice
+            .. version-deprecated:: 5.4.2
+
+                Does nothing.
+
+        make_me_nice_kwargs
+            .. version-deprecated:: 5.4.2
+
+                Does nothing.
 
 
         Returns
@@ -934,13 +942,29 @@ class Hist1d:
         else:
             fig = get_topmost_figure(ax)
         if make_me_nice is not None:
-            warnings.warn(deprecated_keyword_doing_nothing_msg("make_me_nice"))
+            warnings.warn(
+                deprecated_keyword_doing_nothing_msg("make_me_nice"),
+                DeprecationWarning,
+                stacklevel=2,
+            )
         if make_me_nice_kwargs is not None:
-            warnings.warn(deprecated_keyword_doing_nothing_msg("make_me_nice_kwargs"))
+            warnings.warn(
+                deprecated_keyword_doing_nothing_msg("make_me_nice_kwargs"),
+                DeprecationWarning,
+                stacklevel=2,
+            )
         if use_fixed_layout is not None:
-            warnings.warn(deprecated_keyword_doing_nothing_msg("use_fixed_layout"))
+            warnings.warn(
+                deprecated_keyword_doing_nothing_msg("use_fixed_layout"),
+                DeprecationWarning,
+                stacklevel=2,
+            )
         if fixed_layout_kwargs is not None:
-            warnings.warn(deprecated_keyword_doing_nothing_msg("fixed_layout_kwargs"))
+            warnings.warn(
+                deprecated_keyword_doing_nothing_msg("fixed_layout_kwargs"),
+                DeprecationWarning,
+                stacklevel=2,
+            )
         if plot_fmt is None:
             ax.plot(*self.for_plot(), **plot_kwargs)
         else:
@@ -1019,24 +1043,32 @@ class Hist1d:
             Additional keyword arguments passed to
             :func:`~matplotlib.figure.Figure.savefig`.
 
-        use_fixed_layout : bool, default True
-            Deprecated. Does nothing.
-
-        fixed_layout_kwargs : dict, optional
-            Deprecated. Does nothing.
-
-        make_me_nice : bool, default True
-            Deprecated. Does nothing.
-
-        make_me_nice_kwargs : dict, optional
-            Deprecated. Does nothing.
-
         Other parameters
         ----------------
         plot_kwargs : dict, optional
             Additional keyword arguments passed to :obj:`matplotlib.pyplot.plot`.
 
             Should not contain the `drawstyle` keyword.
+
+        use_fixed_layout
+            .. version-deprecated:: 5.4.2
+
+                Does nothing.
+
+        fixed_layout_kwargs
+            .. version-deprecated:: 5.4.2
+
+                Does nothing.
+
+        make_me_nice
+            .. version-deprecated:: 5.4.2
+
+                Does nothing.
+
+        make_me_nice_kwargs
+            .. version-deprecated:: 5.4.2
+
+                Does nothing.
 
         Returns
         -------
@@ -1055,13 +1087,29 @@ class Hist1d:
         else:
             fig = get_topmost_figure(ax)
         if make_me_nice is not None:
-            warnings.warn(deprecated_keyword_doing_nothing_msg("make_me_nice"))
+            warnings.warn(
+                deprecated_keyword_doing_nothing_msg("make_me_nice"),
+                DeprecationWarning,
+                stacklevel=2,
+            )
         if make_me_nice_kwargs is not None:
-            warnings.warn(deprecated_keyword_doing_nothing_msg("make_me_nice_kwargs"))
+            warnings.warn(
+                deprecated_keyword_doing_nothing_msg("make_me_nice_kwargs"),
+                DeprecationWarning,
+                stacklevel=2,
+            )
         if use_fixed_layout is not None:
-            warnings.warn(deprecated_keyword_doing_nothing_msg("use_fixed_layout"))
+            warnings.warn(
+                deprecated_keyword_doing_nothing_msg("use_fixed_layout"),
+                DeprecationWarning,
+                stacklevel=2,
+            )
         if fixed_layout_kwargs is not None:
-            warnings.warn(deprecated_keyword_doing_nothing_msg("fixed_layout_kwargs"))
+            warnings.warn(
+                deprecated_keyword_doing_nothing_msg("fixed_layout_kwargs"),
+                DeprecationWarning,
+                stacklevel=2,
+            )
         ax.set_xlabel(xlabel if xlabel != "__auto__" else self.xlabel)
         ax.set_ylabel(ylabel if ylabel != "__auto__" else self.ylabel)
         title_ = title if title != "__auto__" else self.title

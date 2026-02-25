@@ -1735,7 +1735,9 @@ class Hist2d:
         pcolormesh_kwargs_.setdefault("rasterized", True)
         im = ax.pcolormesh(*self.for_pcolormesh(), **pcolormesh_kwargs_)
 
-        cb = fig.colorbar(im, ax=ax, **colorbar_kwargs)
+        cbar_kwargs = colorbar_kwargs.copy()
+        cbar_kwargs.setdefault("use_gridspec", False)
+        cb = fig.colorbar(im, ax=ax, **cbar_kwargs)
         cb.set_label(zlabel if zlabel != "__auto__" else self.zlabel)
 
         title_ = title if title != "__auto__" else self.title

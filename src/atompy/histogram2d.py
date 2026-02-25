@@ -1030,7 +1030,11 @@ class Hist2d:
 
         """
         return Hist1d(
-            np.sum(self.values, axis=1), self.xedges.copy(), self.title, self.xlabel
+            np.sum(self.values, axis=1),
+            self.xedges.copy(),
+            self.title,
+            self.xlabel,
+            self.zlabel,
         )
 
     def project_onto_y(self) -> Hist1d:
@@ -1056,7 +1060,11 @@ class Hist2d:
 
         """
         return Hist1d(
-            np.sum(self.values, axis=0), self.yedges.copy(), self.title, self.ylabel
+            np.sum(self.values, axis=0),
+            self.yedges.copy(),
+            self.title,
+            self.ylabel,
+            self.zlabel,
         )
 
     def _calculate_profile(

@@ -669,7 +669,8 @@ class Hist1d:
         """
         new_values = np.divide(self.values, self.integrate()).copy()
         new_edges = self.edges.copy()
-        return type(self)(new_values, new_edges, self.title, self.xlabel, self.ylabel)
+        new_title = f"{self.title} / integral"
+        return type(self)(new_values, new_edges, new_title, self.xlabel, self.ylabel)
 
     def norm_to_max(self) -> Self:
         """
@@ -687,7 +688,8 @@ class Hist1d:
         """
         new_values = np.divide(self.values, self.values.max()).copy()
         new_edges = self.edges.copy()
-        return type(self)(new_values, new_edges, self.title, self.xlabel, self.ylabel)
+        new_title = f"{self.title} / max"
+        return type(self)(new_values, new_edges, new_title, self.xlabel, self.ylabel)
 
     def norm_to_sum(self) -> Self:
         """
@@ -710,7 +712,8 @@ class Hist1d:
         """
         new_values = np.divide(self.values, self.sum()).copy()
         new_edges = self.edges.copy()
-        return type(self)(new_values, new_edges, self.title, self.xlabel, self.ylabel)
+        new_title = f"{self.title} / sum"
+        return type(self)(new_values, new_edges, new_title, self.xlabel, self.ylabel)
 
     def for_step(
         self, extent_to: None | float = None

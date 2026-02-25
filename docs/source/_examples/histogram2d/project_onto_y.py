@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import atompy as ap
-import mplutils as mplu
 
 plt.style.use("atom")
 
@@ -14,32 +13,29 @@ hist = ap.Hist2d(
         rng.normal(-0.5, size=size),
         rng.normal(0.5, size=size),
         range=(lim, lim),
-    )
+    ),
+    xlabel="x",
+    ylabel="y",
+    zlabel="intensity",
 )
 
-_, axs = plt.subplots(2, 2, squeeze=False, layout=mplu.FixedLayoutEngine())
+_, axs = plt.subplots(2, 2, squeeze=False, layout="compressed")
 axs = axs.flat
 
-im = axs[0].pcolormesh(*hist.for_pcolormesh())
-axs[0].set_title("2D Histogram")
-mplu.add_colorbar(im, axs[0]).set_label("counts")
-axs[0].set_xlabel("x")
-axs[0].set_ylabel("y")
+hist.plot(ax=axs[0])
 
-axs[1].bar(*hist.project_onto_y().for_bar())
-axs[1].set_title("project all")
-
-axs[2].bar(*hist.keep(ylower=-1, yupper=1).project_onto_y().for_bar())
-axs[2].set_title("project within y gate")
-
-axs[3].bar(*hist.remove(ylower=-1, yupper=1).project_onto_y().for_bar())
-axs[3].set_title("project outside y gate")
+hist.project_onto_y().plot_step(axs[1], title="project all")
+hist.keep(ylower=-1, yupper=1, squeeze=False).project_onto_y().plot_step(
+    axs[2], title="project within y gate"
+)
+hist.remove(ylower=-1, yupper=1).project_onto_y().plot_step(
+    axs[3], title="project outside y gate"
+)
 
 for ax in axs[1:]:
-    ax.set_xlabel("y")
-    ax.set_ylabel("counts")
     ax.set_ylim(axs[1].get_ylim())
 
 for ax in axs:
-    mplu.set_axes_size(3, ax=ax)
-    ax.set_xlim(lim)
+    ax.set_box_aspect(1)
+
+plt.show()

@@ -2,7 +2,6 @@ import atompy as ap
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as patheffects
-import mplutils as mplu
 
 plt.style.use("atom")
 plt.rcParams["axes.grid"] = False
@@ -28,13 +27,12 @@ hists = [
 # plot different normalizations
 titles = "original", "norm. to integral", "norm. to max", "norm. to sum"
 
-_, axs = plt.subplots(1, 4, layout=mplu.FixedLayoutEngine())
+fig, axs = plt.subplots(1, 4, layout="compressed", figsize=(12, 3))
 
 for i, ax in enumerate(axs):
-    ax.set_title(titles[i], pad=35)
-    im = ax.pcolormesh(*hists[i].for_pcolormesh(), rasterized=True, cmap="atom")
-    mplu.set_axes_size(2.0, ax=ax)
-    mplu.add_colorbar(im, ax, location="top")
+    ax.set_title(titles[i])
+    ax.set_box_aspect(1)
+    hists[i].plot(ax=ax, title=titles[i])
 
     # show values of bin in plot
     for j, x in enumerate(hists[i].xcenters):
@@ -48,3 +46,5 @@ for i, ax in enumerate(axs):
                     patheffects.Normal(),
                 ]
             )
+
+plt.show()

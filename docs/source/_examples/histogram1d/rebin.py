@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import atompy as ap
-import mplutils as mplu
 
 plt.style.use("atom")
 
@@ -9,9 +8,7 @@ plt.style.use("atom")
 bin_centers = np.linspace(-2, 2, 45)
 hist = ap.Hist1d.from_centers(ap.gauss(bin_centers), bin_centers)
 
-plt.step(*hist.for_step(), label="original")
-plt.step(*hist.rebin(3).for_step(), label="rebinned")
-plt.legend()
-plt.gcf().set_layout_engine(mplu.FixedLayoutEngine())
+_, ax = hist.rebin(3).plot_step(label="rebinned")
+hist.plot_step(ax=ax, label="original")
 
-mplu.set_axes_size(3.0, 3.0 / 4.0)
+plt.legend()

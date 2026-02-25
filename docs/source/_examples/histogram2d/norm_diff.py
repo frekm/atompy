@@ -1,7 +1,6 @@
 import numpy as np
 import atompy as ap
 import matplotlib.pyplot as plt
-import mplutils as mplu
 
 plt.style.use("atom")
 
@@ -12,9 +11,9 @@ data1 = rng.normal((0, 1), size=(3000, 2))
 hist0 = ap.Hist2d(*np.histogram2d(*data0.T, range=((-2, 2), (-2, 2))))
 hist1 = ap.Hist2d(*np.histogram2d(*data1.T, range=((-2, 2), (-2, 2))))
 
-_, axs = plt.subplots(1, 3, layout=mplu.FixedLayoutEngine())
+_, axs = plt.subplots(1, 3, layout="compressed", figsize=(8.0, 2.5))
 for ax in axs:
-    mplu.set_axes_size(2, ax=ax)
+    ax.set_box_aspect(1)
 
 hist0.plot(axs[0], title="Histogram 1")
 hist1.plot(axs[1], title="Histogram 2")

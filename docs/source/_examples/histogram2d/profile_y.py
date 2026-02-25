@@ -1,7 +1,6 @@
 import numpy as np
 import atompy as ap
 import matplotlib.pyplot as plt
-import mplutils as mplu
 
 plt.style.use("atom")
 
@@ -17,10 +16,10 @@ hist = ap.Hist2d(
 mean, mean_errors = hist.profile_along_y()
 _, standard_deviation = hist.profile_along_y("s")
 
-_, axs = plt.subplots(1, 2, layout=mplu.FixedLayoutEngine())
+_, axs = plt.subplots(1, 2, layout="compressed", figsize=(6.0, 3.0))
 for ax in axs.flat:
+    ax.set_box_aspect(1)
     ax.pcolormesh(*hist.for_pcolormesh())
-    mplu.set_axes_size(3, ax=ax)
 
 kwargs = dict(fmt="o-", color="k")
 

@@ -1,19 +1,16 @@
 import numpy as np
 import atompy as ap
 import matplotlib.pyplot as plt
-import mplutils as mplu
 
 plt.style.use("atom")
 
 gen = np.random.default_rng(42)
 hist = ap.Hist2d(*np.histogram2d(*gen.normal(size=(2, 100))))
 
-_, axs = plt.subplot_mosaic([["a", "b", "c"]], layout=mplu.FixedLayoutEngine())
+_, axs = plt.subplot_mosaic([["a", "b", "c"]], layout="compressed", figsize=(8.0, 2.5))
+for ax in axs.values():
+    ax.set_box_aspect(1)
 
-imga = axs["a"].pcolormesh(*hist.for_pcolormesh())
-imgb = axs["b"].pcolormesh(*hist.remove_zeros().for_pcolormesh(), vmin=0)
-imgc = axs["c"].pcolormesh(*hist.remove_zeros().for_pcolormesh())
-
-for img, ax in zip([imga, imgb, imgc], axs.values()):
-    mplu.set_axes_size(2, ax=ax)
-    mplu.add_colorbar(img, ax, location="top")
+hist.plot(ax=axs["a"], title="original")
+hist.remove_zeros().plot(ax=axs["b"], vmin=0, title="no zeros, starting at 0")
+hist.remove_zeros().plot(ax=axs["c"], title="no zeros, starting at 1")

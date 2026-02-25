@@ -28,7 +28,9 @@ Custom plotting methods
 It is possible to create a derived class inheriting from :class:`.Hist1d` or
 :class:`.Hist2d`, and implementing a custom plotting methods for these.
 
-The following example showcases the perks of this approach.
+The following example showcases the perks of this approach. Note that the plotting
+method uses a custom layout engine (similar to :func:`~matplotlib.pyplot.tight_layout`)
+provided by `mplutils <https://mpl-utils.readthedocs.io/en/latest/>`__.
 
 .. plot:: _examples/custom_plot_method.py
     :include-source:

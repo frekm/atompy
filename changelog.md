@@ -1,4 +1,4 @@
-# v5.5.0-dev
+# v5.5.0
 - Remove dependency of `mplutils`
 - Add `Hist1d/2d.copy`
 - Add `Hist2d.from_image`

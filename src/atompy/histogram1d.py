@@ -914,22 +914,22 @@ class Hist1d:
             :obj:`matplotlib.pyplot.plot`.
 
         use_fixed_layout
-            .. version-deprecated:: 5.4.2
+            .. version-deprecated:: 5.5.0
 
                 Does nothing.
 
         fixed_layout_kwargs
-            .. version-deprecated:: 5.4.2
+            .. version-deprecated:: 5.5.0
 
                 Does nothing.
 
         make_me_nice
-            .. version-deprecated:: 5.4.2
+            .. version-deprecated:: 5.5.0
 
                 Does nothing.
 
         make_me_nice_kwargs
-            .. version-deprecated:: 5.4.2
+            .. version-deprecated:: 5.5.0
 
                 Does nothing.
 
@@ -1063,22 +1063,22 @@ class Hist1d:
             Should not contain the `drawstyle` keyword.
 
         use_fixed_layout
-            .. version-deprecated:: 5.4.2
+            .. version-deprecated:: 5.5.0
 
                 Does nothing.
 
         fixed_layout_kwargs
-            .. version-deprecated:: 5.4.2
+            .. version-deprecated:: 5.5.0
 
                 Does nothing.
 
         make_me_nice
-            .. version-deprecated:: 5.4.2
+            .. version-deprecated:: 5.5.0
 
                 Does nothing.
 
         make_me_nice_kwargs
-            .. version-deprecated:: 5.4.2
+            .. version-deprecated:: 5.5.0
 
                 Does nothing.
 

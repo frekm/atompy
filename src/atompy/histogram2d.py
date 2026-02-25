@@ -262,6 +262,82 @@ class Hist2d:
         return cls(data[2].T, data[0], data[1], title, xlabel, ylabel, zlabel)
 
     @classmethod
+    def from_image(
+        cls,
+        image: ArrayLike,
+        extents: ArrayLike = ((0, 1), (0, 1)),
+        title: str = "",
+        xlabel: str = "",
+        ylabel: str = "",
+        zlabel: str = "",
+        origin: Literal["upper", "lower"] = "upper",
+    ) -> Self:
+        """
+        Create a :class:`.Hist1d` from a 2D image.
+
+        This method converts a 2D array of pixel intensities into a histogram-like
+        representation, where each pixel corresponds to a bin and the provided
+        ``extents`` define the coordinate range of the image.
+
+        Parameters
+        ----------
+        image : array_like of shape (M, N)
+            The input 2D image data. Each element represents the value of a bin.
+            The first dimension corresponds to the vertical axis and the second
+            to the horizontal axis. Internally, the image is transposed so that
+            the x-axis corresponds to the first histogram dimension and the y-axis
+            to the second.
+
+        extents : array_like of shape ((xmin, xmax), (ymin, ymax)), default ((0, 1), (0, 1))
+            The coordinate limits of the image in data units. These define the
+            bin edges along the x and y axes.
+
+        title : str, default ""
+            The title of the histogram.
+
+        xlabel : str, default ""
+            Label for the x-axis.
+
+        ylabel : str, default ""
+            Label for the y-axis.
+
+        zlabel : str, default ""
+            Label for the bin values (e.g., intensity or counts).
+
+        origin : {"upper", "lower"}, default "upper"
+            Placement of the [0, 0] index of the image. If "upper", the first row of
+            the image is treated as the top and the image is flipped vertically to
+            match a Cartesian coordinate system. If "lower", the first row is treated
+            as the bottom. Default is "upper".
+
+        Returns
+        -------
+        Self
+            A new :class:`.Hist1d` instance representing the image as a 2D histogram,
+            with bin edges derived from ``extents`` and bin contents from ``image``.
+
+        Examples
+        --------
+
+        .. plot:: _examples/histogram2d/from_image.py
+            :include-source:
+        """
+        image = np.asarray(image).T
+        extents = np.asarray(extents).astype(float)
+        if extents.shape != (2, 2):
+            raise ValueError("extents must be of from ((xmin, xmax), (ymin, ymax))")
+        if image.ndim != 2:
+            raise ValueError("image must be a 2D array")
+        xbins, ybins = image.shape
+        xedges = np.linspace(extents[0, 0], extents[0, 1], xbins + 1)
+        yedges = np.linspace(extents[1, 0], extents[1, 1], ybins + 1)
+        if origin not in "upper lower":
+            raise ValueError("origin must be 'upper' or 'lower'")
+        if origin == "upper":
+            image = np.flip(image, axis=1)
+        return cls(image, xedges, yedges, title, xlabel, ylabel, zlabel)
+
+    @classmethod
     def from_root(
         cls,
         fname: str | PathLike,
@@ -1666,22 +1742,22 @@ class Hist2d:
 
 
         use_fixed_layout
-            .. version-deprecated:: 5.4.2
+            .. version-deprecated:: 5.5.0
 
                 Does nothing.
 
         fixed_layout_kwargs
-            .. version-deprecated:: 5.4.2
+            .. version-deprecated:: 5.5.0
 
                 Does nothing.
 
         make_me_nice
-            .. version-deprecated:: 5.4.2
+            .. version-deprecated:: 5.5.0
 
                 Does nothing.
 
         make_me_nice_kwargs
-            .. version-deprecated:: 5.4.2
+            .. version-deprecated:: 5.5.0
 
                 Does nothing.
 

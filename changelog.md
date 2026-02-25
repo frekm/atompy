@@ -1,6 +1,7 @@
-# v5.4.2-dev
+# v5.5.0-dev
 - Remove dependency of `mplutils`
-- Add `Hist1d/2d.copy()`
+- Add `Hist1d/2d.copy`
+- Add `Hist2d.from_image`
 
 # v5.4.1
 - Expose `for_pcolormesh_from_txt` and `for_pcolormesh_from_root`

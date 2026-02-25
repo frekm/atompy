@@ -22,6 +22,10 @@ class CoordinateSystem:
         Second vector :math:`\vec{v}_2` defining the coordinate system.
         Should not be parallel to `vector_1`.
 
+    vector_3 : VectorLike or None, default None
+        Optional third vector. If three vectors are provided, use them as the new
+        base vectors (after normalization).
+
     Notes
     -----
     The three basis vectors :math:`\hat{x}, \hat{y}, \hat{z}` will be unit vectors along
@@ -33,18 +37,36 @@ class CoordinateSystem:
         \vec{y} &= \vec{v_z} \times \vec{v_2} \\
         \vec{x} &= \vec{v_y} \times \vec{z}
 
+    If three vectors are provided, the directions will be given by
+
+    .. math::
+        \vec{x} &= \vec{v_1} \\
+        \vec{y} &= \vec{v_2} \\
+        \vec{z} &= \vec{v_3} \\
+
     Attributes
     ----------
     x_axis, y_axis, z_axis : :class:`.Vector`
         x, y, z basis vectors of the coordinate system.
     """
 
-    def __init__(self, vector_1: vec.VectorLike, vector_2: vec.VectorLike):
+    def __init__(
+        self,
+        vector_1: vec.VectorLike,
+        vector_2: vec.VectorLike,
+        vector_3: vec.VectorLike | None = None,
+    ):
         vec1_ = vec.asvector(vector_1)
         vec2_ = vec.asvector(vector_2)
-        self._z_axis = vec1_.norm()
-        self._y_axis = vec1_.cross(vec2_).norm()
-        self._x_axis = self._y_axis.cross(vec1_).norm()
+        if vector_3 is None:
+            self._z_axis = vec1_.norm()
+            self._y_axis = vec1_.cross(vec2_).norm()
+            self._x_axis = self._y_axis.cross(vec1_).norm()
+        else:
+            vec3_ = vec.asvector(vector_3)
+            self._x_axis = vec1_.norm()
+            self._y_axis = vec2_.norm()
+            self._z_axis = vec3_.norm()
 
     @property
     def x_axis(self) -> vec.Vector:
@@ -111,6 +133,10 @@ class CoordinateSystemArray:
         Second set of vectors :math:`\vec{v}_2` defining the coordinate system.
         Should not be parallel to `vectors_1`.
 
+    vector_3 : VectorArrayLike or None, default None
+        Optional third set of vectors. If three sets are provided, use them as the
+        new base vectors (after normalization).
+
     Notes
     -----
     The three basis vectors :math:`\hat{x}, \hat{y}, \hat{z}` will be unit vectors
@@ -122,18 +148,36 @@ class CoordinateSystemArray:
         \vec{y} &= \vec{v_z} \times \vec{v_2} \\
         \vec{x} &= \vec{v_y} \times \vec{z}
 
+    If three vectors are provided, the directions will be given by
+
+    .. math::
+        \vec{x} &= \vec{v_1} \\
+        \vec{y} &= \vec{v_2} \\
+        \vec{z} &= \vec{v_3} \\
+
     Attributes
     ----------
-    x_axis, y_axis, z_axis : :class:`.Vector`
+    x_axis, y_axis, z_axis : :class:`.VectorArray`
         x, y, z basis vectors of the coordinate system.
     """
 
-    def __init__(self, vectors_1: vec.VectorArrayLike, vectors_2: vec.VectorArrayLike):
+    def __init__(
+        self,
+        vectors_1: vec.VectorArrayLike,
+        vectors_2: vec.VectorArrayLike,
+        vectors_3: vec.VectorArrayLike | None = None,
+    ):
         vec1_ = vec.asvectorarray(vectors_1)
         vec2_ = vec.asvectorarray(vectors_2)
-        self._z_axis = vec1_.norm(copy=False)
-        self._y_axis = vec1_.cross(vec2_).norm(copy=False)
-        self._x_axis = self._y_axis.cross(vec1_).norm(copy=False)
+        if vectors_3 is None:
+            self._z_axis = vec1_.norm(copy=False)
+            self._y_axis = vec1_.cross(vec2_).norm(copy=False)
+            self._x_axis = self._y_axis.cross(vec1_).norm(copy=False)
+        else:
+            vec3_ = vec.asvectorarray(vectors_3)
+            self._x_axis = vec1_.norm(copy=False)
+            self._y_axis = vec2_.norm(copy=False)
+            self._z_axis = vec3_.norm(copy=False)
 
     @property
     def x_axis(self) -> vec.VectorArray:
@@ -204,9 +248,7 @@ class CoordinateSystemArray:
     def __getitem__(self, i: slice) -> Self: ...
 
     def __getitem__(self, i: int | slice) -> CoordinateSystem | Self:
-        if isinstance(i, int):
-            return CoordinateSystem(self.z_axis[i], self.x_axis[i])
-        elif isinstance(i, slice):
-            return type(self)(self.z_axis[i], self.x_axis[i])
-        else:
+        if not (isinstance(i, int) or isinstance(i, slice)):
             raise TypeError(f"i must be int or slice, but is {type(i)}")
+        cls_ = CoordinateSystem if isinstance(i, int) else type(self)
+        return cls_(self.x_axis[i], self.y_axis[i], self.z_axis[i])  # type: ignore

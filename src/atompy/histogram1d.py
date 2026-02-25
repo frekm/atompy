@@ -1255,7 +1255,7 @@ class Hist1d:
         return type(self)(
             new_values,
             new_edges,
-            f"({self.title} - {other.title}) / ({self.title} + {other.title})",
+            f"({self.title} $-$ {other.title}) / ({self.title} + {other.title})",
             self.xlabel,
             self.ylabel,
         )

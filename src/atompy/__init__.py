@@ -1,10 +1,10 @@
-import matplotlib.pyplot as plt
-from importlib.resources import files
+import matplotlib.pyplot as _plt
+from importlib.resources import files as _files
 
-_style_path = files("atompy.styles").joinpath("atom.mplstyle")
-plt.style.library["atom"] = str(_style_path)  # type:ignore
-if "atom" not in plt.style.available:
-    plt.style.available.append("atom")
+_style_path = _files("atompy.styles").joinpath("atom.mplstyle")
+_plt.style.library["atom"] = str(_style_path)  # type:ignore
+if "atom" not in _plt.style.available:
+    _plt.style.available.append("atom")
 
 
 from ._utils import (

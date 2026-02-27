@@ -575,7 +575,7 @@ class Hist1d:
             >>> ap.Hist1d((1, 2, 3), (0, 1, 3, 4).binsizes()
             [1. 2. 1.]
         """
-        return np.diff(self.edges)
+        return hist1d.get_binsizes(self.edges).astype(np.float64)
 
     def integrate(self) -> float:
         """
@@ -593,7 +593,7 @@ class Hist1d:
         min
         sum
         """
-        return np.sum(self.values * self.binsizes())
+        return float(hist1d.integrate(self.values, self.edges))
 
     def sum(self) -> float:
         """

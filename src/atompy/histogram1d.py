@@ -20,7 +20,7 @@ from atompy._core import (
 
 from atompy.utils import get_all_dividers, centers_to_edges
 
-import atompy._histograms.hist1d as hist1d
+import atompy.hist_utils.hist1d as hist1d
 
 
 class Hist1d:

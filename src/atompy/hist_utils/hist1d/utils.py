@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray, ArrayLike
 
-from atompy._histograms import _shared
+from atompy.hist_utils import _shared
 
 __all__ = [
     "rebin",

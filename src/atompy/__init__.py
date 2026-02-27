@@ -24,10 +24,9 @@ from .utils import (
     for_pcolormesh_from_root,
 )
 
-from ._histograms import hist1d, hist2d
-from ._histograms.hist1d._histogram1d import Hist1d
-
-from ._histograms.hist2d._histogram2d import Hist2d
+from . import hist_utils
+from .histogram1d import Hist1d
+from .histogram2d import Hist2d
 
 from .vectors import (
     asvector,
@@ -60,10 +59,9 @@ __all__ = [
     "for_pcolormesh",
     "for_pcolormesh_from_txt",
     "for_pcolormesh_from_root",
-    "hist1d",
-    "hist2d",
     "Hist1d",
     "Hist2d",
+    "hist_utils",
     "asvector",
     "asvectorarray",
     "Vector",

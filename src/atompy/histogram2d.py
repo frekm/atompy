@@ -25,7 +25,7 @@ from .utils import (
     get_all_dividers,
     for_pcolormesh_from_txt,
 )
-from ._histograms.hist1d._histogram1d import Hist1d
+from .histogram1d import Hist1d
 
 
 class Hist2d:

@@ -37,5 +37,15 @@ def integrate(hist: NDArray[np.number], edges: NDArray[np.number]) -> float:
     float
         The integral, that is, ``hist * binsizes``.
 
+    Examples
+    --------
+
+        >>> hist = np.array((1.0, 2.0, 1.0))
+        >>> edges = np.array((0.0, 1.0, 1.5, 2.5))
+        >>> np.sum(hist)
+        4.0
+        >>> ap.hist_utils.hist1d.integrate(hist, edges)
+        3.0
+
     """
     return float(np.sum(hist * get_binsizes(edges)))

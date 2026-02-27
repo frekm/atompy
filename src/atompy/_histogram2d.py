@@ -19,13 +19,13 @@ from ._core import (
     get_topmost_figure,
     deprecated_keyword_doing_nothing_msg,
 )
-from .utils import (
+from ._utils import (
     centers_to_edges,
     edges_to_centers,
     get_all_dividers,
     for_pcolormesh_from_txt,
 )
-from .histogram1d import Hist1d
+from ._histogram1d import Hist1d
 
 
 class Hist2d:

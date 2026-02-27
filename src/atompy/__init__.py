@@ -7,7 +7,7 @@ if "atom" not in plt.style.available:
     plt.style.available.append("atom")
 
 
-from .utils import (
+from ._utils import (
     convert_cosine_to_angles,
     centers_to_edges,
     edges_to_centers,
@@ -24,11 +24,11 @@ from .utils import (
     for_pcolormesh_from_root,
 )
 
-from .histogram1d import Hist1d
+from ._histogram1d import Hist1d
 
-from .histogram2d import Hist2d
+from ._histogram2d import Hist2d
 
-from .vectors import (
+from ._vectors import (
     asvector,
     asvectorarray,
     Vector,
@@ -37,7 +37,7 @@ from .vectors import (
     VectorArrayLike,
 )
 
-from .coordinate_system import CoordinateSystem, CoordinateSystemArray
+from ._coordinate_system import CoordinateSystem, CoordinateSystemArray
 
 from . import physics
 

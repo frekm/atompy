@@ -2,9 +2,9 @@ import numpy as np
 import numpy.typing as npt
 import time
 from typing import overload, Union
-from ..vectors import Vector, VectorArray
+from .._vectors import Vector, VectorArray
 
-from ..utils import sample_distribution_func
+from .._utils import sample_distribution_func
 
 
 @overload

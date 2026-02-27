@@ -2,7 +2,7 @@ from typing import overload, Union, Optional, Any
 import numpy as np
 import numpy.typing as npt
 import time
-from ...vectors import VectorArray, Vector
+from ..._vectors import VectorArray, Vector
 
 
 def thomson_cross_section(

@@ -18,7 +18,7 @@ from ._core import (
     deprecated_keyword_doing_nothing_msg,
 )
 
-from .utils import get_all_dividers, centers_to_edges
+from ._utils import get_all_dividers, centers_to_edges
 
 
 class Hist1d:

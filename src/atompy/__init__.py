@@ -1,10 +1,10 @@
-import matplotlib.pyplot as plt
-from importlib.resources import files
+import matplotlib.pyplot as _plt
+from importlib.resources import files as _files
 
-_style_path = files("atompy.styles").joinpath("atom.mplstyle")
-plt.style.library["atom"] = str(_style_path)  # type:ignore
-if "atom" not in plt.style.available:
-    plt.style.available.append("atom")
+_style_path = _files("atompy.styles").joinpath("atom.mplstyle")
+_plt.style.library["atom"] = str(_style_path)  # type:ignore
+if "atom" not in _plt.style.available:
+    _plt.style.available.append("atom")
 
 
 from .utils import (
@@ -24,9 +24,10 @@ from .utils import (
     for_pcolormesh_from_root,
 )
 
-from .histogram1d import Hist1d
+from ._histograms import hist1d, hist2d
+from ._histograms.hist1d._histogram1d import Hist1d
 
-from .histogram2d import Hist2d
+from ._histograms.hist2d._histogram2d import Hist2d
 
 from .vectors import (
     asvector,
@@ -40,6 +41,7 @@ from .vectors import (
 from .coordinate_system import CoordinateSystem, CoordinateSystemArray
 
 from . import physics
+
 
 from ._version import __version__
 
@@ -58,6 +60,8 @@ __all__ = [
     "for_pcolormesh",
     "for_pcolormesh_from_txt",
     "for_pcolormesh_from_root",
+    "hist1d",
+    "hist2d",
     "Hist1d",
     "Hist2d",
     "asvector",

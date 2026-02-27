@@ -12,13 +12,13 @@ import warnings
 import numpy as np
 from numpy.typing import NDArray, ArrayLike
 
-from ._core import (
+from ..._core import (
     raise_unmatching_edges,
     get_topmost_figure,
     deprecated_keyword_doing_nothing_msg,
 )
 
-from .utils import get_all_dividers, centers_to_edges
+from ...utils import get_all_dividers, centers_to_edges
 
 
 class Hist1d:

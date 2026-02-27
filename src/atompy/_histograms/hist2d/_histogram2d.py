@@ -14,18 +14,18 @@ from matplotlib.figure import Figure
 
 import uproot
 
-from ._core import (
+from ..._core import (
     raise_unmatching_edges,
     get_topmost_figure,
     deprecated_keyword_doing_nothing_msg,
 )
-from .utils import (
+from ...utils import (
     centers_to_edges,
     edges_to_centers,
     get_all_dividers,
     for_pcolormesh_from_txt,
 )
-from ._histograms.hist1d._histogram1d import Hist1d
+from ..hist1d._histogram1d import Hist1d
 
 
 class Hist2d:

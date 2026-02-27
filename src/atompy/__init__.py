@@ -28,6 +28,8 @@ from ._histogram1d import Hist1d
 
 from ._histogram2d import Hist2d
 
+from ._data import DataXY
+
 from ._vectors import (
     asvector,
     asvectorarray,
@@ -60,6 +62,7 @@ __all__ = [
     "for_pcolormesh_from_root",
     "Hist1d",
     "Hist2d",
+    "DataXY",
     "asvector",
     "asvectorarray",
     "Vector",

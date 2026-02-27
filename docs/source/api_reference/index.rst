@@ -2,52 +2,64 @@
 API reference
 =============
 
-.. currentmodule:: atompy
+atompy consists of a base module and a few submodules.
+
+It is assumed that atompy was imported as
+
+.. code-block:: python
+
+    import atompy as ap
+
+Base module
+-----------
+
+Everything in the base module can be accessed directly, e.g.,
+
+.. code-block:: python
+
+    vec = ap.Vector((1, 2, 3))
+    hist = ap.Hist1d((1, 2, 3), (1, 2, 3, 4))
+    data = ap.for_pcolormesh_from_txt("filename")
+
+See the :doc:`reference page <base/index>` for a documentation of everything
+included in the base module.
+
+Physics module
+--------------
+
+Groups everything related to phyics and can be accessed like
+
+.. code-block:: python
+
+    distribution = ap.physics.mom_init_distr_elec()
+    cross_section = ap.physics.compton_scattering.klein_nishina_cross_section()
+
+See the :doc:`reference page <physics/index>` for a documentation of everything
+included in this module.
 
 
-Vectors
-=======
+Histogram utilities
+-------------------
 
-.. autosummary::
-    :toctree: _autogen
+Groups methods used for common histogram operations, in case you don't want to use
+:class:`.Hist1d` or :class:`.Hist2d`.
 
-    Vector
-    VectorArray
-    asvector
-    asvectorarray
+Can be accessed like so
 
-Coordinate Systems
-==================
+.. code-block:: python
 
-.. autosummary::
-    :toctree: _autogen
+    ap.hist_utils.hist1d.integrate(hist, edges)
+    ap.hist_utils.hist2d.integrate(hist, xedges, yedges)
 
-    CoordinateSystem
-    CoordinateSystemArray
+See the :doc:`reference page <hist_utils/index>` for a documentation of everything
+included in this module.
 
-Histograms
-==========
 
-.. autosummary::
-    :toctree: _autogen
+.. toctree::
+    :hidden:
 
-    Hist1d
-    Hist2d
+    base/index
+    physics/index
+    hist_utils/index
 
-Miscellaenous
-=============
 
-.. autosummary::
-    :toctree: _autogen
-
-    get_all_dividers
-    centers_to_edges
-    edges_to_centers
-    convert_cosine_to_angles
-    for_pcolormesh_from_txt
-    for_pcolormesh_from_root
-    sample_distribution
-    sample_distribution_func
-    sample_distribution_discrete
-    gauss
-    crop

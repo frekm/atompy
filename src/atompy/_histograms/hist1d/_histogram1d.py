@@ -12,13 +12,15 @@ import warnings
 import numpy as np
 from numpy.typing import NDArray, ArrayLike
 
-from ..._core import (
+from atompy._core import (
     raise_unmatching_edges,
     get_topmost_figure,
     deprecated_keyword_doing_nothing_msg,
 )
 
-from ...utils import get_all_dividers, centers_to_edges
+from atompy.utils import get_all_dividers, centers_to_edges
+
+import atompy._histograms.hist1d as hist1d
 
 
 class Hist1d:
@@ -553,22 +555,8 @@ class Hist1d:
         .. plot:: _examples/histogram1d/rebin.py
             :include-source:
         """
-        old_n = self.nbins
-
-        if old_n % factor != 0:
-            raise ValueError(
-                f"Invalid {factor=}. Possible factors for this histogram are {get_all_dividers(old_n)}."
-            )
-
-        new_hist = np.empty(self.values.size // factor)
-        for i in range(new_hist.size):
-            new_hist[i] = np.sum(self.values[i * factor : i * factor + factor])
-
-        new_edges = np.full(new_hist.size + 1, self.edges[-1])
-        for i in range(new_edges.size - 1):
-            new_edges[i] = self.edges[i * factor]
-
-        return type(self)(new_hist, new_edges, self.title, self.xlabel, self.ylabel)
+        new_hist = hist1d.rebin(self.values, self.edges, factor)
+        return type(self)(*new_hist, self.title, self.xlabel, self.ylabel)
 
     def binsizes(self) -> NDArray[np.float64]:
         """

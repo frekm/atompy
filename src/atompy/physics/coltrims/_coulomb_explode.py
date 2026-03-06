@@ -12,6 +12,22 @@ from atompy.physics import constants
 def calc_coulomb_force(mol: Molecule, idx_probe: int) -> vec.Vector:
     """
     Calculate Coulomb force acting on atom `idx_probe` of `mol`.
+
+    Parameters
+    ----------
+    mol : :class:`.Molecule`
+        The molecule.
+
+        It is assumed that all attributes of the molecule (positions, speeds, masses)
+        are given in a.u.
+
+    idx_probe : int
+        The index of :attr:`.~Molecule.atoms` on which the calculated force acts.
+
+    Returns
+    -------
+    :class:`.Vector`
+        The vectorial force acting on atom `idx_probe` in a.u..
     """
     force = vec.Vector(0.0, 0.0, 0.0)
 
@@ -27,7 +43,7 @@ def calc_coulomb_force(mol: Molecule, idx_probe: int) -> vec.Vector:
     return force
 
 
-def coulomb_explode_step(mol: Molecule, dt: float) -> Molecule:
+def _coulomb_explode_step(mol: Molecule, dt: float) -> Molecule:
     """
     Advance time of the Coulomb explosion by `dt`.
 
@@ -38,21 +54,36 @@ def coulomb_explode_step(mol: Molecule, dt: float) -> Molecule:
     updated_mol = mol.copy()
     for i in range(mol.size):
         force = calc_coulomb_force(mol, i)
-        acceleration = force.scale(1.0 / mol.atoms[i].mass)
-        new_pos = (
-            0.5 * acceleration * dt**2 + mol.atoms[i].speed * dt + mol.atoms[i].pos
-        )
-        new_speed = acceleration * dt + mol.atoms[i].speed
+        accel = force.scale(1.0 / mol.atoms[i].mass)
+        new_pos = 0.5 * accel * dt**2 + mol.atoms[i].speed * dt + mol.atoms[i].pos
+        new_speed = accel * dt + mol.atoms[i].speed
         updated_mol.atoms[i].pos = new_pos
         updated_mol.atoms[i].speed = new_speed
     return updated_mol
 
 
 def coulomb_explode(
-    mol: Molecule, time_end_fs: float, time_stepsize_fs: float
+    mol: Molecule, time_end_fs: float = 5000.0, time_stepsize_fs: float = 1.0
 ) -> Molecule:
     """
     Coulomb explode a molecule with an initial state described by `mol`.
+
+    Parameters
+    ----------
+    mol : :class:`.Molecule`
+        The molecule.
+
+        It is assumed that all attributes of the molecule (positions, speeds, masses)
+        are given in a.u.
+
+    time_end_fs : float, default 5000 fs
+        The time up to which the Coulomb explosion is simulated (in fs).
+
+    time_step_fs : float, default 1 fs
+        The time steps in which the Coulomb explosion is simulated (in fs).
+
+    Returns
+    -------
     """
     t1 = time_end_fs * constants.AU_PER_FS
     dt = time_stepsize_fs * constants.AU_PER_FS
@@ -61,7 +92,7 @@ def coulomb_explode(
     final_mol = mol.copy()
 
     for _ in range(steps):
-        final_mol = coulomb_explode_step(final_mol, dt)
+        final_mol = _coulomb_explode_step(final_mol, dt)
 
     return final_mol
 

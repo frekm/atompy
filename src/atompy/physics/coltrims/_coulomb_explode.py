@@ -18,10 +18,10 @@ def calc_coulomb_force(mol: Molecule, idx_probe: int) -> vec.Vector:
     for i in range(mol.size):
         if i == idx_probe:
             continue
-        direction = mol.positions()[idx_probe] - mol.positions()[i]
+        direction = mol.atoms[idx_probe].pos - mol.atoms[i].pos
         distance = direction.mag()
         force += direction.norm().scale(
-            mol.charges()[idx_probe] * mol.charges()[i] / distance**2
+            mol.atoms[idx_probe].charge * mol.atoms[i].charge / distance**2
         )
 
     return force
@@ -38,11 +38,13 @@ def coulomb_explode_step(mol: Molecule, dt: float) -> Molecule:
     updated_mol = mol.copy()
     for i in range(mol.size):
         force = calc_coulomb_force(mol, i)
-        acceleration = force.scale(1.0 / mol.masses()[i])
-        updated_mol.positions()[i] = (
-            0.5 * acceleration * dt**2 + mol.speeds()[i] * dt + mol.positions()[i]
+        acceleration = force.scale(1.0 / mol.atoms[i].mass)
+        new_pos = (
+            0.5 * acceleration * dt**2 + mol.atoms[i].speed * dt + mol.atoms[i].pos
         )
-        updated_mol.speeds()[i] = acceleration * dt + mol.speeds()[i]
+        new_speed = acceleration * dt + mol.atoms[i].speed
+        updated_mol.atoms[i].pos = new_pos
+        updated_mol.atoms[i].speed = new_speed
     return updated_mol
 
 
@@ -78,7 +80,7 @@ def coulomb_explode_batch(
     for i, mol in enumerate(molecules):
         final_molecules[i] = coulomb_explode(mol, time_end_fs, time_stepsize_fs)
 
-    print(f"Finished coulomb exploding. Elapsed time: {time.time() - t0:.2f}")
+    print(f"Finished coulomb exploding. Elapsed time: {time.time() - t0:.2f}s")
 
     if pickle_fname is not None:
         print(f"pickling data to {pickle_fname} ...", end="")

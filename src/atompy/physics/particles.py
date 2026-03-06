@@ -159,7 +159,7 @@ class Molecule:
         return self.atoms.speeds()
 
     def positions(self) -> vec.VectorArray:
-        return self.atoms.speeds()
+        return self.atoms.positions()
 
     def charges(self) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
         return self.atoms.charges()

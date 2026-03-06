@@ -1,5 +1,5 @@
 from collections import UserList
-from typing import Self
+from typing import Self, Union
 import copy
 
 import numpy as np
@@ -9,12 +9,17 @@ from atompy import _vectors as vec
 
 class Particle:
     def __init__(
-        self, mom: vec.Vector, pos: vec.Vector, mass: float, charge: float, name: str
+        self,
+        mom: vec.VectorLike,
+        pos: vec.VectorLike,
+        mass: float,
+        charge: float,
+        name: str,
     ) -> None:
         self._mass = mass
         self._charge = charge
-        self._mom = mom
-        self._pos = pos
+        self._mom = vec.asvector(mom)
+        self._pos = vec.asvector(pos)
         self._name = name
 
     @property
@@ -128,9 +133,13 @@ class AtomList(ParticleList):
     pass
 
 
+AtomListLike = Union[tuple[Atom, ...], list[Atom], AtomList]
+ElectronListLike = Union[tuple[Electron, ...], list[Electron], ElectronList]
+
+
 class Molecule:
-    def __init__(self, atoms: AtomList) -> None:
-        self._atoms: AtomList = atoms
+    def __init__(self, atoms: AtomListLike) -> None:
+        self._atoms = AtomList(atoms)
 
     @property
     def size(self) -> int:

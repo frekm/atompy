@@ -63,6 +63,10 @@ class Particle:
         self._mom = speed * self.mass
 
     @property
+    def energy(self) -> float:
+        return self.mom.mag() ** 2 / 2.0 / self.mass
+
+    @property
     def name(self) -> str:
         return self._name
 
@@ -169,3 +173,15 @@ class Molecule:
 
     def copy(self) -> Self:
         return type(self)(copy.deepcopy(self._atoms))
+
+    def mom_sum(self) -> vec.Vector:
+        mom_sum = vec.Vector(0, 0, 0)
+        mom_sum.x = np.sum(self.momenta().x)
+        mom_sum.y = np.sum(self.momenta().y)
+        mom_sum.z = np.sum(self.momenta().z)
+        return mom_sum
+
+    def kinetic_energy_release(self) -> float:
+        momenta = self.momenta() - self.mom_sum()
+        kinetic_energies = momenta.mag() ** 2 / self.masses() / 2.0
+        return float(np.sum(kinetic_energies))

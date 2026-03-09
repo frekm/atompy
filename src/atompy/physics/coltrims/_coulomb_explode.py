@@ -55,9 +55,10 @@ def _coulomb_explode_step(mol: Molecule, dt: float) -> Molecule:
     """
     updated_mol = mol.copy()
     for i in range(mol.size):
+        atom = mol.atoms[i]
         force = calc_coulomb_force(mol, i)
-        accel = force.scale(1.0 / mol.atoms[i].mass)
-        new_pos = 0.5 * accel * dt**2 + mol.atoms[i].speed * dt + mol.atoms[i].pos
+        accel = force.scale(1.0 / atom.mass)
+        new_pos = 0.5 * accel * dt**2 + atom.speed * dt + atom.pos
         new_speed = accel * dt + mol.atoms[i].speed
         updated_mol.atoms[i].pos = new_pos
         updated_mol.atoms[i].speed = new_speed

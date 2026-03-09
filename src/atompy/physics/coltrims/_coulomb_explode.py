@@ -3,6 +3,8 @@ import pickle
 import os
 
 import numpy as np
+import joblib
+import tqdm
 
 from atompy.physics.particles import Molecule
 from atompy import _vectors as vec
@@ -103,15 +105,37 @@ def coulomb_explode_batch(
     time_stepsize_fs: float,
     pickle_fname: str | os.PathLike | None = None,
 ) -> np.ndarray[tuple[int], np.dtype[np.object_]]:
-    print(f"Simulating Coulomb explosion of {len(molecules)} molecules ...")
-    t0 = time.time()
+    """
+    Coulomb explode a batch of molecules.
 
-    final_molecules = np.empty_like(molecules)
+    Parameters
+    ----------
+    molecules : ndarray of :class:`.Molecule`
+        The molecules.
 
-    for i, mol in enumerate(molecules):
-        final_molecules[i] = coulomb_explode(mol, time_end_fs, time_stepsize_fs)
+        It is assumed that all attributes of the molecules (positions, speeds, masses)
+        are given in a.u.
 
-    print(f"Finished coulomb exploding. Elapsed time: {time.time() - t0:.2f}s")
+    time_end_fs : float, default 5000 fs
+        The time up to which the Coulomb explosion is simulated (in fs).
+
+    time_step_fs : float, default 1 fs
+        The time steps in which the Coulomb explosion is simulated (in fs).
+
+    pickle_fname : str | PathLike, optional
+        If provided, pickle output and save it.
+
+    Returns
+    -------
+    :class:`.Molecule`
+        A :class:`.!Molecule` instance describing the state of the initial
+        molecule after *time_end_fs*.
+    """
+    final_molecules = joblib.Parallel(n_jobs=1)(
+        joblib.delayed(coulomb_explode)(mol, time_end_fs, time_stepsize_fs)
+        for mol in tqdm.tqdm(molecules, desc="Processing Molecules")
+    )
+    final_molecules = np.array(final_molecules)
 
     if pickle_fname is not None:
         print(f"pickling data to {pickle_fname} ...", end="")

@@ -108,6 +108,7 @@ def coulomb_explode_batch(
     time_end_fs: float,
     time_stepsize_fs: float,
     pickle_fname: str | os.PathLike | None = None,
+    n_jobs: int = -2,
 ) -> np.ndarray[tuple[int], np.dtype[np.object_]]:
     """
     Coulomb explode a batch of molecules.
@@ -129,13 +130,19 @@ def coulomb_explode_batch(
     pickle_fname : str | PathLike, optional
         If provided, pickle output and save it.
 
+    n_jobs : int, default -2
+        The number of jobs started.
+
+        The default value creates *number-of-CPUs* minus 2 jobs.
+        See `n_jobs description <https://joblib.readthedocs.io/en/latest/generated/joblib.Parallel.html>`__.
+
     Returns
     -------
     :class:`.Molecule`
         A :class:`.!Molecule` instance describing the state of the initial
         molecule after *time_end_fs*.
     """
-    final_molecules = joblib.Parallel(n_jobs=1)(
+    final_molecules = joblib.Parallel(n_jobs=n_jobs)(
         joblib.delayed(coulomb_explode)(mol, time_end_fs, time_stepsize_fs)
         for mol in tqdm.tqdm(molecules, desc="Processing Molecules")
     )

@@ -68,12 +68,12 @@ def coulomb_explode(
     mol: Molecule, time_end_fs: float = 5000.0, time_stepsize_fs: float = 1.0
 ) -> Molecule:
     """
-    Coulomb explode a molecule with an initial state described by `mol`.
+    Coulomb explode a molecule.
 
     Parameters
     ----------
     mol : :class:`.Molecule`
-        The molecule.
+        The initial state of the molecule.
 
         It is assumed that all attributes of the molecule (positions, speeds, masses)
         are given in a.u.
@@ -86,6 +86,9 @@ def coulomb_explode(
 
     Returns
     -------
+    :class:`.Molecule`
+        A :class:`.!Molecule` instance describing the state of the initial
+        molecule after *time_end_fs*.
     """
     t1 = time_end_fs * constants.AU_PER_FS
     dt = time_stepsize_fs * constants.AU_PER_FS

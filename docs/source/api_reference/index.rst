@@ -13,7 +13,7 @@ It is assumed that atompy was imported as
 Base module
 -----------
 
-Everything in the base module can be accessed directly, e.g.,
+Everything in the base module can be accessed directly, for example,
 
 .. code-block:: python
 
@@ -38,28 +38,10 @@ See the :doc:`reference page <physics/index>` for a documentation of everything
 included in this module.
 
 
-Histogram utilities
--------------------
-
-Groups methods used for common histogram operations, in case you don't want to use
-:class:`.Hist1d` or :class:`.Hist2d`.
-
-Can be accessed like so
-
-.. code-block:: python
-
-    ap.hist_utils.hist1d.integrate(hist, edges)
-    ap.hist_utils.hist2d.integrate(hist, xedges, yedges)
-
-See the :doc:`reference page <hist_utils/index>` for a documentation of everything
-included in this module.
-
-
 .. toctree::
     :hidden:
 
     base/index
     physics/index
-    hist_utils/index
 
 

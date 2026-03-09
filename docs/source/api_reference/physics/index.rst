@@ -4,64 +4,74 @@ Physics Submodule
 
 *atompy* provides a number of methods tailered to physics simulations / calculations.
 
-Access these like
+These are further separated into submodules.
 
-.. code-block:: python
-
-    import atompy as ap
-
-    ap.physics                    # general methods
-    ap.physics.compton_scattering # methods related to Compton scattering
-    ap.physics.coltrims           # methods related to COLTRIMS
 
 
 General
 =======
 
-.. currentmodule:: atompy.physics
+Symbols included in the *atompy.physics* namespace can be accessed, for example,
+as such:
 
-.. autosummary::
-    :toctree: _autogen
+.. code-block:: python
 
-    Electron
-    ElectronList
-    Atom
-    AtomList
-    Molecule
-    subtract_binding_energy
-    rho_p_microcanonical
-    mom_init_distr_elec
-    mom_init_distr_elec_mol
+    import atompy as ap
+    import atompy.physics as physics
+    from atompy.physics import Molecule
+
+    electron = ap.physics.Electron(...)
+    atom1 = physics.Atom(...)
+    atom2 = physics.Atom(...)
+    molecule = Molecule([atom1, atom2])
+
+See the :doc:`reference page <base/index>` for a documentation of everything
+included in the base module.
 
 
 Compton Scattering
 ==================
 
-.. currentmodule:: atompy.physics.compton_scattering
+*atompy.physics.compton_scattering* groups methods related to Compton scattering.
 
-.. autosummary::
-    :toctree: _autogen
+These can be accessed like, for example:
 
-    thomson_cross_section
-    klein_nishina_cross_section
-    scattering_angle_distr
-    mom_final_distr_elec
-    mom_final_distr_photon
-    mom_final_distr_photon_var
-    mom_transfer_approx
-    stretch_Compton_electron_onto_sphere
-    compton_photon_energy_out
-    calculate_Q_neglecting_mom_init
+.. code-block:: python
+
+    import atompy as ap
+    import atompy.physics.compton_scattering as compton
+
+    tp_cross_section = ap.physics.compton_scattering.thomson_cross_section(...)
+    kn_cross_section = compton.klein_nishina_cross_section(...)
+
+
+See the :doc:`reference page <compton_scattering/index>` for a documentation
+of everything included in this submodule.
 
 
 COLTRIMS
 ========
 
-.. currentmodule:: atompy.physics.coltrims
+*atompy.physics.coltrims* groups methods related to
+Cold Target Recoil Ion Momentum Spectroscopy (COLTRIMS). 
 
-.. autosummary::
-    :toctree: _autogen
+These can be accessed like, for example:
 
-    ion_tof_linear_fit
-    coulomb_explode
-    coulomb_explode_batch
+.. code-block:: python
+
+    import atompy as ap
+    import atompy.physics.coltrims as coltrims 
+
+    fit = coltrims.ion_tof_linear_fit(...)
+    exploded = ap.physics.coltrims.coulomb_explode(...)
+
+
+See the :doc:`reference page <coltrims/index>` for a documentation
+of everything included in this submodule.
+
+.. toctree::
+    :hidden:
+
+    base/index
+    coltrims/index
+    compton_scattering/index

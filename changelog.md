@@ -5,6 +5,7 @@
   - `atompy.physics.Electron`
   - `atompy.physics.Atom`
   - `atompy.physics.Molecule`
+- Improve documentation
 
 # v5.5.0
 - Remove dependency of `mplutils`

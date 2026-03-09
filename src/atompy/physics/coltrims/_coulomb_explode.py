@@ -71,6 +71,10 @@ def coulomb_explode(
     """
     Coulomb explode a molecule.
 
+    .. attention::
+
+        This function is slow as it uses native Python code.
+
     Parameters
     ----------
     mol : :class:`.Molecule`
@@ -112,6 +116,10 @@ def coulomb_explode_batch(
 ) -> np.ndarray[tuple[int], np.dtype[np.object_]]:
     """
     Coulomb explode a batch of molecules.
+
+    .. attention::
+
+        This function is slow. It uses native Python code and inefficient memory layout.
 
     Parameters
     ----------

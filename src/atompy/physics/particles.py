@@ -24,6 +24,7 @@ class Particle:
 
     @property
     def pos(self) -> vec.Vector:
+        """Position of the particle."""
         return self._pos
 
     @pos.setter
@@ -32,6 +33,7 @@ class Particle:
 
     @property
     def mass(self) -> float:
+        """Mass of the particle."""
         return self._mass
 
     @mass.setter
@@ -40,6 +42,7 @@ class Particle:
 
     @property
     def charge(self) -> float:
+        """Charge of the particle."""
         return self._charge
 
     @charge.setter
@@ -48,6 +51,7 @@ class Particle:
 
     @property
     def mom(self) -> vec.Vector:
+        """Momentum of the particle."""
         return self._mom
 
     @mom.setter
@@ -56,6 +60,7 @@ class Particle:
 
     @property
     def speed(self) -> vec.Vector:
+        """Speed (derived from its momentum) of the particle."""
         return self.mom / self.mass
 
     @speed.setter
@@ -64,10 +69,12 @@ class Particle:
 
     @property
     def energy(self) -> float:
+        """Energy (derived from its momentum) of the particle."""
         return self.mom.mag() ** 2 / 2.0 / self.mass
 
     @property
     def name(self) -> str:
+        """Descriptor of the particle."""
         return self._name
 
     @name.setter
@@ -76,6 +83,48 @@ class Particle:
 
 
 class Electron(Particle):
+    """
+    Class describing electrons (as classical particles).
+
+    .. note::
+
+        If you want to use anything but atomic units (a.u.), be sure to pass
+        the (optional) values of *charge* and *mass* (which assume a.u.).
+
+    Parameters
+    ----------
+    mom : :class:`.Vector`
+        Momentum of the electron.
+
+    pos : :class:`.Vector`
+        Position of the electron.
+
+    mass : float, default 1.0 a.u.
+        Mass of the electron.
+
+    charge : float, default -1.0 a.u.
+        Charge of the electron.
+
+    name : str, default ``"e"``
+        Name of the electron.
+
+    Attributes
+    ----------
+    mom : :class:`.Vector`
+
+    pos : :class:`.Vector`
+
+    mass : float
+
+    charge : float
+
+    speed : :class:`.Vector`
+
+    energy : float
+
+    name : str
+    """
+
     def __init__(
         self,
         mom: vec.Vector,
@@ -88,52 +137,123 @@ class Electron(Particle):
 
 
 class Atom(Particle):
+    """
+    Class describing atoms (as classical particles).
+
+    Parameters
+    ----------
+    mom : :class:`.Vector`
+        Momentum of the atom.
+
+    pos : :class:`.Vector`
+        Position of the atom.
+
+    mass : float
+        Mass of the atom
+
+    charge : float
+        Charge of the atom.
+
+    name : str
+        Name of the atom.
+
+    Attributes
+    ----------
+    mom : :class:`.Vector`
+
+    pos : :class:`.Vector`
+
+    mass : float
+
+    charge : float
+
+    speed : :class:`.Vector`
+
+    energy : float
+
+    name : str
+    """
+
     pass
 
 
 class ParticleList(UserList[Atom]):
     def momenta(self) -> vec.VectorArray:
-        momenta = np.empty(len(self), dtype=object)
-        for i in range(len(self)):
-            momenta[i] = self.data[i].mom
-        return vec.VectorArray(momenta)
+        """
+        Retrieve all momenta of particles in the list.
+
+        Returns
+        -------
+        momenta : :class:`.VectorArray`
+            *momenta[i]* corresponds to particle *i* in the list.
+        """
+        return vec.VectorArray([d.mom for d in self])
 
     def positions(self) -> vec.VectorArray:
-        positions = np.empty(len(self), dtype=object)
-        for i in range(len(self)):
-            positions[i] = self.data[i].pos
-        return vec.VectorArray(positions)
+        """
+        Retrieve all positions of particles in the list.
+
+        Returns
+        -------
+        positions : :class:`.VectorArray`
+            *positions[i]* corresponds to particle *i* in the list.
+        """
+        return vec.VectorArray([d.pos for d in self])
 
     def masses(self) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
-        masses = np.empty(len(self), dtype=np.float64)
-        for i in range(len(self)):
-            masses[i] = self.data[i].mass
-        return masses
+        """
+        Retrieve all masses of particles in the list.
+
+        Returns
+        -------
+        masses : ndarray
+            *masses[i]* corresponds to particle *i* in the list.
+        """
+        return np.array([d.mass for d in self])
 
     def charges(self) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
-        charges = np.empty(len(self), dtype=np.float64)
-        for i in range(len(self)):
-            charges[i] = self.data[i].charge
-        return charges
+        """
+        Retrieve all charges of particles in the list.
+
+        Returns
+        -------
+        charges : ndarray
+            *charges[i]* corresponds to particle *i* in the list.
+        """
+        return np.array([d.charge for d in self])
 
     def speeds(self) -> vec.VectorArray:
-        speeds = np.empty(len(self), dtype=object)
-        for i in range(len(self)):
-            speeds[i] = self.data[i].speed
-        return vec.VectorArray(speeds)
+        """
+        Retrieve all speeds of particles in the list.
+
+        Returns
+        -------
+        speeds : :class:`.VectorArray`
+            *speeds[i]* corresponds to particle *i* in the list.
+        """
+        return vec.VectorArray([d.speed for d in self])
 
     def names(self) -> list[str]:
-        names = []
-        for i in range(len(self)):
-            names.append(self.data[i].name)
-        return names
+        """
+        Retrieve all names of particles in the list.
+
+        Returns
+        -------
+        names : ndarray
+            *names[i]* corresponds to particle *i* in the list.
+        """
+        return [self.data[i].name for i in range(len(self))]
 
 
 class ElectronList(ParticleList):
+    """Wrapper for Python lists only containing :class:`.Electron`"""
+
     pass
 
 
 class AtomList(ParticleList):
+    """Wrapper for Python lists only containing :class:`.Atom`"""
+
     pass
 
 
@@ -147,34 +267,92 @@ class Molecule:
 
     @property
     def size(self) -> int:
+        """Number of atoms within the molecule."""
         return len(self._atoms)
 
     @property
     def atoms(self) -> AtomList:
+        """Atoms within the molecule."""
         return self._atoms
 
     def momenta(self) -> vec.VectorArray:
+        """
+        Retrieve all momenta of atoms in the molecule.
+
+        Returns
+        -------
+        momenta : :class:`.VectorArray`
+            *momenta[i]* corresponds to particle *i* in the molecule.
+        """
         return self.atoms.momenta()
 
     def masses(self) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
+        """
+        Retrieve all masses of atoms in the molecule.
+
+        Returns
+        -------
+        masses : ndarray
+            *masses[i]* corresponds to particle *i* in the molecule.
+        """
         return self.atoms.masses()
 
     def speeds(self) -> vec.VectorArray:
+        """
+        Retrieve all speeds of atoms in the molecule.
+
+        Returns
+        -------
+        speeds : :class:`.VectorArray`
+            *speeds[i]* corresponds to particle *i* in the molecule.
+        """
         return self.atoms.speeds()
 
     def positions(self) -> vec.VectorArray:
+        """
+        Retrieve all positions of atoms in the molecule.
+
+        Returns
+        -------
+        positions : :class:`.VectorArray`
+            *positions[i]* corresponds to particle *i* in the molecule.
+        """
         return self.atoms.positions()
 
     def charges(self) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
+        """
+        Retrieve all charges of atoms in the molecule.
+
+        Returns
+        -------
+        charges : ndarray
+            *charges[i]* corresponds to particle *i* in the molecule.
+        """
         return self.atoms.charges()
 
     def names(self) -> list[str]:
+        """
+        Retrieve all names of atoms in the molecule.
+
+        Returns
+        -------
+        names : ndarray
+            *names[i]* corresponds to atom *i* in the molecule.
+        """
         return self.atoms.names()
 
     def copy(self) -> Self:
+        """Retrieve a copy of the molecule."""
         return type(self)(copy.deepcopy(self._atoms))
 
     def mom_sum(self) -> vec.Vector:
+        """
+        Sum momentum of all atoms in the molecule.
+
+        Returns
+        -------
+        momentum : :class:`.Vector`
+        """
         mom_sum = vec.Vector(0, 0, 0)
         mom_sum.x = np.sum(self.momenta().x)
         mom_sum.y = np.sum(self.momenta().y)
@@ -182,6 +360,14 @@ class Molecule:
         return mom_sum
 
     def kinetic_energy_release(self) -> float:
+        """
+        Kinetic energy of all atoms of the molecule in rest frame.
+
+        Returns
+        -------
+        energy : float
+            The energy in the frame where :meth:`~.Molecule.mom_sum` is zero.
+        """
         momenta = self.momenta() - self.mom_sum()
         kinetic_energies = momenta.mag() ** 2 / self.masses() / 2.0
         return float(np.sum(kinetic_energies))

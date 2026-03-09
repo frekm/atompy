@@ -297,8 +297,8 @@ def mom_transfer_approx(
     scattering_angles_rad: Union[float, npt.NDArray[np.float64]],
 ) -> Union[float, npt.NDArray[np.float64]]:
     r"""
-    Calculate momentum transfer assuming in and outgoing photon momentum
-    is unchanged.
+    Calculate momentum transfer assuming in- and outgoing photon momenta
+    are identical.
 
     Calculates :math:`\sqrt{2\times\texttt{kin_au}^2 - 2\times
     \texttt{kin_au}^2  \times \cos(\texttt{scattering_angles_rad})}`.

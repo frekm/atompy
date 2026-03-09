@@ -23,6 +23,11 @@ General
 .. autosummary::
     :toctree: _autogen
 
+    Electron
+    ElectronList
+    Atom
+    AtomList
+    Molecule
     subtract_binding_energy
     rho_p_microcanonical
     mom_init_distr_elec
@@ -58,3 +63,5 @@ COLTRIMS
     :toctree: _autogen
 
     ion_tof_linear_fit
+    coulomb_explode
+    coulomb_explode_batch

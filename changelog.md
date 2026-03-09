@@ -1,3 +1,11 @@
+# v5.6.0
+- Added a simple (computationally slow) Coulomb Explosion Imaging simulation:
+  - `atompy.physics.coltrims.coulomb_explode`
+  - `atompy.physics.coltrims.coulomb_explode_batch`
+  - `atompy.physics.Electron`
+  - `atompy.physics.Atom`
+  - `atompy.physics.Molecule`
+
 # v5.5.0
 - Remove dependency of `mplutils`
 - Add `Hist1d/2d.copy`

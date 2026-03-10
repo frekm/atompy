@@ -1,4 +1,5 @@
-# v5.6.1
+# v5.7.0
+- Add `DataXY`
 - Documentation fixes
 
 # v5.6.0

@@ -28,7 +28,7 @@ from ._histogram1d import Hist1d
 
 from ._histogram2d import Hist2d
 
-from ._data import DataXY
+from ._data_xy import DataXY
 
 from ._vectors import (
     asvector,

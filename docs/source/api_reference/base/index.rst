@@ -25,6 +25,14 @@ Coordinate Systems
     CoordinateSystem
     CoordinateSystemArray
 
+Data
+====
+
+.. autosummary::
+    :toctree: _autogen
+
+    DataXY
+
 Histograms
 ==========
 

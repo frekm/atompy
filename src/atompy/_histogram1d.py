@@ -1,6 +1,6 @@
 import copy
 
-from typing import Any, Iterator, Literal, Self
+from typing import Any, Iterator, Literal, Self, TypedDict
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
@@ -12,6 +12,7 @@ import warnings
 import numpy as np
 from numpy.typing import NDArray, ArrayLike
 
+
 from ._core import (
     raise_unmatching_edges,
     get_topmost_figure,
@@ -19,6 +20,12 @@ from ._core import (
 )
 
 from ._utils import get_all_dividers, centers_to_edges
+
+
+class Hist1dLabelsDict(TypedDict, total=True):
+    title: str
+    xlabel: str
+    ylabel: str
 
 
 class Hist1d:
@@ -70,6 +77,8 @@ class Hist1d:
     limits : (float, float)
 
     nbins : int
+
+    labels_dict : dict
     """
 
     def __init__(
@@ -380,17 +389,18 @@ class Hist1d:
         """Limits of the histogram's edges."""
         return float(self.edges[0]), float(self.edges[-1])
 
+    @property
+    def labels_dict(self) -> Hist1dLabelsDict:
+        """A dictionary of the histogram's title, xlabel and ylabel."""
+        return {"title": self.title, "xlabel": self.xlabel, "ylabel": self.ylabel}
+
     def __add__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
             return NotImplemented
         raise_unmatching_edges(self.edges, other.edges)
-        return type(self)(
-            self.values + other.values,
-            self.edges.copy(),
-            f"{self.title} + {other.title}",
-            self.xlabel,
-            self.ylabel,
-        )
+
+        labels = self._dict_with_new_title(f"{self.title} + {other.title}")
+        return type(self)(self.values + other.values, self.edges.copy(), **labels)
 
     def __iadd__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
@@ -403,13 +413,8 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         raise_unmatching_edges(self.edges, other.edges)
-        return type(self)(
-            self.values - other.values,
-            self.edges.copy(),
-            f"{self.title} $-$ {other.title}",
-            self.xlabel,
-            self.ylabel,
-        )
+        labels = self._dict_with_new_title(f"{self.title} $-$ {other.title}")
+        return type(self)(self.values - other.values, self.edges.copy(), **labels)
 
     def __isub__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
@@ -422,13 +427,8 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         raise_unmatching_edges(self.edges, other.edges)
-        return type(self)(
-            self.values * other.values,
-            self.edges.copy(),
-            rf"{self.title} $\times$ {other.title}",
-            self.xlabel,
-            self.ylabel,
-        )
+        labels = self._dict_with_new_title(rf"{self.title} $\times$ {other.title}")
+        return type(self)(self.values * other.values, self.edges.copy(), **labels)
 
     def __imul__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
@@ -441,13 +441,8 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         raise_unmatching_edges(self.edges, other.edges)
-        return type(self)(
-            self.values / other.values,
-            self.edges.copy(),
-            f"{self.title} / {other.title}",
-            self.xlabel,
-            self.ylabel,
-        )
+        labels = self._dict_with_new_title(f"{self.title} / {other.title}")
+        return type(self)(self.values / other.values, self.edges.copy(), **labels)
 
     def __itruediv__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
@@ -460,13 +455,10 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         raise_unmatching_edges(self.edges, other.edges)
-        return type(self)(
-            self.values // other.values,
-            self.edges.copy(),
-            rf"$\lfloor${self.title} / {other.title}$\rfloor$",
-            self.xlabel,
-            self.ylabel,
+        labels = self._dict_with_new_title(
+            rf"$\lfloor${self.title} / {other.title}$\rfloor$"
         )
+        return type(self)(self.values // other.values, self.edges.copy(), **labels)
 
     def __ifloordiv__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
@@ -476,9 +468,8 @@ class Hist1d:
         return self
 
     def __neg__(self) -> Self:
-        return type(self)(
-            -self.values, self.edges, f"$-$ {self.title}", self.xlabel, self.ylabel
-        )
+        labels = self._dict_with_new_title(f"$-$ {self.title}")
+        return type(self)(-self.values, self.edges, **labels)
 
     def __iter__(self) -> Iterator[NDArray[Any]]:
         return iter([self.values, self.centers])
@@ -526,7 +517,7 @@ class Hist1d:
             angles = np.append(angles, angles[1:] + np.pi)
             values = np.append(values, np.flip(values))
 
-        return type(self)(values, angles, self.title, self.xlabel, self.ylabel)
+        return type(self)(values, angles, **self.labels_dict)
 
     def rebin(self, factor: int) -> Self:
         """
@@ -568,7 +559,7 @@ class Hist1d:
         for i in range(new_edges.size - 1):
             new_edges[i] = self.edges[i * factor]
 
-        return type(self)(new_hist, new_edges, self.title, self.xlabel, self.ylabel)
+        return type(self)(new_hist, new_edges, **self.labels_dict)
 
     def binsizes(self) -> NDArray[np.float64]:
         """
@@ -671,8 +662,8 @@ class Hist1d:
         """
         new_values = np.divide(self.values, self.integrate()).copy()
         new_edges = self.edges.copy()
-        new_title = f"{self.title} / integral"
-        return type(self)(new_values, new_edges, new_title, self.xlabel, self.ylabel)
+        labels = self._dict_with_new_title(f"{self.title} / integral")
+        return type(self)(new_values, new_edges, **labels)
 
     def norm_to_max(self) -> Self:
         """
@@ -690,8 +681,13 @@ class Hist1d:
         """
         new_values = np.divide(self.values, self.values.max()).copy()
         new_edges = self.edges.copy()
-        new_title = f"{self.title} / max"
-        return type(self)(new_values, new_edges, new_title, self.xlabel, self.ylabel)
+        labels = self._dict_with_new_title(f"{self.title} / max")
+        return type(self)(new_values, new_edges, **labels)
+
+    def _dict_with_new_title(self, new_title: str) -> Hist1dLabelsDict:
+        labels_dict = self.labels_dict
+        labels_dict["title"] = new_title
+        return labels_dict
 
     def norm_to_sum(self) -> Self:
         """
@@ -714,8 +710,8 @@ class Hist1d:
         """
         new_values = np.divide(self.values, self.sum()).copy()
         new_edges = self.edges.copy()
-        new_title = f"{self.title} / sum"
-        return type(self)(new_values, new_edges, new_title, self.xlabel, self.ylabel)
+        labels = self._dict_with_new_title(f"{self.title} / sum")
+        return type(self)(new_values, new_edges, **labels)
 
     def for_step(
         self, extent_to: None | float = None
@@ -727,6 +723,7 @@ class Hist1d:
         bin and the corresponding bin value. See the *where* keyword argument.
 
         .. attention ::
+
             Don't use anything else but ``where="pre"`` (which is the default) in
             ``plt.step``. Otherwise the histogram will be shifted.
 
@@ -841,13 +838,7 @@ class Hist1d:
 
     def copy(self) -> Self:
         """Return a copy of the histogram."""
-        return type(self)(
-            self.values.copy(),
-            self.edges.copy(),
-            copy.copy(self.title),
-            copy.copy(self.xlabel),
-            copy.copy(self.ylabel),
-        )
+        return type(self)(self.values.copy(), self.edges.copy(), **self.labels_dict)
 
     def plot(
         self,
@@ -1218,9 +1209,7 @@ class Hist1d:
             new_values = np.full(self.values.shape, setval)
             new_values[idx] = self.values[idx]
             new_edges = self.edges.copy()
-            return type(self)(
-                new_values, new_edges, self.title, self.xlabel, self.ylabel
-            )
+            return type(self)(new_values, new_edges, **self.labels_dict)
 
     def remove(
         self,
@@ -1244,7 +1233,7 @@ class Hist1d:
             (or equal) to `upper`.
 
         setval : float, default 0.0
-            If `keepdims` is True, fill removed data with `setval`.
+            Set removed bins to this value.
 
         Returns
         -------
@@ -1278,9 +1267,7 @@ class Hist1d:
         idx = np.flatnonzero(
             np.logical_and(lower <= self.edges[:-1], self.edges[1:] <= upper)
         )
-        new_hist = type(self)(
-            self.values.copy(), self.edges.copy(), self.title, self.xlabel, self.ylabel
-        )
+        new_hist = type(self)(self.values.copy(), self.edges.copy(), **self.labels_dict)
         new_hist.values[idx] = setval
         return new_hist
 
@@ -1312,13 +1299,10 @@ class Hist1d:
         raise_unmatching_edges(self.edges, other.edges, "x")
         new_edges = self.edges.copy()
         new_values = (self.values - other.values) / (self.values + other.values)
-        return type(self)(
-            new_values,
-            new_edges,
+        labels = self._dict_with_new_title(
             f"({self.title} $-$ {other.title}) / ({self.title} + {other.title})",
-            self.xlabel,
-            self.ylabel,
         )
+        return type(self)(new_values, new_edges, **labels)
 
     def pad_with(self, value: float) -> Self:
         """
@@ -1351,4 +1335,4 @@ class Hist1d:
         new_values[0] = value
         new_values[1:-1] = self.values
         new_values[-1] = value
-        return type(self)(new_values, new_edges, self.title, self.xlabel, self.ylabel)
+        return type(self)(new_values, new_edges, **self.labels_dict)

@@ -73,7 +73,7 @@ def coulomb_explode(
 
     .. attention::
 
-        This function is slow as it uses native Python code.
+        This function is slow as it uses native Python code for its core computations.
 
     Parameters
     ----------
@@ -119,7 +119,8 @@ def coulomb_explode_batch(
 
     .. attention::
 
-        This function is slow. It uses native Python code and inefficient memory layout.
+        This function is slow. It uses native Python code and inefficient memory layout
+        for its core computations.
 
     Parameters
     ----------
@@ -141,8 +142,11 @@ def coulomb_explode_batch(
     n_jobs : int, default -2
         The number of jobs started.
 
-        The default value creates *number-of-CPUs* minus 2 jobs.
-        See `n_jobs description <https://joblib.readthedocs.io/en/latest/generated/joblib.Parallel.html>`__.
+        The default value creates *number-of-CPUs* minus 1 jobs.
+
+        See *n_jobs* descriptions of
+        `joblibs.Parallel <https://joblib.readthedocs.io/en/latest/generated/joblib.Parallel.html>`__
+        for more information.
 
     Returns
     -------

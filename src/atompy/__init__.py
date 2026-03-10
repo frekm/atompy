@@ -30,6 +30,8 @@ from ._histogram2d import Hist2d
 
 from ._data_xy import DataXY
 
+from ._data_xyz import DataXYZ
+
 from ._vectors import (
     asvector,
     asvectorarray,
@@ -63,6 +65,7 @@ __all__ = [
     "Hist1d",
     "Hist2d",
     "DataXY",
+    "DataXYZ",
     "asvector",
     "asvectorarray",
     "Vector",

@@ -1,3 +1,6 @@
+# v4.20.3
+- Fixed use of deprecated function `scipy.special.sph_harm`
+
 # v4.20.2
 - Fixed that no tabular numbers where used with `set_latex_backend`
 

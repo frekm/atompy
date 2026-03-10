@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import time
 import warnings
 from scipy.optimize import curve_fit, Bounds
-from scipy.special import sph_harm
+from scipy.special import sph_harm_y
 from dataclasses import dataclass
 from . import _errors
 
@@ -763,7 +763,7 @@ def eval_yl0_polynomial(thetas: npt.ArrayLike, *coeffs):
 
     output = np.zeros(size)
     for l, coeff in enumerate(coeffs):
-        output += coeff * np.real(sph_harm(0, l, 0.0, thetas))
+        output += coeff * np.real(sph_harm_y(0, l, 0.0, thetas))
     return output
 
 
@@ -906,7 +906,7 @@ def eval_sph_harm(
     l: int,
     m: int,
 ) -> npt.ArrayLike:
-    return np.real(sph_harm(m, l, phi, theta))
+    return np.real(sph_harm_y(m, l, phi, theta))
 
 
 def fit_sph_harm(

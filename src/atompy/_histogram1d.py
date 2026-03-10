@@ -723,6 +723,7 @@ class Hist1d:
         bin and the corresponding bin value. See the *where* keyword argument.
 
         .. attention ::
+
             Don't use anything else but ``where="pre"`` (which is the default) in
             ``plt.step``. Otherwise the histogram will be shifted.
 

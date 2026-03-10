@@ -6,3 +6,5 @@ src/atompy.egg-info/
 
 _autogen/
 test/
+
+scratchpad*

@@ -1,3 +1,6 @@
+# v5.6.1
+- Documentation fixes
+
 # v5.6.0
 - Added a simple (computationally slow) Coulomb Explosion Imaging simulation:
   - `atompy.physics.coltrims.coulomb_explode`

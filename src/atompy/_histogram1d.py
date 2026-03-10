@@ -1244,7 +1244,7 @@ class Hist1d:
             (or equal) to `upper`.
 
         setval : float, default 0.0
-            If `keepdims` is True, fill removed data with `setval`.
+            Set removed bins to this value.
 
         Returns
         -------

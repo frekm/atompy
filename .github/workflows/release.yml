@@ -19,7 +19,7 @@ jobs:
         python-version: "3.11"
 
     - name: Generate requirements file
-      run: python extract_dependencies.py
+      run: python extract_requirements.py
 
     - name: Zip atompy folder
       run: |

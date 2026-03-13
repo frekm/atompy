@@ -91,7 +91,7 @@ def coulomb_explode(
     Returns
     -------
     :class:`.Molecule`
-        A :class:`.!Molecule` instance describing the state of the initial
+        A ``Molecule`` instance describing the state of the initial
         molecule after *time_end_fs*.
     """
     t1 = time_end_fs * constants.AU_PER_FS

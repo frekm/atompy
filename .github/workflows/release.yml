@@ -13,13 +13,22 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Generate requirements file
+      run: python extract_requirements.py
+
     - name: Zip atompy folder
       run: |
+        cp requirements-atompy.txt src/
         cd src
-        zip -r atompy.zip atompy
+        zip -r atompy_${{ github.event.release.tag_name }}.zip atompy requirements-atompy.txt
 
     - name: Upload Release Asset
       env:
         GITHUB_TOKEN: ${{ github.token }}
       run:
-        gh release upload ${{ github.event.release.tag_name }} ./src/atompy.zip
+        gh release upload ${{ github.event.release.tag_name }} ./src/atompy_${{ github.event.release.tag_name }}.zip

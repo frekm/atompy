@@ -1,3 +1,6 @@
+# v5.7.1
+- Add `requirements-atompy.txt` to zipped release files
+
 # v5.7.0
 - Add `DataXY`
 - Documentation fixes

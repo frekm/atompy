@@ -1,13 +1,13 @@
-import pickle
 import os
+import pickle
 
-import numpy as np
 import joblib
+import numpy as np
 import tqdm
 
-from atompy.physics.particles import Molecule
 from atompy import _vectors as vec
 from atompy.physics import constants
+from atompy.physics.particles import Molecule
 
 
 def calc_coulomb_force(mol: Molecule, idx_probe: int) -> vec.Vector:

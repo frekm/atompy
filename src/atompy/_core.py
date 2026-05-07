@@ -1,10 +1,9 @@
-from matplotlib.figure import Figure, SubFigure
-from matplotlib.axes import Axes
+from typing import Any, Literal, cast
+
 import numpy as np
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure, SubFigure
 from numpy.typing import NDArray
-
-from typing import cast, Any, Literal
-
 
 from .errors import UnmatchingEdgesError
 

@@ -1,8 +1,10 @@
-from typing import overload, Union, Optional, Any
+import time
+from typing import Any, Optional, Union, overload
+
 import numpy as np
 import numpy.typing as npt
-import time
-from ..._vectors import VectorArray, Vector
+
+from ..._vectors import VectorArray
 
 
 def thomson_cross_section(
@@ -105,13 +107,14 @@ def scattering_angle_distr(N: int, k1_mag_au: float) -> npt.NDArray[np.float64]:
     rtn = np.zeros(N)
     t0 = time.time()
     line0 = "Dice-throwing %d Compton photon scattering angles... " % (N)
+    rng = np.random.default_rng()
     while succesful_throws < N:
-        line = "\r" + line0 + "%.0lf percent done." % ((100.0 * succesful_throws / N))
+        line = "\r" + line0 + "%.0lf percent done." % (100.0 * succesful_throws / N)
         print(line, end="")
 
         buffer = N - succesful_throws
-        cos_theta_throw = 2 * np.random.random(buffer) - 1
-        second_throw = np.random.random(buffer)
+        cos_theta_throw = 2 * rng.random(buffer) - 1
+        second_throw = rng.random(buffer)
         kn = klein_nishina_cross_section(E1, cos_theta_throw, normalize=True)
 
         cos_theta_throw = np.ma.compressed(
@@ -123,7 +126,7 @@ def scattering_angle_distr(N: int, k1_mag_au: float) -> npt.NDArray[np.float64]:
 
         succesful_throws += theta.size
     t1 = time.time()
-    print(f"\nTotal runtime: {t1-t0}s")
+    print(f"\nTotal runtime: {t1 - t0}s")
     return rtn
 
 
@@ -176,9 +179,7 @@ def mom_final_distr_photon_var(
 
     while n_samples < len(k1_mags_au):
         line = (
-            "\r"
-            + line0
-            + "%.0lf percent done." % ((100.0 * n_samples / len(k1_mags_au)))
+            "\r" + line0 + "%.0lf percent done." % (100.0 * n_samples / len(k1_mags_au))
         )
         print(line, end="")
         rand_costheta = rng.uniform(-1, np.cos(theta_min))
@@ -203,7 +204,7 @@ def mom_final_distr_photon_var(
     output[:, 2] = magnitudes * np.sin(output_thetas) * np.sin(output_phis)
 
     t1 = time.time()
-    print(f"\nTotal runtime: {t1-t0:.2f}s")
+    print(f"\nTotal runtime: {t1 - t0:.2f}s")
 
     return VectorArray(output)
 
@@ -233,22 +234,23 @@ def mom_final_distr_photon(
 
     succesful_throws = 0
 
-    phi = 2 * np.pi * np.random.random(N)
+    rng = np.random.default_rng()
+    phi = 2 * np.pi * rng.random(N)
     rtn = np.zeros((N, 3))
     max = klein_nishina_cross_section(phot_ener_in, 1)
 
     t0 = time.time()
     line0 = "Dice-throwing %d Compton photon momenta... " % (N)
     while succesful_throws < N:
-        line = "\r" + line0 + "%.0lf percent done." % ((100.0 * succesful_throws / N))
+        line = "\r" + line0 + "%.0lf percent done." % (100.0 * succesful_throws / N)
         print(line, end="")
 
         buffer = N - succesful_throws
 
         a = -1.0
         b = np.cos(theta_min)
-        cos_theta_throw = (b - a) * np.random.random(buffer) + a
-        second_throw = np.random.random(buffer)
+        cos_theta_throw = (b - a) * rng.random(buffer) + a
+        second_throw = rng.random(buffer)
         kn = klein_nishina_cross_section(phot_ener_in, cos_theta_throw) / max
 
         cos_theta_throw = np.ma.compressed(
@@ -273,7 +275,7 @@ def mom_final_distr_photon(
         succesful_throws += len(cos_theta_throw)
 
     t1 = time.time()
-    print(f"\nTotal runtime: {t1-t0:.2f}s")
+    print(f"\nTotal runtime: {t1 - t0:.2f}s")
 
     return VectorArray(rtn)
 

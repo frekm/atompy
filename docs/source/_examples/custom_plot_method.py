@@ -1,7 +1,7 @@
-import atompy as ap
-import mplutils as mplu
 import matplotlib.pyplot as plt
+import mplutils as mplu
 
+import atompy as ap
 
 MAX_ENERGY = 25.0
 MAX_MOMENTUM = 1.5

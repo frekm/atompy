@@ -1,25 +1,20 @@
-import copy
-
+import warnings
+from os import PathLike
 from typing import Any, Iterator, Literal, Self, TypedDict
+
 import matplotlib.pyplot as plt
+import numpy as np
+import uproot
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-import uproot
-
-from os import PathLike
-import warnings
-
-import numpy as np
-from numpy.typing import NDArray, ArrayLike
-
+from numpy.typing import ArrayLike, NDArray
 
 from ._core import (
-    raise_unmatching_edges,
-    get_topmost_figure,
     deprecated_keyword_doing_nothing_msg,
+    get_topmost_figure,
+    raise_unmatching_edges,
 )
-
-from ._utils import get_all_dividers, centers_to_edges
+from ._utils import centers_to_edges, get_all_dividers
 
 
 class Hist1dLabelsDict(TypedDict, total=True):

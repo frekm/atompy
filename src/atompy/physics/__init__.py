@@ -1,28 +1,24 @@
 from atompy.physics.physics import (
-    subtract_binding_energy,
-    rho_p_microcanonical,
     mom_init_distr_elec,
     mom_init_distr_elec_mol,
+    rho_p_microcanonical,
+    subtract_binding_energy,
 )
 
-from . import compton_scattering
-from . import coltrims
-from . import constants
-
-from .particles import Electron, ElectronList, Atom, AtomList, Molecule
-
+from . import coltrims, compton_scattering, constants
+from .particles import Atom, AtomList, Electron, ElectronList, Molecule
 
 __all__ = [
-    "subtract_binding_energy",
-    "rho_p_microcanonical",
-    "mom_init_distr_elec",
-    "mom_init_distr_elec_mol",
-    "compton_scattering",
-    "coltrims",
-    "constants",
-    "Electron",
-    "ElectronList",
     "Atom",
     "AtomList",
+    "Electron",
+    "ElectronList",
     "Molecule",
+    "coltrims",
+    "compton_scattering",
+    "constants",
+    "mom_init_distr_elec",
+    "mom_init_distr_elec_mol",
+    "rho_p_microcanonical",
+    "subtract_binding_energy",
 ]

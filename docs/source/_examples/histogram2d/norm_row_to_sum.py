@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
+
 import atompy as ap
-import mplutils as mplu
 
 plt.style.use("atom")
 

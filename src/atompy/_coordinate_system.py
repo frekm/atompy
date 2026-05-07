@@ -1,5 +1,5 @@
 from typing import overload, Self
-from . import vectors as vec
+from . import _vectors as vec
 import numpy as np
 
 

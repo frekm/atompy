@@ -2,7 +2,7 @@
 Working with vectors
 ====================
 
-AplePy provides the :class:`.Vector` and :class:`.VectorArray` classes.
+atompy provides the :class:`.Vector` and :class:`.VectorArray` classes.
 
 On this page you'll learn how to use them.
 

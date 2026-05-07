@@ -27,6 +27,11 @@ if "%1" == "" goto help
 
 if "%1" == "clean" (
 	rmdir /s /q "./source/api_reference/_autogen"
+	rmdir /s /q "./source/api_reference/base/_autogen"
+	rmdir /s /q "./source/api_reference/physics/_autogen"
+	rmdir /s /q "./source/api_reference/physics/base/_autogen"
+	rmdir /s /q "./source/api_reference/physics/compton_scattering/_autogen"
+	rmdir /s /q "./source/api_reference/physics/coltrims/_autogen"
 	echo Delete _autogen output
 )
 

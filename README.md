@@ -11,8 +11,14 @@ your working directory.
 
 Then you can import just as you import any other Python module.
 
-If you use this method, you'll need to install the dependencies manually, most
-notably `numpy`, `matplotlib`, `scipy`, and `uproot`.
+If you use this method, you'll need to install the dependencies manually, which
+are listed in `requirements-atompy.txt`.
+
+After unpacking `atompy_<release>.zip` can install them with `pip`:
+
+```shell
+pip install -r requirements-atompy.txt
+```
 
 ## Documentation
 

@@ -1,13 +1,13 @@
-import matplotlib.pyplot as plt
-from importlib.resources import files
+import matplotlib.pyplot as _plt
+from importlib.resources import files as _files
 
-_style_path = files("atompy.styles").joinpath("atom.mplstyle")
-plt.style.library["atom"] = str(_style_path)  # type:ignore
-if "atom" not in plt.style.available:
-    plt.style.available.append("atom")
+_style_path = _files("atompy.styles").joinpath("atom.mplstyle")
+_plt.style.library["atom"] = str(_style_path)  # type:ignore
+if "atom" not in _plt.style.available:
+    _plt.style.available.append("atom")
 
 
-from .utils import (
+from ._utils import (
     convert_cosine_to_angles,
     centers_to_edges,
     edges_to_centers,
@@ -24,11 +24,13 @@ from .utils import (
     for_pcolormesh_from_root,
 )
 
-from .histogram1d import Hist1d
+from ._histogram1d import Hist1d
 
-from .histogram2d import Hist2d
+from ._histogram2d import Hist2d
 
-from .vectors import (
+from ._data_xy import DataXY
+
+from ._vectors import (
     asvector,
     asvectorarray,
     Vector,
@@ -37,7 +39,7 @@ from .vectors import (
     VectorArrayLike,
 )
 
-from .coordinate_system import CoordinateSystem, CoordinateSystemArray
+from ._coordinate_system import CoordinateSystem, CoordinateSystemArray
 
 from . import physics
 
@@ -60,6 +62,7 @@ __all__ = [
     "for_pcolormesh_from_root",
     "Hist1d",
     "Hist2d",
+    "DataXY",
     "asvector",
     "asvectorarray",
     "Vector",

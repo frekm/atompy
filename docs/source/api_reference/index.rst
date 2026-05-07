@@ -2,52 +2,46 @@
 API reference
 =============
 
-.. currentmodule:: atompy
+atompy consists of a base module and a few submodules.
+
+It is assumed that atompy was imported as
+
+.. code-block:: python
+
+    import atompy as ap
+
+Base module
+-----------
+
+Everything in the base module can be accessed directly, for example,
+
+.. code-block:: python
+
+    vec = ap.Vector((1, 2, 3))
+    hist = ap.Hist1d((1, 2, 3), (1, 2, 3, 4))
+    data = ap.for_pcolormesh_from_txt("filename")
+
+See the :doc:`reference page <base/index>` for a documentation of everything
+included in the base module.
+
+Physics module
+--------------
+
+Groups everything related to phyics and can be accessed like
+
+.. code-block:: python
+
+    distribution = ap.physics.mom_init_distr_elec()
+    cross_section = ap.physics.compton_scattering.klein_nishina_cross_section()
+
+See the :doc:`reference page <physics/index>` for a documentation of everything
+included in this module.
 
 
-Vectors
-=======
+.. toctree::
+    :hidden:
 
-.. autosummary::
-    :toctree: _autogen
+    base/index
+    physics/index
 
-    Vector
-    VectorArray
-    asvector
-    asvectorarray
 
-Coordinate Systems
-==================
-
-.. autosummary::
-    :toctree: _autogen
-
-    CoordinateSystem
-    CoordinateSystemArray
-
-Histograms
-==========
-
-.. autosummary::
-    :toctree: _autogen
-
-    Hist1d
-    Hist2d
-
-Miscellaenous
-=============
-
-.. autosummary::
-    :toctree: _autogen
-
-    get_all_dividers
-    centers_to_edges
-    edges_to_centers
-    convert_cosine_to_angles
-    for_pcolormesh_from_txt
-    for_pcolormesh_from_root
-    sample_distribution
-    sample_distribution_func
-    sample_distribution_discrete
-    gauss
-    crop

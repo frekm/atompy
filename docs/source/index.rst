@@ -14,7 +14,15 @@ atompy/>`_.
 
 Installation
 ============
-There are multiple ways of installing ``atompy``.
+There are multiple ways of installing ``atompy``:
+
+- :ref:`inst-drop-in`: Recommended if you don't use virtual environments for your
+  project.
+- :ref:`inst-git`: Recommended if you use virtual environments and have `git` installed.
+- :ref:`inst-nogit`: Recommended if you use virtual environments but don't have `git`
+  installed.
+
+
 
 After installation using any of these methods, you can import ``atompy`` the
 usual ways, e.g.,
@@ -37,21 +45,23 @@ to create a virtual environment called ``.venv``.
 
 Activate it using a script provided in ``.venv/Scripts/``.
 
+.. _inst-drop-in:
+
 Simple drop-in
 --------------
 The easiest way is to download ``atompy.zip`` from GitHub and drop it into
 your working directory.
 
 1. Navigate to the GitHub `Release Page <https://github.com/frekm/atompy/releases>`__.
-2. Download ``atompy.zip`` from the assets list.
+2. Download ``atompy_v<version>.zip`` from the assets list.
 3. Extract its contents to your working directory.
-
-This method does not install the dependencies of ``atompy``. You'll have to
-install these manually (e.g., with ``pip``).
+4. Install dependencies by running ``pip install -r requirements-atompy.txt``
 
 
 Using the online repository
 ---------------------------
+
+.. _inst-git:
 
 With `git`
 **********
@@ -59,7 +69,7 @@ With `git`
 If you have `git` installed on your system, you can use it to download and install
 `atompy` using `pip`.
 
-To install the latest commit, use
+To install the latest version, use
 
 .. code-block:: shell
 
@@ -80,13 +90,14 @@ You can add a line to your `requirements.txt`
     atompy @ git+https://github.com/frekm/atompy.git        # latest version
     atompy @ git+https://github.com/frekm/atompy.git@v5.0.0 # particular version
 
+.. _inst-nogit:
 
 Without `git`
 *************
 
 If you don't have `git` installed on your system, you need to modify the above links.
 
-To install the latest commit, use
+To install the latest version, use
 
 .. code-block:: shell
 
@@ -129,7 +140,6 @@ Alternatively, if you have `git` installed
     :hidden:
 
     api_reference/index
-    physics/index
     tutorials/index
 
 

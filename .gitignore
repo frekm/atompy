@@ -218,3 +218,4 @@ __marimo__/
 _autogen/
 test/
 scratchpad.*
+requirements-atompy.txt

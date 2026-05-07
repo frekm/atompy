@@ -19,13 +19,13 @@ from ._core import (
     get_topmost_figure,
     deprecated_keyword_doing_nothing_msg,
 )
-from .utils import (
+from ._utils import (
     centers_to_edges,
     edges_to_centers,
     get_all_dividers,
     for_pcolormesh_from_txt,
 )
-from .histogram1d import Hist1d
+from ._histogram1d import Hist1d
 
 
 class Hist2d:
@@ -888,15 +888,15 @@ class Hist2d:
             Lower bound of y-axis (inclusive).
         yupper : float
             Upper bound of y-axis (exclusive).
-        squeeze : bool, optional
+        squeeze : bool, default True
             If True, return a cropped histogram containing only the selected region.
             If False, retain original shape and set bins outside the range to `setval`.
-        setval : float, optional
+        setval : float, default 0.0
             Value to assign to bins outside the region if `squeeze=False`.
 
         Returns
         -------
-        Hist2d
+        :class:`.Hist2d`
             A new histogram with the selected region either cropped or masked.
 
         Raises
@@ -975,12 +975,12 @@ class Hist2d:
             Lower bound of y-axis to remove (inclusive). If None, no lower bound.
         yupper : float or None
             Upper bound of y-axis to remove (exclusive). If None, no upper bound.
-        setval : float, optional
+        setval : float, default 0.0
             Value to assign to bins within the removed region.
 
         Returns
         -------
-        Hist2d
+        :class:`.Hist2d`
             A new histogram with the specified region "removed" (set to `setval`).
         """
         new_values = self.values.copy()

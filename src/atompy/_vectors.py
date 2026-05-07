@@ -150,7 +150,7 @@ class Vector:
         >>> vec.x
         1.0
 
-    For more examples, see :doc:`../../tutorials/vectors`.
+    For more examples, see :doc:`../../../tutorials/vectors`.
     """
 
     def __init__(self, x: float, y: float, z: float):
@@ -566,7 +566,7 @@ class VectorArray:
 
     Examples
     --------
-    For more examples, see :doc:`../../tutorials/vectors`.
+    For more examples, see :doc:`../../../tutorials/vectors`.
     """
 
     def __init__(self, vectors: VectorArrayLike):

@@ -1,31 +1,29 @@
-from os import PathLike
 import copy
-
-import numpy as np
-from numpy.typing import NDArray, ArrayLike
-
+import warnings
+from os import PathLike
 from typing import Any, Literal, Self
 
 import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm
-from matplotlib.colorbar import Colorbar
-from matplotlib.axes import Axes
-from matplotlib.figure import Figure
-
+import numpy as np
 import uproot
+from matplotlib.axes import Axes
+from matplotlib.colorbar import Colorbar
+from matplotlib.colors import LogNorm
+from matplotlib.figure import Figure
+from numpy.typing import ArrayLike, NDArray
 
 from ._core import (
-    raise_unmatching_edges,
-    get_topmost_figure,
     deprecated_keyword_doing_nothing_msg,
+    get_topmost_figure,
+    raise_unmatching_edges,
 )
+from ._histogram1d import Hist1d
 from ._utils import (
     centers_to_edges,
     edges_to_centers,
-    get_all_dividers,
     for_pcolormesh_from_txt,
+    get_all_dividers,
 )
-from ._histogram1d import Hist1d
 
 
 class Hist2d:
@@ -365,7 +363,7 @@ class Hist2d:
         """
         with uproot.open(fname) as file:  # type: ignore
             hist: Any = file[hname]
-            values, xedges, yedges = hist.to_numpy()  # type: ignore
+            values, xedges, yedges = hist.to_numpy()
             title_: str = hist.title if title == "__auto__" else title
             xlabel_: str = (
                 hist.member("fXaxis").member("fTitle")
@@ -607,13 +605,13 @@ class Hist2d:
     def __pos__(self) -> Self:
         return self
 
-    def __eq__(self, other: "Hist2d") -> np.bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Hist2d):
-            return NotImplemented
+            return False
         equal_values = self.values == other.values
         equal_xedges = self.xedges == other.xedges
         equal_yedges = self.yedges == other.yedges
-        return np.all([equal_values, equal_xedges, equal_yedges])
+        return bool(np.all([equal_values, equal_xedges, equal_yedges]))
 
     def __str__(self) -> str:
         xedges_str = str(self.xedges)

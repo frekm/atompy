@@ -1,11 +1,11 @@
-from typing import Iterator, Any, Literal, Self, TypedDict, Callable
-from os import PathLike
 import copy
+from os import PathLike
+from typing import Any, Callable, Iterator, Literal, Self, TypedDict
 
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 from atompy import _core

@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
-import atompy as ap
 import numpy as np
+
+import atompy as ap
 
 plt.style.use("atom")
 

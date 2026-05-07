@@ -1,6 +1,8 @@
-from typing import overload, Self
-from . import _vectors as vec
+from typing import Self, overload
+
 import numpy as np
+
+from . import _vectors as vec
 
 
 class CoordinateSystem:

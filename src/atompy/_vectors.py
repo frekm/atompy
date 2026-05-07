@@ -1,7 +1,8 @@
-import numpy as np
 import collections
-from numpy.typing import NDArray, ArrayLike
-from typing import TypeVar, Union, overload, Sequence, Self
+from typing import Self, Sequence, TypeVar, Union, overload
+
+import numpy as np
+from numpy.typing import ArrayLike, NDArray
 
 T = TypeVar("T")
 
@@ -248,8 +249,11 @@ class Vector:
     def __itruediv__(self, divider: float) -> "Vector":
         return self.scale(1.0 / divider, copy=False)
 
-    def __eq__(self, other: VectorLike) -> bool:
-        other = asvector(other)
+    def __eq__(self, other: object) -> bool:
+        try:
+            other = asvector(other)  # ty:ignore[invalid-argument-type]
+        except ValueError:
+            return False
         return bool(np.all(self._arr == other._arr))
 
     def scale(self, fac: float, copy: bool = True) -> "Vector":
@@ -727,7 +731,11 @@ class VectorArray:
             return NotImplemented
         return self.scale(_fac, copy=False)
 
-    def __eq__(self, other: "VectorArray") -> bool:
+    def __eq__(self, other: object) -> bool:
+        try:
+            other = asvectorarray(other)  # ty:ignore[invalid-argument-type]
+        except ValueError:
+            return False
         return bool(np.all(self._arr == other._arr))
 
     def scale(self, fac: ArrayLike, copy: bool = True) -> "VectorArray":

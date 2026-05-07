@@ -53,11 +53,9 @@ The easiest way is to download ``atompy.zip`` from GitHub and drop it into
 your working directory.
 
 1. Navigate to the GitHub `Release Page <https://github.com/frekm/atompy/releases>`__.
-2. Download ``atompy.zip`` from the assets list.
+2. Download ``atompy_v<version>.zip`` from the assets list.
 3. Extract its contents to your working directory.
-
-This method does not install the dependencies of ``atompy``. You'll have to
-install these manually (e.g., with ``pip``).
+4. Install dependencies by running ``pip install -r requirements-atompy.txt``
 
 
 Using the online repository

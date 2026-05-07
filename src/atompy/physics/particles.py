@@ -1,6 +1,6 @@
+import copy
 from collections import UserList
 from typing import Self, Union
-import copy
 
 import numpy as np
 

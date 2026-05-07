@@ -1,10 +1,11 @@
+import time
+from typing import Union, overload
+
 import numpy as np
 import numpy.typing as npt
-import time
-from typing import overload, Union
-from .._vectors import Vector, VectorArray
 
 from .._utils import sample_distribution_func
+from .._vectors import Vector, VectorArray
 
 
 @overload
@@ -176,8 +177,9 @@ def mom_init_distr_elec_mol(
     distr_molecular = VectorArray(distr_molecular)
 
     # rotate them randomly
-    theta = np.arccos(2.0 * np.random.random(N) - 1)
-    phi = 2.0 * np.pi * np.random.random(N)
+    rng = np.random.default_rng()
+    theta = np.arccos(2.0 * rng.random(N) - 1)
+    phi = 2.0 * np.pi * rng.random(N)
 
     molecular_orientation = np.zeros(distr_molecular.asarray().shape)
     molecular_orientation[:, 0] = np.sin(theta) * np.cos(phi)
@@ -190,6 +192,6 @@ def mom_init_distr_elec_mol(
 
     t1 = time.time()
 
-    print(f"Done. Total runtime: {t1-t0:.2f}s")
+    print(f"Done. Total runtime: {t1 - t0:.2f}s")
 
     return distr_molecular, VectorArray(molecular_orientation)

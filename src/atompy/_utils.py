@@ -1,13 +1,13 @@
-from os import PathLike
-from typing import Any, Literal, Callable
-import numpy as np
-from numpy.random import Generator
-from numpy.typing import NDArray, ArrayLike
-import matplotlib.colors as mcolors
-import matplotlib
-
 import time
+from os import PathLike
+from typing import Any, Callable, Literal
 
+import matplotlib
+import matplotlib.colors as mcolors
+import numpy as np
+import uproot
+from numpy.random import Generator
+from numpy.typing import ArrayLike, NDArray
 
 cm_atom = mcolors.LinearSegmentedColormap.from_list(
     "atom",
@@ -171,7 +171,7 @@ def for_pcolormesh_from_root(
     for_pcolormesh_from_txt
     """
     with uproot.open(fname) as file:  # type: ignore
-        values, xedges, yedges = file[hname].to_numpy()  # type: ignore
+        values, xedges, yedges = file[hname].to_numpy()
     return xedges, yedges, values.T
 
 
@@ -560,7 +560,7 @@ def sample_distribution(
     t0 = time.time()
 
     while output_size < size:
-        line = f"\r{line0}: {100 * output_size/size} percent done."
+        line = f"\r{line0}: {100 * output_size / size} percent done."
         print(line, end="")
         buffer = size - output_size
         sample = rng.uniform(edges[0], edges[-1], buffer)
@@ -576,7 +576,7 @@ def sample_distribution(
         output_size += sample.size
 
     t1 = time.time()
-    print(f"\r{line0}. Total runtime: {t1-t0:.2f}s                           ")
+    print(f"\r{line0}. Total runtime: {t1 - t0:.2f}s                           ")
 
     return output
 
@@ -653,7 +653,7 @@ def sample_distribution_func(
 
     t0 = time.time()
     while output_size < size:
-        line = f"\r{line0}: {100 * output_size/size} percent done."
+        line = f"\r{line0}: {100 * output_size / size} percent done."
         print(line, end="")
         buffer = size - output_size
         sample = rng.uniform(xlimits[0], xlimits[-1], buffer)
@@ -667,7 +667,7 @@ def sample_distribution_func(
         output_size += sample.size
 
     t1 = time.time()
-    print(f"\r{line0}. Total runtime: {t1-t0:.2f}s                           ")
+    print(f"\r{line0}. Total runtime: {t1 - t0:.2f}s                           ")
 
     return output
 

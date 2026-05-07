@@ -1,9 +1,10 @@
-import numpy as np
-from numpy.typing import ArrayLike
+from typing import Optional, Sequence
+
 import matplotlib.pyplot as plt
-from matplotlib.axes import Axes
-from typing import Sequence, Optional
+import numpy as np
 import scipy.stats
+from matplotlib.axes import Axes
+from numpy.typing import ArrayLike
 
 
 def ion_tof_linear_fit(
@@ -53,8 +54,7 @@ def ion_tof_linear_fit(
     delta_intercept : float
         standard error of the intercept
     """
-    if not isinstance(tof_vs_m_over_q_pairs, np.ndarray):
-        tof_vs_m_over_q_pairs = np.array(tof_vs_m_over_q_pairs)
+    tof_vs_m_over_q_pairs = np.asarray(tof_vs_m_over_q_pairs)
 
     lin_regr = scipy.stats.linregress(
         np.sqrt(tof_vs_m_over_q_pairs[:, 1]), tof_vs_m_over_q_pairs[:, 0]
@@ -78,8 +78,8 @@ def ion_tof_linear_fit(
         data=names,
     )
 
-    m, b = lin_regr.slope, lin_regr.intercept  # type: ignore
-    dm, db = lin_regr.stderr, lin_regr.intercept_stderr  # type: ignore
+    m, b = lin_regr.slope, lin_regr.intercept
+    dm, db = lin_regr.stderr, lin_regr.intercept_stderr
 
     xintercept = -b / m
     xlow = 0 if b < 0 else xintercept

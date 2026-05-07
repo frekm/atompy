@@ -1,7 +1,8 @@
-import matplotlib.pyplot as plt
-import atompy as ap
-import numpy as np
 import matplotlib.patheffects as patheffects
+import matplotlib.pyplot as plt
+import numpy as np
+
+import atompy as ap
 
 plt.style.use("atom")
 plt.rcParams["axes.grid"] = False

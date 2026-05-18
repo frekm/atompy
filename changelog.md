@@ -1,3 +1,6 @@
+# v5.7.2
+- Fix `Hist2d.copy()` not copying zlabel
+
 # v5.7.1
 - Add `requirements-atompy.txt` to zipped release files
 

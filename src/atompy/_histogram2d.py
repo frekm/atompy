@@ -1840,4 +1840,5 @@ class Hist2d:
             copy.copy(self.title),
             copy.copy(self.xlabel),
             copy.copy(self.ylabel),
+            copy.copy(self.zlabel),
         )

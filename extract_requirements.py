@@ -1,5 +1,5 @@
-import tomllib
 import pathlib
+import tomllib
 
 pyproject_path = pathlib.Path("pyproject.toml")
 requirements_path = pathlib.Path("requirements-atompy.txt")

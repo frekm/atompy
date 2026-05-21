@@ -335,7 +335,7 @@ class Hist1d:
     def values(self, values: ArrayLike) -> None:
         values = np.asarray(values, copy=True).astype(np.float64)
         if len(values) != len(self.values):
-            raise ValueError(f"shape of new values does not match shape of old values")
+            raise ValueError("shape of new values does not match shape of old values")
         self._values = values
 
     @property
@@ -365,7 +365,7 @@ class Hist1d:
     def edges(self, edges: ArrayLike) -> None:
         edges = np.asarray(edges, copy=True).astype(np.float64)
         if len(edges) != len(self.edges):
-            raise ValueError(f"shape of new edges does not match shape of old edges")
+            raise ValueError("shape of new edges does not match shape of old edges")
         self._edges = edges
         self._centers = self._calculate_centers(self._edges)
 

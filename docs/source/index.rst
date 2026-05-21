@@ -2,7 +2,7 @@
 atompy
 ======
 
-``atompy`` is a collection of functions and classes to do minor data 
+``atompy`` is a collection of functions and classes to do minor data
 analysis and to create plots. Plotting is done using `matplotlib
 <https://matplotlib.org/>`_, data analysis is mostly done by `numpy
 <https://numpy.org/>`_.
@@ -141,8 +141,3 @@ Alternatively, if you have `git` installed
 
     api_reference/index
     tutorials/index
-
-
-
-
-

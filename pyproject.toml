@@ -13,16 +13,17 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "numpy",
     "matplotlib",
     "uproot",
     "scipy",
     "joblib",
     "tqdm",
+    "numpy>=2.4.6",
 ]
 
 [dependency-groups]
 dev = [
+    "esbonio>=2.0.0",
     "intersphinx-registry>=0.2605.27",
     "mplutils",
     "numpydoc>=1.10.0",
@@ -53,4 +54,3 @@ extend-select = ["NPY", "I", "RUF022"]
 
 [tool.uv.sources]
 mplutils = { git = "https://github.com/frekm/mpl-utils.git" }
-

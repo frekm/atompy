@@ -351,7 +351,7 @@ class Hist2d:
         image = np.asarray(image).T
         extents = np.asarray(extents).astype(float)
         if extents.shape != (2, 2):
-            raise ValueError("extents must be of from ((xmin, xmax), (ymin, ymax))")
+            raise ValueError("extents must be of form ((xmin, xmax), (ymin, ymax))")
         if image.ndim != 2:
             raise ValueError("image must be a 2D array")
         xbins, ybins = image.shape

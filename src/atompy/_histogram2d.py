@@ -50,6 +50,26 @@ class Hist2d:
     yedges : array_like, shape (n+1,)
         The y-edges of the histogram.
 
+    title : str, default ""
+        Optional title of the histogram.
+
+        May be used in :meth:`~Hist2d.plot`.
+
+    xlabel : str, default ""
+        Optional xlabel of the histogram.
+
+        May be used in :meth:`~Hist2d.plot`.
+
+    ylabel : str, default ""
+        Optional ylabel of the histogram.
+
+        May be used in :meth:`~Hist2d.plot`.
+
+    zlabel : str, default ""
+        Optional zlabel of the histogram.
+
+        May be used in :meth:`~Hist2d.plot`.
+
     Attributes
     ----------
     values : ndarray, shape(m, n)
@@ -75,6 +95,14 @@ class Hist2d:
     ylim : (float, float)
 
     limits : ((float, float), (float, float))
+
+    title : str
+
+    xlabel : str
+
+    ylabel : str
+
+    zlabel : str
     """
 
     def __init__(
@@ -96,10 +124,10 @@ class Hist2d:
             raise ValueError("yedges and values don't match")
         self._xcenters = edges_to_centers(self._xedges)
         self._ycenters = edges_to_centers(self._yedges)
-        self.title = title
-        self.xlabel = xlabel
-        self.ylabel = ylabel
-        self.zlabel = zlabel
+        self._title = title
+        self._xlabel = xlabel
+        self._ylabel = ylabel
+        self._zlabel = zlabel
 
     @classmethod
     def from_centers(
@@ -480,6 +508,42 @@ class Hist2d:
     def limits(self) -> tuple[tuple[float, float], tuple[float, float]]:
         """(xlim, ylim)"""
         return self.xlim, self.ylim
+
+    @property
+    def title(self) -> str:
+        """Histogram title."""
+        return self._title
+
+    @title.setter
+    def title(self, value: str) -> None:
+        self._title = value
+
+    @property
+    def xlabel(self) -> str:
+        """Histogram xlabel."""
+        return self._xlabel
+
+    @xlabel.setter
+    def xlabel(self, value: str) -> None:
+        self._xlabel = value
+
+    @property
+    def ylabel(self) -> str:
+        """Histogram ylabel."""
+        return self._ylabel
+
+    @ylabel.setter
+    def ylabel(self, value: str) -> None:
+        self._ylabel = value
+
+    @property
+    def zlabel(self) -> str:
+        """Histogram zlabel."""
+        return self._zlabel
+
+    @zlabel.setter
+    def zlabel(self, value: str) -> None:
+        self._zlabel = value
 
     def __add__(self, other: "Hist2d") -> Self:
         if not isinstance(other, Hist2d):

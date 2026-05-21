@@ -31,7 +31,7 @@ def asvector(input: VectorLike) -> "Vector":
 
     ::
 
-        >>> import aplepy as ap
+        >>> import atompy as ap
         >>> ap.asvector((1, 2, 3))
         Vector(1.0, 2.0, 3.0)
         >>> ap.asvector(ap.Vector(1, 2, 3))

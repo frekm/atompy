@@ -1,3 +1,6 @@
+# v5.7.3
+- Minor fixes
+
 # v5.7.2
 - Fix `Hist2d.copy()` not copying zlabel
 

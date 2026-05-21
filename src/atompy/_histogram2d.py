@@ -299,7 +299,7 @@ class Hist2d:
         origin: Literal["upper", "lower"] = "upper",
     ) -> Self:
         """
-        Create a :class:`.Hist1d` from a 2D image.
+        Create a :class:`.Hist2d` from a 2D image.
 
         This method converts a 2D array of pixel intensities into a histogram-like
         representation, where each pixel corresponds to a bin and the provided

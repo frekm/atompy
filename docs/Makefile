@@ -6,7 +6,7 @@ SPHINXBUILD  ?= uv run sphinx-build
 SOURCEDIR    = source
 BUILDDIR     = build
 
-AUTOGENDIR   = $(SOURCEDIR)/api_reference/_autogen
+AUTOGENDIR   = 
 
 # ------------------------------------------------------------
 # Default target
@@ -20,7 +20,12 @@ help:
 # Clean
 # ------------------------------------------------------------
 clean:
-	@rm -rf "$(AUTOGENDIR)"
+	@rm -rf "$(SOURCEDIR)/api_reference/_autogen"
+	@rm -rf "$(SOURCEDIR)/api_reference/base/_autogen"
+	@rm -rf "$(SOURCEDIR)/api_reference/physics/_autogen"
+	@rm -rf "$(SOURCEDIR)/api_reference/physics/base/_autogen"
+	@rm -rf "$(SOURCEDIR)/api_reference/physics/compton_scattering/_autogen"
+	@rm -rf "$(SOURCEDIR)/api_reference/physics/coltrims/_autogen"
 	@echo "Delete _autogen output"
 	@$(SPHINXBUILD) -M clean "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 

@@ -394,8 +394,9 @@ class Hist1d:
             return NotImplemented
         raise_unmatching_edges(self.edges, other.edges)
 
-        labels = self._dict_with_new_title(f"{self.title} + {other.title}")
-        return type(self)(self.values + other.values, self.edges.copy(), **labels)
+        return type(self)(
+            self.values + other.values, self.edges.copy(), **self.labels_dict
+        )
 
     def __iadd__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
@@ -408,8 +409,9 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         raise_unmatching_edges(self.edges, other.edges)
-        labels = self._dict_with_new_title(f"{self.title} $-$ {other.title}")
-        return type(self)(self.values - other.values, self.edges.copy(), **labels)
+        return type(self)(
+            self.values - other.values, self.edges.copy(), **self.labels_dict
+        )
 
     def __isub__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
@@ -422,8 +424,9 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         raise_unmatching_edges(self.edges, other.edges)
-        labels = self._dict_with_new_title(rf"{self.title} $\times$ {other.title}")
-        return type(self)(self.values * other.values, self.edges.copy(), **labels)
+        return type(self)(
+            self.values * other.values, self.edges.copy(), **self.labels_dict
+        )
 
     def __imul__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
@@ -436,8 +439,9 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         raise_unmatching_edges(self.edges, other.edges)
-        labels = self._dict_with_new_title(f"{self.title} / {other.title}")
-        return type(self)(self.values / other.values, self.edges.copy(), **labels)
+        return type(self)(
+            self.values / other.values, self.edges.copy(), **self.labels_dict
+        )
 
     def __itruediv__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
@@ -450,10 +454,9 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         raise_unmatching_edges(self.edges, other.edges)
-        labels = self._dict_with_new_title(
-            rf"$\lfloor${self.title} / {other.title}$\rfloor$"
+        return type(self)(
+            self.values // other.values, self.edges.copy(), **self.labels_dict
         )
-        return type(self)(self.values // other.values, self.edges.copy(), **labels)
 
     def __ifloordiv__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
@@ -463,8 +466,7 @@ class Hist1d:
         return self
 
     def __neg__(self) -> Self:
-        labels = self._dict_with_new_title(f"$-$ {self.title}")
-        return type(self)(-self.values, self.edges, **labels)
+        return type(self)(-self.values, self.edges, **self.labels_dict)
 
     def __iter__(self) -> Iterator[NDArray[Any]]:
         return iter([self.values, self.centers])
@@ -657,8 +659,7 @@ class Hist1d:
         """
         new_values = np.divide(self.values, self.integrate()).copy()
         new_edges = self.edges.copy()
-        labels = self._dict_with_new_title(f"{self.title} / integral")
-        return type(self)(new_values, new_edges, **labels)
+        return type(self)(new_values, new_edges, **self.labels_dict)
 
     def norm_to_max(self) -> Self:
         """
@@ -676,13 +677,7 @@ class Hist1d:
         """
         new_values = np.divide(self.values, self.values.max()).copy()
         new_edges = self.edges.copy()
-        labels = self._dict_with_new_title(f"{self.title} / max")
-        return type(self)(new_values, new_edges, **labels)
-
-    def _dict_with_new_title(self, new_title: str) -> Hist1dLabelsDict:
-        labels_dict = self.labels_dict
-        labels_dict["title"] = new_title
-        return labels_dict
+        return type(self)(new_values, new_edges, **self.labels_dict)
 
     def norm_to_sum(self) -> Self:
         """
@@ -705,8 +700,7 @@ class Hist1d:
         """
         new_values = np.divide(self.values, self.sum()).copy()
         new_edges = self.edges.copy()
-        labels = self._dict_with_new_title(f"{self.title} / sum")
-        return type(self)(new_values, new_edges, **labels)
+        return type(self)(new_values, new_edges, **self.labels_dict)
 
     def for_step(
         self, extent_to: None | float = None
@@ -1294,10 +1288,7 @@ class Hist1d:
         raise_unmatching_edges(self.edges, other.edges, "x")
         new_edges = self.edges.copy()
         new_values = (self.values - other.values) / (self.values + other.values)
-        labels = self._dict_with_new_title(
-            f"({self.title} $-$ {other.title}) / ({self.title} + {other.title})",
-        )
-        return type(self)(new_values, new_edges, **labels)
+        return type(self)(new_values, new_edges, **self.labels_dict)
 
     def pad_with(self, value: float) -> Self:
         """

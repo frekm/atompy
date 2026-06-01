@@ -1,7 +1,7 @@
 import copy
 import warnings
 from os import PathLike
-from typing import Any, Literal, Self
+from typing import Any, Literal, Self, TypedDict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -24,6 +24,13 @@ from ._utils import (
     for_pcolormesh_from_txt,
     get_all_dividers,
 )
+
+
+class _LabelsDict(TypedDict, total=True):
+    title: str
+    xlabel: str
+    ylabel: str
+    zlabel: str
 
 
 class Hist2d:
@@ -103,6 +110,8 @@ class Hist2d:
     ylabel : str
 
     zlabel : str
+
+    labels_dict : dict
     """
 
     def __init__(
@@ -545,6 +554,17 @@ class Hist2d:
     def zlabel(self, value: str) -> None:
         self._zlabel = value
 
+    @property
+    def labels_dict(self) -> _LabelsDict:
+        """Dictionary of the title and labels."""
+        d: _LabelsDict = {
+            "title": copy.copy(self.title),
+            "xlabel": copy.copy(self.xlabel),
+            "ylabel": copy.copy(self.ylabel),
+            "zlabel": copy.copy(self.zlabel),
+        }
+        return d
+
     def __add__(self, other: "Hist2d") -> Self:
         if not isinstance(other, Hist2d):
             return NotImplemented
@@ -554,17 +574,13 @@ class Hist2d:
             self.values + other.values,
             self.xedges.copy(),
             self.yedges.copy(),
-            f"{self.title} + {other.title}",
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            **self.labels_dict,
         )
 
     def __iadd__(self, other: "Hist2d") -> Self:
         if not isinstance(other, Hist2d):
             return NotImplemented
         self.values += other.values
-        self.title = f"{self.title} + {other.title}"
         return self
 
     def __sub__(self, other: "Hist2d") -> Self:
@@ -576,17 +592,13 @@ class Hist2d:
             self.values - other.values,
             self.xedges.copy(),
             self.yedges.copy(),
-            f"{self.title} $-$ {other.title}",
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            **self.labels_dict,
         )
 
     def __isub__(self, other: "Hist2d") -> Self:
         if not isinstance(other, Hist2d):
             return NotImplemented
         self.values -= other.values
-        self.title = f"{self.title} $-$ {other.title}"
         return self
 
     def __mul__(self, other: "Hist2d") -> Self:
@@ -598,17 +610,13 @@ class Hist2d:
             self.values * other.values,
             self.xedges.copy(),
             self.yedges.copy(),
-            rf"{self.title} $\times$ {other.title}",
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            **self.labels_dict,
         )
 
     def __imul__(self, other: "Hist2d") -> Self:
         if not isinstance(other, Hist2d):
             return NotImplemented
         self.values *= other.values
-        self.title = rf"{self.title} $\times$ {other.title}"
         return self
 
     def __truediv__(self, other: "Hist2d") -> Self:
@@ -620,17 +628,13 @@ class Hist2d:
             self.values / other.values,
             self.xedges.copy(),
             self.yedges.copy(),
-            rf"{self.title} / {other.title}",
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            **self.labels_dict,
         )
 
     def __itruediv__(self, other: "Hist2d") -> Self:
         if not isinstance(other, Hist2d):
             return NotImplemented
         self.values /= other.values
-        self.title = rf"{self.title} / {other.title}"
         return self
 
     def __floordiv__(self, other: "Hist2d") -> Self:
@@ -642,29 +646,17 @@ class Hist2d:
             self.values // other.values,
             self.xedges.copy(),
             self.yedges.copy(),
-            rf"$\lfloor${self.title} / {other.title}$\rfloor$",
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            **self.labels_dict,
         )
 
     def __ifloordiv__(self, other: "Hist2d") -> Self:
         if not isinstance(other, Hist2d):
             return NotImplemented
         self.values //= other.values
-        self.title = rf"$\lfloor${self.title} / {other.title}$\rfloor$"
         return self
 
     def __neg__(self) -> Self:
-        return type(self)(
-            -self.values,
-            self.xedges,
-            self.yedges,
-            self.title,
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
-        )
+        return type(self)(-self.values, self.xedges, self.yedges, **self.labels_dict)
 
     def __pos__(self) -> Self:
         return self
@@ -717,15 +709,7 @@ class Hist2d:
         new_xedges = self.xedges.copy()
         new_yedges = self.yedges.copy()
         new_values = (self.values - other.values) / (self.values + other.values)
-        return type(self)(
-            new_values,
-            new_xedges,
-            new_yedges,
-            self.title,
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
-        )
+        return type(self)(new_values, new_xedges, new_yedges, **self.labels_dict)
 
     def rebin_x(self, fac: int) -> Self:
         """
@@ -771,13 +755,7 @@ class Hist2d:
         for i in range(new_xedges.size):
             new_xedges[i] = self.xedges[i * fac]
         return type(self)(
-            new_values,
-            new_xedges,
-            self.yedges.copy(),
-            self.title,
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            new_values, new_xedges, self.yedges.copy(), **self.labels_dict
         )
 
     def rebin_y(self, fac: int) -> Self:
@@ -1667,10 +1645,7 @@ class Hist2d:
             self.values / integrals,
             self.xedges.copy(),
             self.yedges.copy(),
-            self.title,
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            **self.labels_dict,
         )
 
     def norm_row_to_max(self) -> Self:
@@ -1692,10 +1667,7 @@ class Hist2d:
             self.values / self.values.max(axis=0, keepdims=True),
             self.xedges.copy(),
             self.yedges.copy(),
-            self.title,
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            **self.labels_dict,
         )
 
     def save_to_file(self, fname: str, **savetxt_kwargs) -> None:
@@ -1901,8 +1873,5 @@ class Hist2d:
             self.values.copy(),
             self.xedges.copy(),
             self.yedges.copy(),
-            copy.copy(self.title),
-            copy.copy(self.xlabel),
-            copy.copy(self.ylabel),
-            copy.copy(self.zlabel),
+            **self.labels_dict,
         )

@@ -1,4 +1,6 @@
 # v5.7.3
+- Remove histogram titles automatically updating when adding histograms,
+  renormalizing, etc.
 - Minor fixes
 
 # v5.7.2

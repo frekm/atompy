@@ -10,3 +10,4 @@ Tutorials
     hist_plot
     rand_distr
     two_slope_norm
+    convolute

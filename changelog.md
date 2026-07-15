@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.7.4
+- Refactor `atompy.gauss`
+
 ## v5.7.3
 
 - Remove histogram titles automatically updating when adding histograms, renormalizing,

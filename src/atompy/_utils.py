@@ -455,11 +455,7 @@ def gauss(
         normfac = 1.0 / sigma / np.sqrt(2 * np.pi)
         return exp * normfac
     elif scale == "integral":
-        dx = np.diff(x)
-        if not np.all(np.isclose(dx, dx[0], atol=0.0)):
-            # TODO calculate integral smarter
-            raise ValueError("x must be equally spaced to calculate the integral")
-        integral = np.sum(exp) * dx[0]
+        integral = np.trapezoid(exp, x)
         return exp / integral
     elif scale == "sum":
         return exp / np.sum(exp)

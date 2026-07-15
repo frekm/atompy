@@ -1,6 +1,6 @@
 [project]
 name = "atompy"
-version = "5.7.4-dev"
+version = "5.7.4"
 authors = [{ name = "Max Kircher", email = "kircher@atom.uni-frankfurt.de" }]
 description = """
     Utility methods for data analysis.

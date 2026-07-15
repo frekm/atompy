@@ -53,5 +53,3 @@ fig, axs = plt.subplots(2, 3)
 
 for histo, ax in zip(histos, axs.flat):
     histo.plot(ax)
-
-plt.show()

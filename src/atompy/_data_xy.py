@@ -1,6 +1,7 @@
 import copy
+from collections.abc import Callable, Iterator
 from os import PathLike
-from typing import Any, Callable, Iterator, Literal, Self, TypedDict
+from typing import Any, Literal, Self, TypedDict
 
 import matplotlib.pyplot as plt
 import numpy as np

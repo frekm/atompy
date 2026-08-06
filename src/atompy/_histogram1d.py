@@ -1,6 +1,7 @@
 import warnings
+from collections.abc import Iterator
 from os import PathLike
-from typing import Any, Iterator, Literal, Self, TypedDict
+from typing import Any, Literal, Self, TypedDict
 
 import matplotlib.pyplot as plt
 import numpy as np

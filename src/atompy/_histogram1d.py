@@ -677,7 +677,7 @@ class Hist1d:
         norm_to_integral
         norm_to_sum
         """
-        new_values = np.divide(self.values, self.values.max()).copy()
+        new_values = np.divide(self.values, np.amax(self.values)).copy()
         new_edges = self.edges.copy()
         return type(self)(new_values, new_edges, **self.labels_dict)
 

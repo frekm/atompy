@@ -352,25 +352,25 @@ class DataXY:
         """
         Get the minimum x-value.
         """
-        return float(self.x.min())
+        return float(np.amin(self.x))
 
     def xmax(self) -> float:
         """
         Get the maximum x-value.
         """
-        return float(self.x.max())
+        return float(np.amax(self.x))
 
     def ymin(self) -> float:
         """
         Get the minimum y-value.
         """
-        return float(self.y.min())
+        return float(np.amin(self.y))
 
     def ymax(self) -> float:
         """
         Get the maximum y-value.
         """
-        return float(self.y.max())
+        return float(np.amax(self.y))
 
     def xlims(self) -> tuple[float, float]:
         """
@@ -580,7 +580,7 @@ class DataXY:
         xlim: tuple[None | float, None | float] | None = None,
         ylim: tuple[None | float, None | float] | None = None,
         plot_fmt: str | None = None,
-        savefig_kwargs: dict[str, Any] = {},
+        savefig_kwargs: dict[str, Any] | None = None,
         **plot_kwargs,
     ) -> tuple[Figure, Axes]:
         """
@@ -653,6 +653,8 @@ class DataXY:
             :include-source:
 
         """
+        if savefig_kwargs is None:
+            savefig_kwargs = {}
         _plot_kwargs = self.plot_kwargs | plot_kwargs
         if ax is None:
             fig, ax = plt.subplots(1, 1)

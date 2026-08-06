@@ -26,16 +26,10 @@ class DataXY:
     Parameters
     ----------
     x : array_like
-        The histogram values, e.g., counts.
+        The x values.
 
     y : array_like
-        The edges of the histogram bins. Note that
-        ``len(values) = len(edges) + 1``
-
-        .. note::
-
-            If you want to initialize a :class:`.Hist1d` from centers instead of edges,
-            use :meth:`.Hist1d.from_centers`.
+        The y values
 
     title : str, default ""
         Optional title of the data.

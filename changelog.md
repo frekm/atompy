@@ -1,7 +1,8 @@
 # Changelog
 
-## v5.8.0-dev
+## v5.8.0
 - Add `Hist1d.xy`
+- Documentation fixes
 
 ## v5.7.4
 - Refactor `atompy.gauss`

@@ -16,6 +16,7 @@ from ._core import (
     raise_unmatching_edges,
 )
 from ._utils import centers_to_edges, get_all_dividers
+from ._data_xy import DataXY
 
 
 class Hist1dLabelsDict(TypedDict, total=True):
@@ -1323,3 +1324,30 @@ class Hist1d:
         new_values[1:-1] = self.values
         new_values[-1] = value
         return type(self)(new_values, new_edges, **self.labels_dict)
+
+    def xy(self) -> DataXY:
+        """
+        Return histogram as :class:`.DataXY`.
+
+        Returns
+        -------
+        :class:`.DataXY`
+            A :class:`!.DataXY` object, where :attr:`~.DataXY.x` corresponds
+            to :attr:`~.Hist1d.centers` and :attr:`~.DataXY.y`
+            to :attr:`~Hist1d.values`.
+
+        Examples
+        --------
+        >>> import atompy as ap
+        >>> hist = ap.Hist1d((10, 11, 12), (0, 1, 2, 3))
+        >>> xy = hist.xy()
+        >>> hist.centers
+        array([0.5, 1.5, 2.5])
+        >>> xy.x
+        array([0.5, 1.5, 2.5])
+        >>> hist.values
+        array([10., 11., 12.])
+        >>> xy.y
+        array([10., 11., 12.])
+        """
+        return DataXY(self.centers, self.values, **self.labels_dict)

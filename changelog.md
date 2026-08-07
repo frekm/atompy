@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.8.1
+- Minor documentation fixes
+
 ## v5.8.0
 - Add `Hist1d.xy`
 - Documentation fixes

@@ -49,7 +49,7 @@ Sample arbitrary distribution
 
 .. note::
     
-    This method is provided by AplePy, see 
+    This method is provided by atompy, see 
     :func:`.sample_distribution`.
 
 .. literalinclude:: _code/rand_distr_arb_distr.py
@@ -65,7 +65,7 @@ Sample arbitrary analytic function
 
 .. note::
     
-    This method is provided by AplePy, see 
+    This method is provided by atompy, see 
     :func:`.sample_distribution_func`.
 
 What if we combine the first examples (sampling a parabola, i.e., an analytic
@@ -85,7 +85,7 @@ Sample discrete arbitrary distribution
 
 .. note::
     
-    This method is provided by AplePy, see 
+    This method is provided by atompy, see 
     :func:`.sample_distribution_discrete`.
 
 Sometimes it is not necessary to get a continuous distribution of values.

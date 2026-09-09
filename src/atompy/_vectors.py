@@ -1,5 +1,6 @@
 import collections
-from typing import Self, Sequence, TypeVar, Union, overload
+from collections.abc import Sequence
+from typing import Self, TypeVar, Union, overload
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray

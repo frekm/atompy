@@ -174,8 +174,6 @@ class Atom(Particle):
     name : str
     """
 
-    pass
-
 
 class ParticleList(UserList[Atom]):
     def momenta(self) -> vec.VectorArray:
@@ -248,13 +246,9 @@ class ParticleList(UserList[Atom]):
 class ElectronList(ParticleList):
     """Wrapper for Python lists only containing :class:`.Electron`"""
 
-    pass
-
 
 class AtomList(ParticleList):
     """Wrapper for Python lists only containing :class:`.Atom`"""
-
-    pass
 
 
 AtomListLike = Union[tuple[Atom, ...], list[Atom], AtomList]

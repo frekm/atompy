@@ -1,6 +1,7 @@
 import time
+from collections.abc import Callable
 from os import PathLike
-from typing import Any, Callable, Literal
+from typing import Any, Literal
 
 import matplotlib
 import matplotlib.colors as mcolors

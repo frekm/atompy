@@ -1,5 +1,5 @@
 import time
-from typing import Union, overload
+from typing import overload
 
 import numpy as np
 import numpy.typing as npt
@@ -10,16 +10,16 @@ from .._vectors import Vector, VectorArray
 
 @overload
 def subtract_binding_energy(
-    p_in: Vector, Ebind: Union[float, npt.NDArray[np.float64]]
+    p_in: Vector, Ebind: float | npt.NDArray[np.float64]
 ) -> Vector: ...
 @overload
 def subtract_binding_energy(
-    p_in: VectorArray, Ebind: Union[float, npt.NDArray[np.float64]]
+    p_in: VectorArray, Ebind: float | npt.NDArray[np.float64]
 ) -> VectorArray: ...
 
 
 def subtract_binding_energy(
-    p_in: Vector | VectorArray, Ebind: Union[float, npt.NDArray[np.float64]]
+    p_in: Vector | VectorArray, Ebind: float | npt.NDArray[np.float64]
 ) -> Vector | VectorArray:
     """Substracts binding energy from p, conserves direction of p
 

@@ -9,7 +9,7 @@ from ..._vectors import VectorArray
 
 def thomson_cross_section(
     thetas: npt.ArrayLike, normalize_to_max: bool = False
-) -> Union[float, npt.NDArray[np.float64]]:
+) -> float | npt.NDArray[np.float64]:
     r"""Calculate the differential thomson cross section.
 
     Parameters
@@ -106,7 +106,7 @@ def scattering_angle_distr(N: int, k1_mag_au: float) -> npt.NDArray[np.float64]:
     succesful_throws = 0
     rtn = np.zeros(N)
     t0 = time.time()
-    line0 = "Dice-throwing %d Compton photon scattering angles... " % (N)
+    line0 = f"Dice-throwing {N} Compton photon scattering angles... "
     rng = np.random.default_rng()
     while succesful_throws < N:
         line = "\r" + line0 + "%.0lf percent done." % (100.0 * succesful_throws / N)
@@ -133,7 +133,7 @@ def scattering_angle_distr(N: int, k1_mag_au: float) -> npt.NDArray[np.float64]:
 def mom_final_distr_photon_var(
     k1_mags_au: npt.NDArray[np.float64],
     theta_min: float = 0.0,
-    rng_seed: Optional[float] = None,
+    rng_seed: float | None = None,
 ) -> VectorArray:
     """
     Scatter photons randomly with Klein Nishina cross section.
@@ -240,7 +240,7 @@ def mom_final_distr_photon(
     max = klein_nishina_cross_section(phot_ener_in, 1)
 
     t0 = time.time()
-    line0 = "Dice-throwing %d Compton photon momenta... " % (N)
+    line0 = f"Dice-throwing {N} Compton photon momenta... "
     while succesful_throws < N:
         line = "\r" + line0 + "%.0lf percent done." % (100.0 * succesful_throws / N)
         print(line, end="")
@@ -296,8 +296,8 @@ def mom_transfer_approx(
 
 def mom_transfer_approx(
     kin_au: float,
-    scattering_angles_rad: Union[float, npt.NDArray[np.float64]],
-) -> Union[float, npt.NDArray[np.float64]]:
+    scattering_angles_rad: float | npt.NDArray[np.float64],
+) -> float | npt.NDArray[np.float64]:
     r"""
     Calculate momentum transfer assuming in- and outgoing photon momenta
     are identical.

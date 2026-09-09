@@ -15,8 +15,8 @@ from ._core import (
     get_topmost_figure,
     raise_unmatching_edges,
 )
-from ._utils import centers_to_edges, get_all_dividers
 from ._data_xy import DataXY
+from ._utils import centers_to_edges, get_all_dividers
 
 
 class Hist1dLabelsDict(TypedDict, total=True):

@@ -1,4 +1,4 @@
-from typing import Optional, Sequence
+from collections.abc import Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,10 +10,10 @@ from numpy.typing import ArrayLike
 def ion_tof_linear_fit(
     tof_vs_m_over_q_pairs: ArrayLike,
     show_plot: bool = True,
-    names: Optional[Sequence[str]] = None,
+    names: Sequence[str] | None = None,
     tof_unit: str = "ns",
     m_over_q_unit: str = "amu/a.u.",
-    savefig_filename: Optional[str] = None,
+    savefig_filename: str | None = None,
 ) -> tuple[float, float, float, float]:
     """
     Perform a linear fit of TOF vs m/Q pairs

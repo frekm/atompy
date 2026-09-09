@@ -1,6 +1,6 @@
-import matplotlib.patheffects as patheffects
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import patheffects
 
 import atompy as ap
 

@@ -1,7 +1,7 @@
 import time
 from collections.abc import Callable
 from os import PathLike
-from typing import Any, Literal
+from typing import Any, Literal, TypeVar
 
 import matplotlib
 import matplotlib.colors as mcolors
@@ -9,6 +9,8 @@ import numpy as np
 import uproot
 from numpy.random import Generator
 from numpy.typing import ArrayLike, NDArray
+
+NUMBER_T = TypeVar("NUMBER_T", bound=np.number)
 
 cm_atom = mcolors.LinearSegmentedColormap.from_list(
     "atom",
@@ -437,6 +439,94 @@ def detect_iteration_order(
     else:
         raise ValueError("could not detect any iteration order")
     return result
+
+
+def columns_to_meshgrid(
+    x: NDArray[NUMBER_T],
+    y: NDArray[NUMBER_T],
+    z: NDArray[NUMBER_T],
+) -> tuple[NDArray[NUMBER_T], NDArray[NUMBER_T], NDArray[NUMBER_T]]:
+    """
+    Reinterpret column data as a mesh grid.
+
+    Input should be formatted in colunms.
+
+    ::
+
+        x0 y0 z00
+        x0 y1 z01
+        ...
+        x0 yM z0M
+        x1 y0 z10
+        ...
+        xN yM zNM
+
+    Output will be three arrays
+
+    ::
+
+        [x0,  x1,  ..., xN]
+
+        [y0,  y1,  ..., yM]
+
+        [[z00, z01, ..., z0N],
+         ...
+         [zN0, xN1, ..., xNM]],
+
+    Parameters
+    ----------
+    x, y : ndarray
+        x and y data.
+
+    z : ndarray
+        Corresponding z data.
+
+    Returns
+    -------
+    unique_x : ndarray, shape(N,)
+        All unique x values of the original input.
+
+    unique_x : ndarray, shape(M,)
+        All unique x values of the original input.
+
+    z_meshgrid : ndarray, shape(N, M)
+        `z_meshgrid[n, m]` corresponds to `unique_x[n], unique_y[m]`
+
+    Examples
+    --------
+
+    ::
+
+        >>> import numpy as np
+        >>> import atompy as ap
+        >>> x = np.array((1, 1, 1, 2, 2, 2))
+        >>> y = np.array((1, 2, 3, 1, 2, 3))
+        >>> z = np.array((11, 12, 13, 21, 22, 23))
+        >>> x_, y_, z_ = ap.columns_to_meshgrid(x, y, z)
+        >>> x_
+        array([1, 2])
+        >>> y_
+        array([1, 2, 3])
+        >>> z_
+        array([[11, 12, 13],
+               [21, 22, 23]])
+
+    .. plot:: _examples/columns_to_meshgrid.py
+        :include-source:
+    """
+    iteration_order = detect_iteration_order(x, y)
+
+    result_x = np.unique(x)
+    result_y = np.unique(y)
+
+    n = result_x.size if iteration_order == "x_first" else result_y.size
+    m = result_y.size if iteration_order == "x_first" else result_x.size
+
+    result_z = np.reshape(z, (m, n))
+    if iteration_order == "x_first":
+        result_z = result_z.T
+
+    return result_x, result_y, result_z
 
 
 def gauss(

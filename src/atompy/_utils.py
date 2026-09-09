@@ -399,6 +399,46 @@ def edges_to_centers(edges: ArrayLike) -> NDArray[np.float64]:
     return edges[:-1] + 0.5 * np.diff(edges)
 
 
+def detect_iteration_order(
+    x: NDArray[np.number], y: NDArray[np.number]
+) -> Literal["x_first", "y_first"]:
+    """
+    Detect if in two arrays x,y, x or y is iterated through first.
+
+    Parameters
+    ----------
+    x, y : ndarray
+
+    Returns
+    -------
+    "x_first" or "y_first"
+
+    Raises
+    ------
+    ValueError
+        If iteration order is not detectable from the first two entries
+        in x,y, a ValueError is raised.
+
+    Examples
+    --------
+    ::
+
+        >>> x = np.array((0, 0, 0, 1, 1, 1))
+        >>> y = np.array((0, 1, 2, 0, 1, 2))
+        >>> ap.detect_iteration_order(x, y)
+        "y_first"
+        >>> ap.detect_iteration_order(y, x)
+        "x_first"
+    """
+    if np.isclose(x[0], x[1]) and not np.isclose(y[0], y[1]):
+        result = "y_first"
+    elif not np.isclose(x[0], x[1]) and np.isclose(y[0], y[1]):
+        result = "x_first"
+    else:
+        raise ValueError("could not detect any iteration order")
+    return result
+
+
 def gauss(
     x: ArrayLike,
     scale: ArrayLike | Literal["pdf", "integral", "sum", "max"] = "pdf",

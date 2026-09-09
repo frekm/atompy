@@ -59,3 +59,4 @@ Miscellaenous
     sample_distribution_discrete
     gauss
     crop
+    detect_iteration_order

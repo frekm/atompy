@@ -1,6 +1,7 @@
 # Changelog
 
-## v5.8.1
+## v5.9.0
+- Add `detect_iteration_order`
 - Minor documentation fixes
 
 ## v5.8.0

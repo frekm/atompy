@@ -5,6 +5,7 @@ import matplotlib.pyplot as _plt
 from . import physics
 from ._coordinate_system import CoordinateSystem, CoordinateSystemArray
 from ._data_xy import DataXY
+from ._data_xyz import DataXYZ
 from ._histogram1d import Hist1d
 from ._histogram2d import Hist2d
 from ._utils import (
@@ -39,6 +40,7 @@ __all__ = [
     "CoordinateSystem",
     "CoordinateSystemArray",
     "DataXY",
+    "DataXYZ",
     "Hist1d",
     "Hist2d",
     "Vector",

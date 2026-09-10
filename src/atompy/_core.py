@@ -1,4 +1,4 @@
-from typing import Any, Literal, cast
+from typing import Any, Literal, TypeVar, cast
 
 import numpy as np
 from matplotlib.axes import Axes
@@ -6,6 +6,8 @@ from matplotlib.figure import Figure, SubFigure
 from numpy.typing import NDArray
 
 from .errors import UnmatchingEdgesError
+
+NUMBER_T = TypeVar("NUMBER_T", bound=np.number)
 
 
 def get_topmost_figure(ax: Axes) -> Figure:

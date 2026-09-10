@@ -1,7 +1,7 @@
 import time
 from collections.abc import Callable
 from os import PathLike
-from typing import Any, Literal, TypeVar
+from typing import Any, Literal
 
 import matplotlib
 import matplotlib.colors as mcolors
@@ -10,7 +10,7 @@ import uproot
 from numpy.random import Generator
 from numpy.typing import ArrayLike, NDArray
 
-NUMBER_T = TypeVar("NUMBER_T", bound=np.number)
+from ._core import NUMBER_T
 
 cm_atom = mcolors.LinearSegmentedColormap.from_list(
     "atom",

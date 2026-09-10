@@ -185,7 +185,6 @@ class DataXY:
         r"""
         Instantiate from a function.
 
-
         Parameters
         ----------
         f : Callable

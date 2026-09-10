@@ -1,6 +1,9 @@
 # Changelog
 
 ## v5.9.0
+- Minor fixes
+
+## v5.9.0
 - Add `detect_iteration_order`
 - Add `columns_to_meshgrid`
 - Minor documentation fixes

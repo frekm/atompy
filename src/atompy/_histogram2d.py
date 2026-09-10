@@ -1716,8 +1716,8 @@ class Hist2d:
         logscale: bool = False,
         xlim: tuple[float, float] | None = None,
         ylim: tuple[float, float] | None = None,
-        colorbar_kwargs: dict[str, Any] = {},
-        savefig_kwargs: dict[str, Any] = {},
+        colorbar_kwargs: dict[str, Any] | None = None,
+        savefig_kwargs: dict[str, Any] | None = None,
         use_fixed_layout: None = None,
         fixed_layout_kwargs: None = None,
         make_me_nice: None = None,
@@ -1846,7 +1846,7 @@ class Hist2d:
         pcolormesh_kwargs_.setdefault("rasterized", True)
         im = ax.pcolormesh(*self.for_pcolormesh(), **pcolormesh_kwargs_)
 
-        cbar_kwargs = colorbar_kwargs.copy()
+        cbar_kwargs = colorbar_kwargs.copy() if colorbar_kwargs else {}
         cbar_kwargs.setdefault("use_gridspec", False)
         cb = fig.colorbar(im, ax=ax, **cbar_kwargs)
         cb.set_label(zlabel if zlabel != "__auto__" else self.zlabel)
@@ -1863,6 +1863,7 @@ class Hist2d:
         ax.set_ylim(ylim)
 
         if fname is not None:
+            savefig_kwargs = savefig_kwargs if savefig_kwargs else {}
             fig.savefig(fname, **savefig_kwargs)
 
         return fig, ax, cb

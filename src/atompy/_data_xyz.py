@@ -250,7 +250,7 @@ class DataXYZ:
 
         May be used for :meth:`.DataXYZ.plot`.
         """
-        return self._ylabel
+        return self._zlabel
 
     @zlabel.setter
     def zlabel(self, val: str) -> None:
@@ -420,23 +420,36 @@ class DataXYZ:
     def copy(self) -> Self: ...
 
     def for_pcolormesh(
-        self,
+        self, shading: Literal["flat", "nearest", "gouraud"] = "nearest"
     ) -> tuple[NDArray[NUMBER_T], NDArray[NUMBER_T], NDArray[NUMBER_T]]:
         """
         Get data in the appropriate format for :func:`matplotlib.pyplot.pcolormesh`.
 
+        Parameters
+        ----------
+        shading : "flat", "nearest", or "gouraud", default "flat"
+            See documentation for the `shading` keyword of
+            :func:`~matplotlib.pyplot.pcolormesh` and examples.
+
         Returns
         -------
-        x, y, z
-            Equal to :attr:`.DataXYZ.x`, :attr:`.DataXYZ.x`,
-            :attr:`DataXYZ.z.T<.DataXYZ.z>`
+        x, y, z : ndarray, ndarray, ndarray
+            Appropriate  data layout for calling :func:`~matplotlib.pyplot.pcolormesh`
+            with the `shading=shading` keyword.
+
+        Examples
+        --------
+        .. plot:: _examples/dataxyz/for_pcolormesh.py
+            :include-source:
         """
-        x = self.x
-        y = self.y
-        x_edges = np.r_[x[0], (x[:-1] + x[1:]) / 2, x[-1]]
-        y_edges = np.r_[y[0], (y[:-1] + y[1:]) / 2, y[-1]]
-        return x_edges, y_edges, self.z.T
-        return self.xmesh, self.ymesh, self.z.T
+        if shading == "flat":
+            x = self.x
+            y = self.y
+            x_edges = np.r_[x[0], (x[:-1] + x[1:]) / 2, x[-1]]
+            y_edges = np.r_[y[0], (y[:-1] + y[1:]) / 2, y[-1]]
+            return x_edges, y_edges, self.z.T
+        elif shading == "nearest" or shading == "gouraud":
+            return self.xmesh, self.ymesh, self.z.T
 
     def plot(
         self,
@@ -452,6 +465,7 @@ class DataXYZ:
         xlim: tuple[None | float, None | float] | None = None,
         ylim: tuple[None | float, None | float] | None = None,
         zlim: tuple[None | float, None | float] | None = None,
+        shading: Literal["flat", "nearest", "gouraud"] = "flat",
         colorbar_kwargs: dict[str, Any] | None = None,
         savefig_kwargs: dict[str, Any] | None = None,
         **pcolormesh_kwargs,
@@ -523,10 +537,6 @@ class DataXYZ:
 
         Examples
         --------
-
-        .. plot:: _examples/dataxyz/plot.py
-            :include-source:
-
         .. plot:: _examples/dataxyz/plot_in_axes.py
             :include-source:
         """
@@ -538,11 +548,14 @@ class DataXYZ:
         pcolormesh_kwargs_ = pcolormesh_kwargs.copy()
         pcolormesh_kwargs_.setdefault("norm", norm)
         pcolormesh_kwargs_.setdefault("rasterized", True)
-        pcolormesh_kwargs_.setdefault("shading", "flat")
-        # im = ax.pcolormesh(*self.for_pcolormesh(), **pcolormesh_kwargs_)
-        im = ax.tricontourf(
-            self.xmesh.ravel(), self.ymesh.ravel(), self.z.ravel(), rasterized=True
-        )
+        pcolormesh_kwargs_["shading"] = shading
+        if zlim is not None:
+            if zlim[0] is not None:
+                pcolormesh_kwargs_.setdefault("vmin", zlim[0])
+            if zlim[1] is not None:
+                pcolormesh_kwargs_.setdefault("vmax", zlim[1])
+
+        im = ax.pcolormesh(*self.for_pcolormesh(shading), **pcolormesh_kwargs_)
 
         cbar_kwargs = colorbar_kwargs.copy() if colorbar_kwargs else {}
         cbar_kwargs.setdefault("use_gridspec", False)

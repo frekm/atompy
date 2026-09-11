@@ -18,5 +18,3 @@ hist = ap.Hist2d(
 )
 
 fig, ax, cb = hist.plot()
-
-plt.show()

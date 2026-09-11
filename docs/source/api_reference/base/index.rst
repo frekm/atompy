@@ -32,6 +32,7 @@ Data
     :toctree: _autogen
 
     DataXY
+    DataXYZ
 
 Histograms
 ==========

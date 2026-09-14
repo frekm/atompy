@@ -300,8 +300,8 @@ class DataXYZ:
 
         Returns
         -------
-        Hist2d
-            A new :class:`.Hist2d` instance.
+        dataxyz
+            A new :class:`.DataXYZ` instance.
 
         Examples
         --------
@@ -332,8 +332,74 @@ class DataXYZ:
             data = data.T
         i, j, k = xyz_indices
         x, y, z = data[i], data[j], data[k]
-        xm, ym, zm = columns_to_meshgrid(x, y, z)
-        return cls(xm, ym, zm, title=title, xlabel=xlabel, ylabel=ylabel, zlabel=zlabel)
+        x_, y_, zm = columns_to_meshgrid(x, y, z)
+        return cls(x_, y_, zm, title=title, xlabel=xlabel, ylabel=ylabel, zlabel=zlabel)
+
+    @classmethod
+    def from_lut(
+        cls,
+        x: ArrayLike,
+        y: ArrayLike,
+        z: ArrayLike,
+        title: str = "",
+        xlabel: str = "",
+        ylabel: str = "",
+        zlabel: str = "",
+    ) -> Self:
+        """
+        Initialize a `DataXYZ` instance from a look-up table.
+
+        Each row in the LUT must list the x-coordinate, y-coordinate and
+        corresponding z-value.
+
+        Parameters
+        ----------
+        x : array_like, shape(n*m)
+            x coordinates as *n* unique values that are repeated *m* times.
+
+        y : array_like, shape(n*m)
+            y coordinates as *m* unique values that are repeated *n* times.
+
+        z : array_like, shape(n*m)
+            Corresponding z values.
+
+        title : str, default ""
+            Optional title of the data.
+
+        xlabel : str, default ""
+            Optional x-label of the data.
+
+        ylabel : str, default ""
+            Optional y-label of the data.
+
+        zlabel : str, default ""
+            Optional z-label of the data.
+
+        Returns
+        -------
+        dataxyz
+            A new :class:`.DataXYZ` instance.
+
+        See also
+        --------
+        from_txt
+            Instead of manually loading data given in a text file and then
+            calling `from_lut`, you can use :meth:`.DataXYZ.from_txt`.
+
+        Examples
+        --------
+        >>> import atompy as ap
+        >>> d = ap.DataXYZ.from_lut((1, 1, 1, 2, 2, 2), (1, 2, 3, 1, 2, 3), (11, 12, 13, 21, 22, 23))
+        >>> d.x
+        array([1, 2])
+        >>> d.y
+        array([1, 2, 3])
+        >>> d.z
+        array([[11, 12, 13],
+               [21, 22, 23]])
+        """
+        x_, y_, zm = columns_to_meshgrid(np.asarray(x), np.asarray(y), np.asarray(z))
+        return cls(x_, y_, zm, title=title, xlabel=xlabel, ylabel=ylabel, zlabel=zlabel)
 
     def xmin(self) -> np.number:
         """

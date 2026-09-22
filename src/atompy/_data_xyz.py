@@ -20,7 +20,6 @@ class DataXYZKwargs(TypedDict, total=True):
     xlabel: str
     ylabel: str
     zlabel: str
-    plot_kwargs: dict[str, Any]
 
 
 class DataXYZ:
@@ -52,10 +51,6 @@ class DataXYZ:
     zlabel : str, default ""
         Optional z-label of the data.
 
-    **plot_kwargs
-        Other keyword parameters will be stored in :attr:`.DataXY.plot_kwargs`,
-        which is used by :meth:`.DataXY.plot`.
-
     Attributes
     ----------
     x : ndarray
@@ -78,8 +73,6 @@ class DataXYZ:
 
     zlabel : str
 
-    plot_kwargs : dict
-
     """
 
     def __init__(
@@ -91,7 +84,6 @@ class DataXYZ:
         xlabel: str = "",
         ylabel: str = "",
         zlabel: str = "",
-        **plot_kwargs,
     ) -> None:
         _x = np.ravel(x)
         _y = np.ravel(y)
@@ -108,7 +100,6 @@ class DataXYZ:
         self._xlabel = xlabel
         self._ylabel = ylabel
         self._zlabel = zlabel
-        self._plot_kwargs: dict[str, Any] = plot_kwargs
 
     @property
     def x(self) -> NDArray[NUMBER_T]:
@@ -184,24 +175,12 @@ class DataXYZ:
         return self.z
 
     @property
-    def plot_kwargs(self) -> dict[str, Any]:
-        """
-        Get keyword arguments used for :meth:`.DataXYZ.plot`.
-        """
-        return self._plot_kwargs
-
-    @plot_kwargs.setter
-    def plot_kwargs(self, new_kwargs: dict[str, Any]) -> None:
-        self._plot_kwargs = new_kwargs
-
-    @property
     def _kwargs(self) -> DataXYZKwargs:
         return {
             "title": copy.copy(self.title),
             "xlabel": copy.copy(self.xlabel),
             "ylabel": copy.copy(self.ylabel),
             "zlabel": copy.copy(self.ylabel),
-            "plot_kwargs": self.plot_kwargs.copy(),
         }
 
     @property
@@ -336,7 +315,7 @@ class DataXYZ:
         return cls(x_, y_, zm, title=title, xlabel=xlabel, ylabel=ylabel, zlabel=zlabel)
 
     @classmethod
-    def from_lut(
+    def from_table(
         cls,
         x: ArrayLike,
         y: ArrayLike,
@@ -389,7 +368,7 @@ class DataXYZ:
         Examples
         --------
         >>> import atompy as ap
-        >>> d = ap.DataXYZ.from_lut((1, 1, 1, 2, 2, 2), (1, 2, 3, 1, 2, 3), (11, 12, 13, 21, 22, 23))
+        >>> d = ap.DataXYZ.from_table((1, 1, 1, 2, 2, 2), (1, 2, 3, 1, 2, 3), (11, 12, 13, 21, 22, 23))
         >>> d.x
         array([1, 2])
         >>> d.y
@@ -459,7 +438,7 @@ class DataXYZ:
         """
         Compute integral of data.
 
-        It uses :func:`numpy.trapezoid` to perform the calculation.
+        Uses :func:`numpy.trapezoid` to perform the calculation.
 
         Returns
         -------
@@ -467,26 +446,575 @@ class DataXYZ:
         """
         return np.trapezoid(np.trapezoid(self.z, self.y, axis=1), self.x, axis=0)
 
-    def integrate_x(self) -> DataXY: ...
-    def integrate_y(self) -> DataXY: ...
+    def integrate_x(
+        self,
+        *,
+        xlabel: str = "__auto__",
+    ) -> DataXY:
+        """
+        Integrate over x-axis of data.
 
-    def norm_to_integral(self) -> Self:
-        normed_z = self.z / self.integrate()
-        return type(self)(self.x, self.y, normed_z, **self._kwargs, **self._plot_kwargs)
+        Uses :func:`numpy.trapezoid` to perform the calculation.
 
-    def norm_to_max(self) -> Self:
-        normed_z = self.z / self.zmax()
-        return type(self)(self.x, self.y, normed_z, **self._kwargs, **self._plot_kwargs)
+        Parameters
+        ----------
+        xlabel : str, default "__auto__"
+            If not "__auto__", :attr:`.DataXY.xlabel` of the returned data will
+            be set to this.
 
-    def keep_x(self, xmin: float = -np.inf, xmax: float = np.inf) -> Self: ...
-    def keep_y(self, ymin: float = -np.inf, ymax: float = np.inf) -> Self: ...
-    def remove_x(self, xmin: float = -np.inf, xmax: float = np.inf) -> Self: ...
-    def remove_y(self, ymin: float = -np.inf, ymax: float = np.inf) -> Self: ...
+            If "__auto__", :attr:`.DataXYZ.ylabel` will be used.
 
-    def copy(self) -> Self: ...
+        Returns
+        -------
+        data : :class:`.DataXY`
+            xy-data, where the new x values are the old y values of the
+            original xyz-data and the new y values are the old z values,
+            integrated over each row.
+
+        Examples
+        --------
+
+        .. plot:: _examples/dataxyz/integrate_xy.py
+            :include-source:
+        """
+        integral = np.trapezoid(self.z, self.x, axis=0)
+        xlabel = self.ylabel if xlabel == "__auto__" else ""
+        return DataXY(self.y, integral, xlabel=xlabel)
+
+    def integrate_y(
+        self,
+        *,
+        xlabel: str = "__auto__",
+    ) -> DataXY:
+        """
+        Integrate over y-axis of data.
+
+        Uses :func:`numpy.trapezoid` to perform the calculation.
+
+        Parameters
+        ----------
+        xlabel : str, default "__auto__"
+            If not "__auto__", :attr:`.DataXY.xlabel` of the returned data will
+            be set to this.
+
+            If "__auto__", :attr:`.DataXYZ.xlabel` will be used.
+
+        Returns
+        -------
+        data : :class:`.DataXY`
+            xy-data, where the new x values are the old y values of the
+            original xyz-data and the new y values are the old z values,
+            integrated over each row.
+
+        Examples
+        --------
+
+        .. plot:: _examples/dataxyz/integrate_xy.py
+            :include-source:
+        """
+        integral = np.trapezoid(self.z, self.y, axis=1)
+        xlabel = self.xlabel if xlabel == "__auto__" else ""
+        return DataXY(self.x, integral, xlabel=xlabel)
+
+    def norm_to_integral(
+        self,
+        *,
+        title: str = "__auto__",
+        xlabel: str = "__auto__",
+        ylabel: str = "__auto__",
+        zlabel: str = "",
+    ) -> Self:
+        """
+        Get a copy of the data that is normalized to the integral.
+
+        Parameters
+        ----------
+        title, xlabel, ylabel : str, default "__auto__"
+            If "__auto__", use original title/xlabel/ylabel in output.
+
+            Else, update.
+
+        zlabel : str, default ""
+            If "__auto__", use original zlabel in output.
+
+            Else, update.
+
+            zlabel is cleared by default.
+
+        Returns
+        -------
+        normalized_data : :class:`.DataXYZ`
+
+        See also
+        --------
+        integrate
+        norm_to_max
+
+        Examples
+        --------
+
+        >>> import atompy as ap
+        >>> d = ap.DataXYZ((0, 1), (0, 1), ((1, 2), (3, 4)))
+        >>> d.z
+        array([[1, 2],
+               [3, 4]])
+        >>> d.norm_to_integral().z
+        array([[0.4, 0.8],
+               [1.2, 1.6]])
+        >>> d.norm_to_integral().integrate()
+        np.float64(1.0)
+        """
+        normed_z = self.z.copy() / self.integrate()
+        kwargs = self._kwargs.copy()
+        kwargs["title"] = kwargs["title"] if title == "__auto__" else title
+        kwargs["xlabel"] = kwargs["xlabel"] if xlabel == "__auto__" else xlabel
+        kwargs["ylabel"] = kwargs["ylabel"] if ylabel == "__auto__" else ylabel
+        kwargs["zlabel"] = kwargs["zlabel"] if zlabel == "__auto__" else zlabel
+        return type(self)(self.x.copy(), self.y.copy(), normed_z, **kwargs)
+
+    def norm_to_max(
+        self,
+        *,
+        title: str = "__auto__",
+        xlabel: str = "__auto__",
+        ylabel: str = "__auto__",
+        zlabel: str = "",
+    ) -> Self:
+        """
+        Get a copy of the data that is normalized to the integral.
+
+        Parameters
+        ----------
+        title, xlabel, ylabel : str, default "__auto__"
+            If "__auto__", use original title/xlabel/ylabel in output.
+
+            Else, update.
+
+        zlabel : str, default ""
+            If "__auto__", use original zlabel in output.
+
+            Else, update.
+
+            zlabel is cleared by default.
+
+        Returns
+        -------
+        normalized_data : :class:`.DataXYZ`
+
+        See also
+        --------
+        zmax
+        norm_to_integral
+
+        Examples
+        --------
+
+        >>> import atompy as ap
+        >>> d = ap.DataXYZ((0, 1), (0, 1), ((-3, 2), (1, 2)))
+        >>> d.z
+        array([[1, 2],
+               [3, 4]])
+        >>> d.norm_to_max().z
+        array([[0.25, 0.5 ],
+               [0.75, 1.  ]])
+        >>> d.norm_to_max().zmax()
+        np.float64(1.0)
+        """
+        normed_z = self.z.copy() / self.zmax()
+        kwargs = self._kwargs.copy()
+        kwargs["title"] = kwargs["title"] if title == "__auto__" else title
+        kwargs["xlabel"] = kwargs["xlabel"] if xlabel == "__auto__" else xlabel
+        kwargs["ylabel"] = kwargs["ylabel"] if ylabel == "__auto__" else ylabel
+        kwargs["zlabel"] = kwargs["zlabel"] if zlabel == "__auto__" else zlabel
+        return type(self)(self.x.copy(), self.y.copy(), normed_z, **kwargs)
+
+    def get_closest(self, x: float, y: float) -> np.number:
+        """
+        Get closest z(x, y).
+
+        Parameters
+        ----------
+        x, y : float
+
+        Returns
+        -------
+        z_value : float
+
+        Examples
+        --------
+        >>> import atompy as ap
+        >>> d = ap.DataXYZ((1, 2), (1, 2, 3), ((11, 12, 13), (21, 22, 23)))
+        >>> d.z
+        array([[11, 12, 13],
+               [21, 22, 23]])
+        >>> d.z[0, 1]
+        np.int64(12)
+        >>> d.get_closest(1, 2)
+        np.int64(12)
+        >>> d.get_closest(1.1, 2.5)
+        np.int64(12)
+        >>> d.get_closest(1.1, 2.6)
+        np.int64(13)
+        >>> d.get_closest(-1, -1)
+        Traceback (most recent call last):
+        ...
+        ValueError: x=-1 outside of data range=(np.int64(1), np.int64(2))
+        """
+        if x < self.xmin() or x > self.xmax():
+            raise ValueError(f"{x=} outside of data range={self.xlims()}")
+        if y < self.ymin() or y > self.ymax():
+            raise ValueError(f"{y=} outside of data range={self.ylims()}")
+        ix = np.argmin(np.abs(self.x - x))
+        iy = np.argmin(np.abs(self.y - y))
+        return self.z[ix, iy]
+
+    def get_closest_x(self, x: float, *, xlabel: str = "__auto__") -> DataXY:
+        """
+        Get a slice of data y vs. z closest to `x`.
+
+        Parameters
+        ----------
+        x : float
+            x-value of the slice.
+
+        xlabel : str, default = "__auto__"
+            X-label of the :class:`.DataXY` output.
+
+            If "__auto__", use :attr:`.~DataXYZ.ylabel` of current object.
+
+        Returns
+        -------
+        data_slice : :class:`.DataXY`
+
+        Examples
+        --------
+        .. plot:: _examples/dataxyz/get_closest.py
+            :include-source:
+        """
+        if x < self.xmin() or x > self.xmax():
+            raise ValueError(f"{x=} outside of data range={self.xlims()}")
+        ix = np.argmin(np.abs(self.x - x))
+        xlabel = self.ylabel if xlabel == "__auto__" else xlabel
+        return DataXY(self.y.copy(), self.z[ix, :].copy(), xlabel=xlabel)
+
+    def get_closest_y(self, y: float, *, xlabel: str = "__auto__") -> DataXY:
+        """
+        Get a slice of data x vs. z closest to `y`.
+
+        Parameters
+        ----------
+        y : float
+            y-value of the slice.
+
+        xlabel : str, default = "__auto__"
+            X-label of the :class:`.DataXY` output.
+
+            If "__auto__", use :attr:`.~DataXYZ.xlabel` of current object.
+
+        Returns
+        -------
+        data_slice : :class:`.DataXY`
+
+        Examples
+        --------
+        .. plot:: _examples/dataxyz/get_closest.py
+            :include-source:
+        """
+        if y < self.ymin() or y > self.ymax():
+            raise ValueError(f"{y=} outside of data range={self.ylims()}")
+        iy = np.argmin(np.abs(self.y - y))
+        xlabel = self.xlabel if xlabel == "__auto__" else xlabel
+        return DataXY(self.y.copy(), self.z[:, iy].copy(), xlabel=xlabel)
+
+    def _mask(
+        self, xmin: float, xmax: float, ymin: float, ymax: float
+    ) -> NDArray[np.bool_]:
+        xmask = (self.x >= xmin) & (self.x < xmax)
+        ymask = (self.x >= ymin) & (self.x < ymax)
+        return xmask[:, None] & ymask[None, :]
+
+    def keep(
+        self,
+        xmin: float = -np.inf,
+        xmax: float = np.inf,
+        ymin: float = -np.inf,
+        ymax: float = np.inf,
+        *,
+        squeeze: bool = False,
+        setval: float = 0.0,
+    ) -> Self:
+        """
+        Only keep data within specified range [min, max).
+
+        Parameters
+        ----------
+        xmin, ymin : float, default -numpy.inf
+            The inclusive minimum value to keep.
+
+        xmax, ymax : float, default +numpy.inf
+            The exclusive maximum value to keep.
+
+        squeeze : bool, default False
+            If true, trim data range to only kept data.
+
+        setval : float, default 0.0
+            Set removed values to this.
+
+            Has no effect if `squeeze=True`.
+
+        Returns
+        -------
+        kept_data : :class:`.DataXYZ`
+
+        See also
+        --------
+        keep_x
+        keep_y
+        remove
+
+        Examples
+        --------
+        .. plot:: _examples/dataxyz/keep.py
+            :include-source:
+        """
+        mask = self._mask(xmin, xmax, ymin, ymax)
+
+        if squeeze:
+            if not np.any(mask):
+                raise ValueError("Selected region does not overlap with any data.")
+            x_indices = np.any(mask, axis=1)
+            y_indices = np.any(mask, axis=0)
+            return type(self)(
+                self.x[x_indices].copy(),
+                self.y[y_indices].copy(),
+                self.z[np.ix_(x_indices, y_indices)].copy(),
+                **self._kwargs.copy(),
+            )
+
+        new_z = np.full_like(self.z, fill_value=setval, dtype=np.float64)
+        new_z[mask] = self.z[mask].copy()
+        result = self.copy()
+        result.z = new_z
+        return result
+
+    def keep_x(
+        self,
+        xmin: float = -np.inf,
+        xmax: float = np.inf,
+        *,
+        squeeze: bool = False,
+        setval: float = 0.0,
+    ) -> Self:
+        """
+        Only keep data within specified x-range [xmin, xmax).
+
+        Parameters
+        ----------
+        xmin : float, default -numpy.inf
+            The inclusive minimum x-value to keep.
+
+        xmax : float, default +numpy.inf
+            The exclusive maximum x-value to keep.
+
+        squeeze : bool, default False
+            If true, trim data range to only kept data.
+
+        setval : float, default 0.0
+            Set removed values to this.
+
+            Has no effect if `squeeze=True`.
+
+        Returns
+        -------
+        kept_data : :class:`.DataXYZ`
+
+        See also
+        --------
+        keep
+        keep_y
+        remove
+
+        Examples
+        --------
+        .. plot:: _examples/dataxyz/keep_x.py
+            :include-source:
+        """
+        return self.keep(xmin=xmin, xmax=xmax, squeeze=squeeze, setval=setval)
+
+    def keep_y(
+        self,
+        ymin: float = -np.inf,
+        ymax: float = np.inf,
+        *,
+        squeeze: bool = False,
+        setval: float = 0.0,
+    ) -> Self:
+        """
+        Only keep data within specified y-range [ymin, ymax).
+
+        Parameters
+        ----------
+        ymin : float, default -numpy.inf
+            The inclusive minimum y-value to keep.
+
+        ymax : float, default +numpy.inf
+            The exclusive maximum y-value to keep.
+
+        squeeze : bool, default False
+            If true, trim data range to only kept data.
+
+        setval : float, default 0.0
+            Set removed values to this.
+
+            Has no effect if `squeeze=True`.
+
+        Returns
+        -------
+        kept_data : :class:`.DataXYZ`
+
+        See also
+        --------
+        keep
+        keep_x
+        remove
+
+        Examples
+        --------
+        .. plot:: _examples/dataxyz/keep_y.py
+            :include-source:
+        """
+        return self.keep(ymin=ymin, ymax=ymax, squeeze=squeeze, setval=setval)
+
+    def remove(
+        self,
+        xmin: float = -np.inf,
+        xmax: float = np.inf,
+        ymin: float = -np.inf,
+        ymax: float = np.inf,
+        *,
+        setval: float = 0.0,
+    ) -> Self:
+        """
+        Remove data within specified range [min, max).
+
+        Parameters
+        ----------
+        xmin, ymin : float, default -numpy.inf
+            The inclusive minimum value to remove.
+
+        xmax, ymax : float, default +numpy.inf
+            The exclusive maximum value to remove.
+
+        setval : float, default 0.0
+            Set removed values to this.
+
+        Returns
+        -------
+        kept_data : :class:`.DataXYZ`
+
+        See also
+        --------
+        remove_x
+        remove_y
+        keep
+
+        Examples
+        --------
+        .. plot:: _examples/dataxyz/remove.py
+            :include-source:
+        """
+        mask = self._mask(xmin, xmax, ymin, ymax)
+        new_z = self.z.copy().astype(float)
+        new_z[mask] = setval
+        result = self.copy()
+        result.z = new_z
+        return result
+
+    def remove_x(
+        self, xmin: float = -np.inf, xmax: float = np.inf, *, setval: float = 0.0
+    ) -> Self:
+        """
+        Remove data within specified x-range [xmin, xmax).
+
+        Parameters
+        ----------
+        xmin : float, default -numpy.inf
+            The inclusive minimum value to remove.
+
+        xmax : float, default +numpy.inf
+            The exclusive maximum value to remove.
+
+        setval : float, default 0.0
+            Set removed values to this.
+
+        Returns
+        -------
+        kept_data : :class:`.DataXYZ`
+
+        See also
+        --------
+        remove
+        remove_y
+        keep
+
+        Examples
+        --------
+        .. plot:: _examples/dataxyz/remove_x.py
+            :include-source:
+        """
+        return self.remove(xmin=xmin, xmax=xmax, setval=setval)
+
+    def remove_y(
+        self, ymin: float = -np.inf, ymax: float = np.inf, *, setval: float = 0.0
+    ) -> Self:
+        """
+        Remove data within specified x-range [xmin, xmax).
+
+        Parameters
+        ----------
+        ymin : float, default -numpy.inf
+            The inclusive minimum value to remove.
+
+        ymax : float, default +numpy.inf
+            The exclusive maximum value to remove.
+
+        setval : float, default 0.0
+            Set removed values to this.
+
+        Returns
+        -------
+        kept_data : :class:`.DataXYZ`
+
+        See also
+        --------
+        remove
+        remove_x
+        keep
+
+        Examples
+        --------
+        .. plot:: _examples/dataxyz/remove_y.py
+            :include-source:
+        """
+        return self.remove(ymin=ymin, ymax=ymax, setval=setval)
+
+    def copy(self) -> Self:
+        """
+        Get a copy of the :class:`!.DataXYZ` instance
+
+        Returns
+        -------
+        copied_data : :class:`!.DataXYZ`.
+        """
+        return type(self)(
+            self.x.copy(),
+            self.y.copy(),
+            self.z.copy(),
+            **self._kwargs.copy(),
+        )
 
     def for_pcolormesh(
-        self, shading: Literal["flat", "nearest", "gouraud"] = "nearest"
+        self, shading: Literal["flat", "nearest", "gouraud"] = "flat"
     ) -> tuple[NDArray[NUMBER_T], NDArray[NUMBER_T], NDArray[NUMBER_T]]:
         """
         Get data in the appropriate format for :func:`matplotlib.pyplot.pcolormesh`.
@@ -603,7 +1131,7 @@ class DataXYZ:
 
         Examples
         --------
-        .. plot:: _examples/dataxyz/plot_in_axes.py
+        .. plot:: _examples/dataxyz/plot.py
             :include-source:
         """
         if ax is None:

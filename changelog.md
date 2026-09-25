@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.10.0
+- Added `DataXYZ`
+
 ## v5.9.0
 - Minor fixes
 

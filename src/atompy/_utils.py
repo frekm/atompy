@@ -445,6 +445,8 @@ def columns_to_meshgrid(
     x: NDArray[NUMBER_T],
     y: NDArray[NUMBER_T],
     z: NDArray[NUMBER_T],
+    *,
+    ignore_duplicates: bool = False,
 ) -> tuple[NDArray[NUMBER_T], NDArray[NUMBER_T], NDArray[NUMBER_T]]:
     """
     Reinterpret column data as a mesh grid.
@@ -481,6 +483,12 @@ def columns_to_meshgrid(
     z : ndarray
         Corresponding z data.
 
+    ignore_duplicates : bool, default False
+        If False, present duplicate values (z-values with the identical x,y
+        values) will cause a ValueError to be raised.
+        If True, the last defined z-value will be used (later values
+        overwrite earlier ones).
+
     Returns
     -------
     unique_x : ndarray, shape(N,)
@@ -514,17 +522,18 @@ def columns_to_meshgrid(
     .. plot:: _examples/columns_to_meshgrid.py
         :include-source:
     """
-    iteration_order = detect_iteration_order(x, y)
+    x = np.asarray(x)
+    y = np.asarray(y)
+    z = np.asarray(z)
 
     result_x = np.unique(x)
     result_y = np.unique(y)
 
-    n = result_x.size if iteration_order == "x_first" else result_y.size
-    m = result_y.size if iteration_order == "x_first" else result_x.size
+    x_indices = np.searchsorted(result_x, x)
+    y_indices = np.searchsorted(result_y, y)
 
-    result_z = np.reshape(z, (m, n))
-    if iteration_order == "x_first":
-        result_z = result_z.T
+    result_z = np.full((len(result_y), len(result_x)), np.nan)
+    result_z[y_indices, x_indices] = z
 
     return result_x, result_y, result_z
 

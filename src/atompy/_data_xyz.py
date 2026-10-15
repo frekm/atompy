@@ -245,6 +245,8 @@ class DataXYZ:
         xlabel: str = "",
         ylabel: str = "",
         zlabel: str = "",
+        *,
+        ignore_duplicates=False,
         **loadtxt_kwargs,
     ) -> Self:
         """
@@ -273,6 +275,12 @@ class DataXYZ:
 
         zlabel : str, default ""
             Optional z-label of the data.
+
+        ignore_duplicates : bool, default False
+            If False, present duplicate values (z-values with the identical x,y
+            values) will cause a ValueError to be raised.
+            If True, the last defined z-value will be used (later values
+            overwrite earlier ones).
 
         **loadtxt_kwargs
             Additional keyword arguments to pass to :meth:`numpy.loadtxt`.
@@ -311,7 +319,7 @@ class DataXYZ:
             data = data.T
         i, j, k = xyz_indices
         x, y, z = data[i], data[j], data[k]
-        x_, y_, zm = columns_to_meshgrid(x, y, z)
+        x_, y_, zm = columns_to_meshgrid(x, y, z, ignore_duplicates=ignore_duplicates)
         return cls(x_, y_, zm, title=title, xlabel=xlabel, ylabel=ylabel, zlabel=zlabel)
 
     @classmethod

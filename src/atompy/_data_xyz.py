@@ -777,7 +777,7 @@ class DataXYZ:
         self, xmin: float, xmax: float, ymin: float, ymax: float
     ) -> NDArray[np.bool_]:
         xmask = (self.x >= xmin) & (self.x < xmax)
-        ymask = (self.x >= ymin) & (self.x < ymax)
+        ymask = (self.y >= ymin) & (self.y < ymax)
         return xmask[:, None] & ymask[None, :]
 
     def keep(

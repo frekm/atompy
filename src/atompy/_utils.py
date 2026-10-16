@@ -531,7 +531,7 @@ def columns_to_meshgrid(
     ...     (11, 12, 13, 21, 22, 23, 0),
     ...     ignore_duplicates=True
     ... )
-    (array([1, 2]), array([1, 2, 3]), array([[11., 12., 13.], [21., 22.,  0.]]))
+    (array([1, 2]), array([1, 2, 3]), array([[11, 12, 13], [21, 22,  0]]))
 
     .. plot:: _examples/columns_to_meshgrid.py
         :include-source:
@@ -570,7 +570,7 @@ def columns_to_meshgrid(
             "Missing (x, y) combinations found. Set 'ignore_missing' to True if intended."
         )
 
-    dtype = np.result_type(z.dtype, fill_value_missing)
+    dtype = np.result_type(z.dtype, fill_value_missing) if ignore_missing else z.dtype
     result_z = np.full(shape, fill_value_missing, dtype=dtype)
     result_z[x_indices, y_indices] = z
 

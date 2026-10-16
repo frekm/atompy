@@ -246,7 +246,9 @@ class DataXYZ:
         ylabel: str = "",
         zlabel: str = "",
         *,
-        ignore_duplicates=False,
+        ignore_duplicates: bool = False,
+        ignore_missing: bool = False,
+        fill_value_missing: float = np.nan,
         **loadtxt_kwargs,
     ) -> Self:
         """
@@ -277,10 +279,17 @@ class DataXYZ:
             Optional z-label of the data.
 
         ignore_duplicates : bool, default False
-            If False, present duplicate values (z-values with the identical x,y
-            values) will cause a ValueError to be raised.
-            If True, the last defined z-value will be used (later values
-            overwrite earlier ones).
+            If False, duplicate (x, y) pairs cause a ValueError.
+
+            If True, the last z-value for each duplicate pair is used.
+
+        ignore_missing : bool, default False
+            If False, missing (x, y) combinations cause a ValueError.
+
+            If True, missing combinations are filled with `fill_value_missing`.
+
+        fill_value_missing : scalar, default np.nan
+            Value used to fill missing (x, y) combinations.
 
         **loadtxt_kwargs
             Additional keyword arguments to pass to :meth:`numpy.loadtxt`.
@@ -318,9 +327,15 @@ class DataXYZ:
         if data_layout == "columns":
             data = data.T
         i, j, k = xyz_indices
-        x, y, z = data[i], data[j], data[k]
-        x_, y_, zm = columns_to_meshgrid(x, y, z, ignore_duplicates=ignore_duplicates)
-        return cls(x_, y_, zm, title=title, xlabel=xlabel, ylabel=ylabel, zlabel=zlabel)
+        x, y, zm = columns_to_meshgrid(
+            data[i],
+            data[j],
+            data[k],
+            ignore_duplicates=ignore_duplicates,
+            ignore_missing=ignore_missing,
+            fill_value_missing=fill_value_missing,
+        )
+        return cls(x, y, zm, title=title, xlabel=xlabel, ylabel=ylabel, zlabel=zlabel)
 
     @classmethod
     def from_table(
@@ -332,6 +347,10 @@ class DataXYZ:
         xlabel: str = "",
         ylabel: str = "",
         zlabel: str = "",
+        *,
+        ignore_duplicates: bool = False,
+        ignore_missing: bool = False,
+        fill_value_missing: float = np.nan,
     ) -> Self:
         """
         Initialize a `DataXYZ` instance from a look-up table.
@@ -362,6 +381,19 @@ class DataXYZ:
         zlabel : str, default ""
             Optional z-label of the data.
 
+        ignore_duplicates : bool, default False
+            If False, duplicate (x, y) pairs cause a ValueError.
+
+            If True, the last z-value for each duplicate pair is used.
+
+        ignore_missing : bool, default False
+            If False, missing (x, y) combinations cause a ValueError.
+
+            If True, missing combinations are filled with `fill_value_missing`.
+
+        fill_value_missing : scalar, default np.nan
+            Value used to fill missing (x, y) combinations.
+
         Returns
         -------
         dataxyz
@@ -385,7 +417,14 @@ class DataXYZ:
         array([[11, 12, 13],
                [21, 22, 23]])
         """
-        x_, y_, zm = columns_to_meshgrid(np.asarray(x), np.asarray(y), np.asarray(z))
+        x_, y_, zm = columns_to_meshgrid(
+            np.asarray(x),
+            np.asarray(y),
+            np.asarray(z),
+            ignore_duplicates=ignore_duplicates,
+            ignore_missing=ignore_missing,
+            fill_value_missing=fill_value_missing,
+        )
         return cls(x_, y_, zm, title=title, xlabel=xlabel, ylabel=ylabel, zlabel=zlabel)
 
     def xmin(self) -> np.number:

@@ -29,13 +29,12 @@ data_raw_table_xdecr_yincr_xfirst = np.array(
     (
         (3, 1, 31),
         (2, 1, 21),
-        (1, 1, 11),
         (3, 2, 32),
         (2, 2, 22),
         (1, 2, 12),
     )
 ).T
 
-d = ap.DataXYZ.from_table(*data_raw_table_xdecr_yincr_xfirst)
+d = ap.DataXYZ.from_table(*data_raw_table_xdecr_yincr_xfirst, ignore_missing=True)
 
 d.plot(fname="tests/dataxyz.pdf")

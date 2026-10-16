@@ -447,77 +447,91 @@ def columns_to_meshgrid(
     z: NDArray[NUMBER_T],
     *,
     ignore_duplicates: bool = False,
+    ignore_missing: bool = False,
+    fill_value_missing: float = np.nan,
 ) -> tuple[NDArray[NUMBER_T], NDArray[NUMBER_T], NDArray[NUMBER_T]]:
     """
-    Reinterpret column data as a mesh grid.
-
-    Input should be formatted in colunms.
-
-    ::
-
-        x0 y0 z00
-        x0 y1 z01
-        ...
-        x0 yM z0M
-        x1 y0 z10
-        ...
-        xN yM zNM
-
-    Output will be three arrays
-
-    ::
-
-        [x0,  x1,  ..., xN]
-
-        [y0,  y1,  ..., yM]
-
-        [[z00, z01, ..., z0N],
-         ...
-         [zN0, xN1, ..., xNM]],
+    Reinterpret data given as a look-up table as a mesh grid.
 
     Parameters
     ----------
     x, y : ndarray
-        x and y data.
+        Coordinates of the input data points.
 
     z : ndarray
-        Corresponding z data.
+        Corresponding z-values.
 
     ignore_duplicates : bool, default False
-        If False, present duplicate values (z-values with the identical x,y
-        values) will cause a ValueError to be raised.
-        If True, the last defined z-value will be used (later values
-        overwrite earlier ones).
+        If False, duplicate (x, y) pairs cause a ValueError.
+
+        If True, the last z-value for each duplicate pair is used.
+
+    ignore_missing : bool, default False
+        If False, missing (x, y) combinations cause a ValueError.
+
+        If True, missing combinations are filled with `fill_value_missing`.
+
+    fill_value_missing : scalar, default np.nan
+        Value used to fill missing (x, y) combinations.
 
     Returns
     -------
-    unique_x : ndarray, shape(N,)
-        All unique x values of the original input.
+    unique_x : ndarray, shape (N,)
+        Sorted unique x-values.
 
-    unique_x : ndarray, shape(M,)
-        All unique x values of the original input.
+    unique_y : ndarray, shape (M,)
+        Sorted unique y-values.
 
-    z_meshgrid : ndarray, shape(N, M)
-        `z_meshgrid[n, m]` corresponds to `unique_x[n], unique_y[m]`
+    z_meshgrid : ndarray, shape (N, M)
+        z_meshgrid[n, m] corresponds to unique_x[n], unique_y[m].
 
     Examples
     --------
 
-    ::
+    >>> import atompy as ap
+    >>> ap.columns_to_meshgrid(
+    ...     (1, 1, 1, 2, 2, 2),
+    ...     (1, 2, 3, 1, 2, 3),
+    ...     (11, 12, 13, 21, 22, 23)
+    ... )
+    (array([1, 2]), array([1, 2, 3]), array([[11., 12., 13.], [21., 22., 23.]]))
 
-        >>> import numpy as np
-        >>> import atompy as ap
-        >>> x = np.array((1, 1, 1, 2, 2, 2))
-        >>> y = np.array((1, 2, 3, 1, 2, 3))
-        >>> z = np.array((11, 12, 13, 21, 22, 23))
-        >>> x_, y_, z_ = ap.columns_to_meshgrid(x, y, z)
-        >>> x_
-        array([1, 2])
-        >>> y_
-        array([1, 2, 3])
-        >>> z_
-        array([[11, 12, 13],
-               [21, 22, 23]])
+    If some values are missing in the look-up table, by default, a
+    ValueError will be raised.
+
+    >>> ap.columns_to_meshgrid(
+    ...     (1, 1, 1, 2, 2),
+    ...     (1, 2, 3, 1, 2),
+    ...     (11, 12, 13, 21, 22)
+    ... )
+    Traceback (most recent call last):
+        ...
+    ValueError: Missing (x, y) combinations found. Set 'ignore_missing' to True if intended.
+    >>> ap.columns_to_meshgrid(
+    ...     (1, 1, 1, 2, 2),
+    ...     (1, 2, 3, 1, 2),
+    ...     (11, 12, 13, 21, 22),
+    ...     ignore_missing=True
+    ... )
+    (array([1, 2]), array([1, 2, 3]), array([[11., 12., 13.], [21., 22., nan]]))
+
+    If some values are duplicate, by default, a ValueError will be raised.
+
+    >>> ap.columns_to_meshgrid(
+    ...     (1, 1, 1, 2, 2, 2, 2),
+    ...     (1, 2, 3, 1, 2, 3, 3),
+    ...     (11, 12, 13, 21, 22, 23, 0)
+    ... )
+    Traceback (most recent call last):
+        ...
+    ValueError: Duplicate (x, y) pairs found. Set 'ignore_duplicates' to True if intended.
+    >>> ap.columns_to_meshgrid(
+    ...     (1, 1, 1, 2, 2, 2, 2),
+    ...     (1, 2, 3, 1, 2, 3, 3),
+    ...     (11, 12, 13, 21, 22, 23, 0),
+    ...     ignore_duplicates=True
+    ... )
+    (array([1, 2]), array([1, 2, 3]), array([[11., 12., 13.], [21., 22.,  0.]]))
 
     .. plot:: _examples/columns_to_meshgrid.py
         :include-source:
@@ -526,16 +540,41 @@ def columns_to_meshgrid(
     y = np.asarray(y)
     z = np.asarray(z)
 
-    result_x = np.unique(x)
-    result_y = np.unique(y)
+    if x.ndim != 1 or y.ndim != 1 or z.ndim != 1:
+        raise ValueError("x, y, and z must be one-dimensional arrays")
 
-    x_indices = np.searchsorted(result_x, x)
-    y_indices = np.searchsorted(result_y, y)
+    if not (x.shape == y.shape == z.shape):
+        raise ValueError("x, y, and z must have the same shape")
 
-    result_z = np.full((len(result_y), len(result_x)), np.nan)
-    result_z[y_indices, x_indices] = z
+    unique_x = np.unique(x)
+    unique_y = np.unique(y)
 
-    return result_x, result_y, result_z
+    x_indices = np.searchsorted(unique_x, x)
+    y_indices = np.searchsorted(unique_y, y)
+
+    shape = (len(unique_x), len(unique_y))
+    flat_indices = np.ravel_multi_index((x_indices, y_indices), shape)
+
+    _, counts = np.unique(flat_indices, return_counts=True)
+
+    if not ignore_duplicates and np.any(counts > 1):
+        raise ValueError(
+            "Duplicate (x, y) pairs found. Set 'ignore_duplicates' to True if intended."
+        )
+
+    n_unique_pairs = len(counts)
+    n_grid_points = len(unique_x) * len(unique_y)
+
+    if not ignore_missing and n_unique_pairs != n_grid_points:
+        raise ValueError(
+            "Missing (x, y) combinations found. Set 'ignore_missing' to True if intended."
+        )
+
+    dtype = np.result_type(z.dtype, fill_value_missing)
+    result_z = np.full(shape, fill_value_missing, dtype=dtype)
+    result_z[x_indices, y_indices] = z
+
+    return unique_x, unique_y, result_z
 
 
 def gauss(

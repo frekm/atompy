@@ -1,4 +1,5 @@
 import time
+import warnings
 from collections.abc import Callable
 from os import PathLike
 from typing import Any, Literal
@@ -10,7 +11,7 @@ import uproot
 from numpy.random import Generator
 from numpy.typing import ArrayLike, NDArray
 
-from ._core import NUMBER_T
+from ._core import NUMBER_T, deprecated_keyword_doing_nothing_msg
 
 cm_atom = mcolors.LinearSegmentedColormap.from_list(
     "atom",
@@ -67,238 +68,6 @@ def get_all_dividers(n: int) -> tuple[int, ...]:
             all_dividers.append(divider)
     all_dividers.append(n)
     return tuple(all_dividers)
-
-
-def for_pcolormesh(
-    xcenters: ArrayLike,
-    ycenters: ArrayLike,
-    z: ArrayLike,
-    *,
-    iteration_order: Literal["x_first", "y_first"] = "x_first",
-    xmin: float | None = None,
-    xmax: float | None = None,
-    ymin: float | None = None,
-    ymax: float | None = None,
-) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
-    """
-    Convert `xcenters, ycenters, z` such that they can be plotted by
-    :func:`matplotlib.pyplot.pcolormesh`.
-
-    Parameters
-    ----------
-    xcenters : array_like
-
-        A flat sequence of x-coordinates, representing the horizontal position of each
-        element in the grid.
-
-        If the bins are not all equal in size, `xmin` or `xmax` needs to be
-        specified.
-
-      ycenters : array_like
-
-        A flat sequence of y-coordinates, representing the vertical position of each
-        element in the grid.
-
-        If the bins are not all equal in size, `ymin` or `ymax` needs to be
-        specified.
-
-    z : array_like
-        A flat sequence of data values corresponding to each (xcenters, ycenters)
-        coordinate
-
-        The x, y, and z sequences must all be the same length, where each
-        z[i] corresponds to the position (xcenters[i], ycenters[i]) in a 2D grid.
-
-
-    iteration_order : {"x_first", "y_first"}, default "x_first"
-        Specify if the outer iteration is along x or y.
-
-    xmin, xmax, ymin, ymax : float, optional
-        If x (y) bins do not have constant size, at least one corresponding
-        limit has to be provided.
-
-        .. note::
-
-            This does not refer to the limits of the bin centers, but the limits of
-            the bin edges!
-
-    Returns
-    -------
-    X, Y, C : ndarray
-        Output formatted to work with :func:`~matplotlib.pyplot.pcolormesh`.
-    """
-    z_ = np.asarray(z)
-    if len(np.asarray(xcenters)) != len(np.asarray(ycenters)) != len(z_):
-        raise ValueError("xcenters, ycenters, and z must have the same length")
-
-    x_ = np.unique(xcenters)
-    y_ = np.unique(ycenters)
-
-    xedges = centers_to_edges(x_, xmin, xmax)
-    yedges = centers_to_edges(y_, ymin, ymax)
-
-    if iteration_order == "x_first":
-        z_ = z_.reshape(y_.size, x_.size)
-    elif iteration_order == "y_first":
-        z_ = z_.reshape(x_.size, y_.size).T
-    else:
-        msg = f"'{iteration_order=}', but it should be 'x_first' or 'y_first'"
-        raise ValueError(msg)
-
-    return xedges, yedges, z_
-
-
-def for_pcolormesh_from_root(
-    fname: str | PathLike,
-    hname: str,
-) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
-    """
-    Load data from a `ROOT <https://root.cern.ch/>`__ file to plot it with
-    :func:`matplotlib.pyplot.pcolormesh`.
-
-    Parameters
-    ----------
-    fname : str
-        The ROOT filename.
-
-    hname : str
-        Within the file, the path/to/the/histogram.
-
-    Returns
-    -------
-    X, Y, C : ndarray
-        Output formatted to work with :func:`matplotlib.pyplot.pcolormesh`.
-
-    See also
-    --------
-    for_pcolormesh_from_txt
-    """
-    with uproot.open(fname) as file:  # type: ignore
-        values, xedges, yedges = file[hname].to_numpy()
-    return xedges, yedges, values.T
-
-
-def for_pcolormesh_from_txt(
-    fname: str | PathLike,
-    *,
-    iteration_order: Literal["x_first", "y_first"] = "x_first",
-    data_layout: Literal["rows", "columns"] = "columns",
-    xyz_indices: tuple[int, int, int] = (0, 1, 2),
-    xmin: float | None = None,
-    xmax: float | None = None,
-    ymin: float | None = None,
-    ymax: float | None = None,
-    **loadtxt_kwargs,
-) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
-    """
-    Load 2D data from a text file such that it can be plotted
-    with :func:`matplotlib.pyplot.pcolormesh`.
-
-    The file should contain three columns (or rows, depending on `data_layout`)
-    that represent the x, y, and z values of the 2D data.
-
-    Parameters
-    ----------
-    fname : str
-        Filename.
-
-    iteration_order : "x_first" or "y_first", default "x_first"
-        Specify if the outer iteration is along x or y.
-
-    data_layout : "rows" or "columns", default "columns"
-        Specify if the data in the text file is given in rows or columns.
-
-    xyz_indices : (int, int, int), default (0, 1, 2)
-        Specify which column (or row) corresponds to what.
-
-    xmin, xmax, ymin, ymax : float, optional
-        If x (y) bins do not have constant size, at least one corresponding
-        limit has to be provided.
-
-        .. note::
-
-            This does not refer to the limits of the bin centers, but the limits of
-            the bin edges!
-
-    **loadtxt_kwargs
-        Extra keyword arguments for :func:`numpy.loadtxt`.
-
-        This can be used, e.g., to skip a certain number of lines, or to
-        change the column separator.
-
-    See also
-    --------
-    for_pcolormesh_from_root
-    """
-    data = np.loadtxt(fname, **loadtxt_kwargs)
-    if data_layout == "columns":
-        data = data.T
-    elif data_layout != "rows":
-        raise ValueError(f"{data_layout=}, but it must be 'rows' or 'columns'")
-    return for_pcolormesh(
-        data[xyz_indices[0]],
-        data[xyz_indices[1]],
-        data[xyz_indices[2]],
-        iteration_order=iteration_order,
-        xmin=xmin,
-        xmax=xmax,
-        ymin=ymin,
-        ymax=ymax,
-    )
-
-
-def convert_cosine_to_angles(
-    cos_angles: ArrayLike, y_data: ArrayLike, full_range: bool = False
-) -> tuple[NDArray[np.float64], NDArray[Any]]:
-    """
-    Convert data given as a cosine to radians.
-
-    Parameters
-    ----------
-    cos_angles : array_like
-        cosines of angles, within [-1, 1]
-
-    y_data : array_like
-        the corresponding y-data
-
-    full_range : bool
-        The range of the output data
-        - `True`: 0 .. 2*pi (pi .. 2*pi will be mirrored)
-        - `False`: 0 .. pi
-
-    Returns
-    -------
-    angles : ndarray
-
-    y_data : ndarray
-
-    See also
-    --------
-    Hist1d.convert_cosine_to_angles
-
-    Examples
-    --------
-    ::
-
-        >>> import numpy as np
-        >>> import atompy as ap
-        >>> x, y = np.linspace(-1, 1, 5), np.linspace(0, 4, 5)
-        >>> x, y
-        (array([-1. , -0.5,  0. ,  0.5,  1. ]), array([0., 1., 2., 3., 4.]))
-        >>> ap.convert_cosine_to_angles(x, y)
-        (array([0., 1.04, 1.57, 2.09, 3.14]), array([4., 3., 2., 1., 0.]))
-        >>> ap.convert_cosine_to_angles(x, y, full_range=True)
-        (array([0., 1.04, 1.57, 2.09, 3.14, 3.14, 4.18, 4.71, 5.23, 6.28]),
-         array([4., 3., 2., 1., 0., 0., 1., 2., 3., 4.]))
-    """
-    angles = np.flip(np.arccos(cos_angles))
-    y_data = np.flip(y_data)
-    if full_range:
-        angles = np.append(angles, angles + np.pi)
-        y_data = np.append(y_data, np.flip(y_data))
-    if not isinstance(y_data, np.ndarray):
-        y_data = np.array(y_data)
-    return angles, y_data
 
 
 def centers_to_edges(
@@ -575,6 +344,286 @@ def columns_to_meshgrid(
     result_z[x_indices, y_indices] = z
 
     return unique_x, unique_y, result_z
+
+
+def for_pcolormesh(
+    xcenters: ArrayLike,
+    ycenters: ArrayLike,
+    z: ArrayLike,
+    *,
+    xmin: float | None = None,
+    xmax: float | None = None,
+    ymin: float | None = None,
+    ymax: float | None = None,
+    ignore_duplicates: bool = False,
+    ignore_missing: bool = False,
+    fill_value_missing: float = np.nan,
+    iteration_order: None = None,
+) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
+    """
+    Convert `xcenters, ycenters, z` such that they can be plotted by
+    :func:`matplotlib.pyplot.pcolormesh`.
+
+    Parameters
+    ----------
+    xcenters : array_like
+
+        A flat sequence of x-coordinates, representing the horizontal position of each
+        element in the grid.
+
+        If the bins are not all equal in size, `xmin` or `xmax` needs to be
+        specified.
+
+    ycenters : array_like
+
+        A flat sequence of y-coordinates, representing the vertical position of each
+        element in the grid.
+
+        If the bins are not all equal in size, `ymin` or `ymax` needs to be
+        specified.
+
+    z : array_like
+        A flat sequence of data values corresponding to each (xcenters, ycenters)
+        coordinate
+
+        The x, y, and z sequences must all be the same length, where each
+        z[i] corresponds to the position (xcenters[i], ycenters[i]) in a 2D grid.
+
+    xmin, xmax, ymin, ymax : float, optional
+        If x (y) bins do not have constant size, at least one corresponding
+        limit has to be provided.
+
+        .. note::
+
+            This does not refer to the limits of the bin centers, but the limits of
+            the bin edges!
+
+    ignore_duplicates : bool, default False
+        If False, duplicate (x, y) pairs cause a ValueError.
+
+        If True, the last z-value for each duplicate pair is used.
+
+    ignore_missing : bool, default False
+        If False, missing (x, y) combinations cause a ValueError.
+
+        If True, missing combinations are filled with `fill_value_missing`.
+
+    fill_value_missing : scalar, default np.nan
+        Value used to fill missing (x, y) combinations.
+
+    Other parameters
+    ----------------
+    iteration_order : None
+        .. version-deprecated:: 5.10.1
+
+            Does nothing.
+
+    Returns
+    -------
+    X, Y, C : ndarray
+        Output formatted to work with :func:`~matplotlib.pyplot.pcolormesh`.
+    """
+    if iteration_order is not None:
+        warnings.warn(
+            deprecated_keyword_doing_nothing_msg("iteration_order"),
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+    x_, y_, z_ = columns_to_meshgrid(
+        np.asarray(xcenters),
+        np.asarray(ycenters),
+        np.asarray(z),
+        ignore_duplicates=ignore_duplicates,
+        ignore_missing=ignore_missing,
+        fill_value_missing=fill_value_missing,
+    )
+
+    xedges = centers_to_edges(x_, xmin, xmax)
+    yedges = centers_to_edges(y_, ymin, ymax)
+
+    return xedges, yedges, z_.T
+
+
+def for_pcolormesh_from_root(
+    fname: str | PathLike,
+    hname: str,
+) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
+    """
+    Load data from a `ROOT <https://root.cern.ch/>`__ file to plot it with
+    :func:`matplotlib.pyplot.pcolormesh`.
+
+    Parameters
+    ----------
+    fname : str
+        The ROOT filename.
+
+    hname : str
+        Within the file, the path/to/the/histogram.
+
+    Returns
+    -------
+    X, Y, C : ndarray
+        Output formatted to work with :func:`matplotlib.pyplot.pcolormesh`.
+
+    See also
+    --------
+    for_pcolormesh_from_txt
+    """
+    with uproot.open(fname) as file:  # type: ignore
+        values, xedges, yedges = file[hname].to_numpy()
+    return xedges, yedges, values.T
+
+
+def for_pcolormesh_from_txt(
+    fname: str | PathLike,
+    *,
+    data_layout: Literal["rows", "columns"] = "columns",
+    xyz_indices: tuple[int, int, int] = (0, 1, 2),
+    xmin: float | None = None,
+    xmax: float | None = None,
+    ymin: float | None = None,
+    ymax: float | None = None,
+    ignore_duplicates: bool = False,
+    ignore_missing: bool = False,
+    fill_value_missing: float = np.nan,
+    iteration_order: None = None,
+    **loadtxt_kwargs,
+) -> tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.float64]]:
+    """
+    Load 2D data from a text file such that it can be plotted
+    with :func:`matplotlib.pyplot.pcolormesh`.
+
+    The file should contain three columns (or rows, depending on `data_layout`)
+    that represent the x, y, and z values of the 2D data.
+
+    Parameters
+    ----------
+    fname : str
+        Filename.
+
+    data_layout : "rows" or "columns", default "columns"
+        Specify if the data in the text file is given in rows or columns.
+
+    xyz_indices : (int, int, int), default (0, 1, 2)
+        Specify which column (or row) corresponds to what.
+
+    xmin, xmax, ymin, ymax : float, optional
+        If x (y) bins do not have constant size, at least one corresponding
+        limit has to be provided.
+
+        .. note::
+
+            This does not refer to the limits of the bin centers, but the limits of
+            the bin edges!
+
+    ignore_duplicates : bool, default False
+        If False, duplicate (x, y) pairs cause a ValueError.
+
+        If True, the last z-value for each duplicate pair is used.
+
+    ignore_missing : bool, default False
+        If False, missing (x, y) combinations cause a ValueError.
+
+        If True, missing combinations are filled with `fill_value_missing`.
+
+    fill_value_missing : scalar, default np.nan
+        Value used to fill missing (x, y) combinations.
+
+    Other parameters
+    ----------------
+    iteration_order : None
+        .. version-deprecated:: 5.10.1
+
+            Does nothing.
+
+    **loadtxt_kwargs
+        Extra keyword arguments for :func:`numpy.loadtxt`.
+
+        This can be used, e.g., to skip a certain number of lines, or to
+        change the column separator.
+
+    See also
+    --------
+    for_pcolormesh_from_root
+    """
+    if iteration_order is not None:
+        warnings.warn(
+            deprecated_keyword_doing_nothing_msg("iteration_order"),
+            DeprecationWarning,
+            stacklevel=2,
+        )
+    data = np.loadtxt(fname, **loadtxt_kwargs)
+    if data_layout == "columns":
+        data = data.T
+    elif data_layout != "rows":
+        raise ValueError(f"{data_layout=}, but it must be 'rows' or 'columns'")
+    return for_pcolormesh(
+        data[xyz_indices[0]],
+        data[xyz_indices[1]],
+        data[xyz_indices[2]],
+        xmin=xmin,
+        xmax=xmax,
+        ymin=ymin,
+        ymax=ymax,
+        ignore_duplicates=ignore_duplicates,
+        ignore_missing=ignore_missing,
+        fill_value_missing=fill_value_missing,
+    )
+
+
+def convert_cosine_to_angles(
+    cos_angles: ArrayLike, y_data: ArrayLike, full_range: bool = False
+) -> tuple[NDArray[np.float64], NDArray[Any]]:
+    """
+    Convert data given as a cosine to radians.
+
+    Parameters
+    ----------
+    cos_angles : array_like
+        cosines of angles, within [-1, 1]
+
+    y_data : array_like
+        the corresponding y-data
+
+    full_range : bool
+        The range of the output data
+        - `True`: 0 .. 2*pi (pi .. 2*pi will be mirrored)
+        - `False`: 0 .. pi
+
+    Returns
+    -------
+    angles : ndarray
+
+    y_data : ndarray
+
+    See also
+    --------
+    Hist1d.convert_cosine_to_angles
+
+    Examples
+    --------
+    ::
+
+        >>> import numpy as np
+        >>> import atompy as ap
+        >>> x, y = np.linspace(-1, 1, 5), np.linspace(0, 4, 5)
+        >>> x, y
+        (array([-1. , -0.5,  0. ,  0.5,  1. ]), array([0., 1., 2., 3., 4.]))
+        >>> ap.convert_cosine_to_angles(x, y)
+        (array([0., 1.04, 1.57, 2.09, 3.14]), array([4., 3., 2., 1., 0.]))
+        >>> ap.convert_cosine_to_angles(x, y, full_range=True)
+        (array([0., 1.04, 1.57, 2.09, 3.14, 3.14, 4.18, 4.71, 5.23, 6.28]),
+         array([4., 3., 2., 1., 0., 0., 1., 2., 3., 4.]))
+    """
+    angles = np.flip(np.arccos(cos_angles))
+    y_data = np.flip(y_data)
+    if full_range:
+        angles = np.append(angles, angles + np.pi)
+        y_data = np.append(y_data, np.flip(y_data))
+    if not isinstance(y_data, np.ndarray):
+        y_data = np.array(y_data)
+    return angles, y_data
 
 
 def gauss(

@@ -1,4 +1,6 @@
 # Changelog
+## v5.10.1
+- Improved conversion from column x,y,z-data to meshgrids
 
 ## v5.10.0
 - Added `DataXYZ`

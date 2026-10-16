@@ -20,8 +20,8 @@ from ._core import (
 from ._histogram1d import Hist1d
 from ._utils import (
     centers_to_edges,
+    columns_to_meshgrid,
     edges_to_centers,
-    for_pcolormesh_from_txt,
     get_all_dividers,
 )
 
@@ -206,7 +206,6 @@ class Hist2d:
         cls,
         fname: str | PathLike,
         *,
-        iteration_order: Literal["x_first", "y_first"] = "x_first",
         data_layout: Literal["rows", "columns"] = "columns",
         xyz_indices: tuple[int, int, int] = (0, 1, 2),
         xmin: float | None = None,
@@ -217,6 +216,10 @@ class Hist2d:
         xlabel: str = "",
         ylabel: str = "",
         zlabel: str = "",
+        ignore_duplicates: bool = False,
+        ignore_missing: bool = False,
+        fill_value_missing: float = np.nan,
+        iteration_order: None = None,
         **loadtxt_kwargs,
     ) -> Self:
         """
@@ -226,9 +229,6 @@ class Hist2d:
         ----------
         fname : str | PathLike
             The path to the text file.
-
-        iteration_order : {"x_first", "y_first"}, default: "x_first"
-            The order in which the data iterates through the x and y dimensions.
 
         data_layout : {"rows", "columns"}, default: "columns"
             The layout of the data in the file, either row-major or column-major.
@@ -241,6 +241,26 @@ class Hist2d:
             The lower (upper) x (y) bound to use when converting centers to edges.
             Either the lower or the upper bound must be provided if the bins have
             unequal size. Unnecessary for equally sized bins.
+
+        ignore_duplicates : bool, default False
+            If False, duplicate (x, y) pairs cause a ValueError.
+
+            If True, the last z-value for each duplicate pair is used.
+
+        ignore_missing : bool, default False
+            If False, missing (x, y) combinations cause a ValueError.
+
+            If True, missing combinations are filled with `fill_value_missing`.
+
+        fill_value_missing : scalar, default np.nan
+            Value used to fill missing (x, y) combinations.
+
+        Other parameters
+        ----------------
+        iteration_order : None
+            .. version-deprecated:: 5.10.1
+
+                Does nothing.
 
         **loadtxt_kwargs
             Additional keyword arguments to pass to :meth:`numpy.loadtxt`.
@@ -282,19 +302,28 @@ class Hist2d:
         >>> print(hist.values)
         [[1, 2], [3, 4], [5, 6]]
         """
+        if iteration_order is not None:
+            warnings.warn(
+                deprecated_keyword_doing_nothing_msg("iteration_order"),
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
-        data = for_pcolormesh_from_txt(
-            fname,
-            iteration_order=iteration_order,
-            data_layout=data_layout,
-            xyz_indices=xyz_indices,
-            xmin=xmin,
-            xmax=xmax,
-            ymin=ymin,
-            ymax=ymax,
-            **loadtxt_kwargs,
+        data = np.loadtxt(fname, **loadtxt_kwargs)
+        if data_layout == "columns":
+            data = data.T
+        i, j, k = xyz_indices
+        xcenters, ycenters, z = columns_to_meshgrid(
+            data[i],
+            data[j],
+            data[k],
+            ignore_duplicates=ignore_duplicates,
+            ignore_missing=ignore_missing,
+            fill_value_missing=fill_value_missing,
         )
-        return cls(data[2].T, data[0], data[1], title, xlabel, ylabel, zlabel)
+        return cls.from_centers(
+            xcenters, ycenters, z, xmin, xmax, ymin, ymax, title, xlabel, ylabel, zlabel
+        )
 
     @classmethod
     def from_image(

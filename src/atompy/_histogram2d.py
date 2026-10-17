@@ -23,6 +23,7 @@ from ._utils import (
     columns_to_meshgrid,
     edges_to_centers,
     get_all_dividers,
+    match_xy_edges_z,
 )
 
 
@@ -707,6 +708,61 @@ class Hist2d:
             f"{values_str}\n{xedges_str}\n{yxedges_str}"
         )
         return hist_str
+
+    def save(
+        self,
+        fname: str | PathLike,
+        header: str = "__auto__",
+        layout: Literal["columns", "rows"] = "columns",
+        iteration_order: Literal["x_first", "y_first"] = "x_first",
+        **savetxt_kwargs,
+    ) -> None:
+        """
+        Save the histogram to a file.
+
+        Saves five columns (or rows): lower/upper x-edges, lower/upper y-edges, values.
+
+        Wraps :func:`numpy.savetxt`.
+
+        Parameters
+        ----------
+        fname : str
+            Filename of the output.
+
+        header : str, default "__auto__"
+            Header of the output file.
+
+            If "__auto__", uses ``xlower xupper ylower yupper z``.
+
+        layout : "columns" or "rows", default "columns"
+            Control the layout of the output file.
+
+        iteration_order : "x_first" or "y_first", default "x_first"
+            Control which dimension iterates first.
+
+        **savetxt_kwargs
+            Other keyword arguments of :func:`numpy.savetxt`.
+        """
+        if layout not in ("columns", "rows"):
+            raise ValueError(f"{layout=}, but it must be 'columns' or 'rows'")
+        if iteration_order not in ("x_first", "y_first"):
+            raise ValueError(
+                f"{iteration_order=}, but it must be 'x_first' or 'y_first'"
+            )
+
+        data = match_xy_edges_z(
+            self.xedges, self.yedges, self.values, iteration_order=iteration_order
+        )
+        if layout == "columns":
+            data = data.T
+
+        kwargs = savetxt_kwargs.copy()
+        if header == "__auto__":
+            delim = kwargs.get("delimiter", " ")
+            header = f"xlower{delim}xupper{delim}ylower{delim}yupper{delim}z"
+            kwargs["header"] = header
+
+        np.savetxt(fname, data, **kwargs)
 
     def norm_diff(self, other: "Hist2d") -> Self:
         """

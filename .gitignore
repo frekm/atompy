@@ -219,5 +219,6 @@ _autogen/
 test/
 tests/*.pdf
 tests/*.png
+tests/*.tmp.*
 scratchpad.*
 requirements-atompy.txt

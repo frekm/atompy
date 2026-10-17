@@ -60,5 +60,6 @@ Miscellaenous
     sample_distribution_discrete
     gauss
     crop
-    detect_iteration_order
     columns_to_meshgrid
+    match_xyz
+    match_xy_edges_z

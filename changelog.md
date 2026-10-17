@@ -1,10 +1,13 @@
 # Changelog
+## v5.11.0
+- Add `match_xyz` and `match_xy_edges_z`
+
 ## v5.10.1
-- Improved conversion from column x,y,z-data to meshgrids
-- Fixed bug in DataXYZ.keep/remove
+- Improve conversion from column x,y,z-data to meshgrids
+- Fix bug in DataXYZ.keep/remove
 
 ## v5.10.0
-- Added `DataXYZ`
+- Add `DataXYZ`
 
 ## v5.9.0
 - Minor fixes
@@ -42,7 +45,7 @@
 
 ## v5.6.0
 
-- Added a simple (computationally slow) Coulomb Explosion Imaging simulation:
+- Add a simple (computationally slow) Coulomb Explosion Imaging simulation:
   - `atompy.physics.coltrims.coulomb_explode`
   - `atompy.physics.coltrims.coulomb_explode_batch`
   - `atompy.physics.Electron`

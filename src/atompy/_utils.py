@@ -346,6 +346,178 @@ def columns_to_meshgrid(
     return unique_x, unique_y, result_z
 
 
+def match_xyz(
+    x: NDArray[NUMBER_T],
+    y: NDArray[NUMBER_T],
+    z: NDArray[NUMBER_T],
+    iteration_order: Literal["x_first", "y_first"] = "x_first",
+) -> NDArray[NUMBER_T]:
+    """
+    Match two-dimensional z data to corresponding x and y values.
+
+    Assumes that z[i,j] corresponds to x[i], y[j].
+
+    Parameters
+    ----------
+    x : ndarray, shape(n,)
+        1-dimensional x values.
+
+    y : ndarray, shape(m,)
+        1-dimensional y values.
+
+    z : ndarray, shape(n, m)
+        2-dimensional z data.
+
+    iteration_order : "x_first" or "y_first", default "x_first"
+        Control which dimension iterates through first in the output.
+
+        See examples.
+
+    Returns
+    -------
+    lut : ndarray, shape(3, n*m)
+        Look-up table that matches z to x and y.
+
+        lut[0/1/2] are the x/y/z values, respectively.
+
+    See also
+    --------
+    match_xy_edges_z
+
+    Examples
+    --------
+
+    >>> import atompy as ap
+    >>> import numpy as np
+    >>> x = np.array((1, 2, 3))
+    >>> y = np.array((1, 2))
+    >>> z = np.array(((11, 12), (21, 22), (31, 32)))
+    >>> ap.match_xyz(x, y, z)
+    array([[ 1,  2,  3,  1,  2,  3],
+           [ 1,  1,  1,  2,  2,  2],
+           [11, 21, 31, 12, 22, 32]])
+    >>> ap.match_xyz(x, y, z, iteration_order="y_first")
+    array([[ 1,  1,  2,  2,  3,  3],
+           [ 1,  2,  1,  2,  1,  2],
+           [11, 12, 21, 22, 31, 32]])
+    """
+    x = np.asarray(x)
+    y = np.asarray(y)
+    z = np.asarray(z)
+
+    if x.ndim != 1 or y.ndim != 1:
+        raise ValueError("x and y must be one-dimensional")
+
+    if z.shape != (len(x), len(y)):
+        raise ValueError(f"{z.shape=} does not match ({len(x)=}, {len(y)=})")
+
+    if iteration_order not in ("x_first", "y_first"):
+        raise ValueError(f"{iteration_order=}, but it must be 'x_first' or 'y_first'")
+
+    xx, yy = np.meshgrid(x, y, indexing="ij")
+
+    o = "C" if iteration_order == "y_first" else "F"
+    result = np.vstack([xx.ravel(order=o), yy.ravel(order=o), z.ravel(order=o)])
+
+    return result
+
+
+def match_xy_edges_z(
+    xedges: NDArray[NUMBER_T],
+    yedges: NDArray[NUMBER_T],
+    z: NDArray[NUMBER_T],
+    iteration_order: Literal["x_first", "y_first"] = "x_first",
+) -> NDArray[NUMBER_T]:
+    """
+    Match two-dimensional z data to corresponding x and y edges.
+
+    Assumes that z[i,j] belongs to x[i] <= x <= x[i+1], y[j] <= y <= y[j+1].
+
+    Parameters
+    ----------
+    xedges : ndarray, shape(n,)
+        1-dimensional x edges.
+
+    yedges : ndarray, shape(m,)
+        1-dimensional y edges.
+
+    z : ndarray, shape(n, m)
+        2-dimensional z data.
+
+    iteration_order : "x_first" or "y_first", default "x_first"
+        Control which dimension iterates through first in the output.
+
+        See examples.
+
+    Returns
+    -------
+    lut : ndarray, shape(5, n*m)
+        Look-up table that matches z to x- and y-edges.
+
+        - lut[0] are the lower bounds of the x edges.
+        - lut[1] are the upper bounds of the x edges.
+        - lut[2] are the lower bounds of the y edges.
+        - lut[3] are the upper bounds of the y edges.
+        - lut[4] are the corresponding z values.
+
+    See also
+    --------
+    match_xyz
+
+    Examples
+    --------
+
+    >>> import atompy as ap
+    >>> import numpy as np
+    >>> xedges = np.array((0, 1, 2, 3))
+    >>> yedges = np.array((0, 1, 2))
+    >>> z = np.array(((11, 12), (21, 22), (31, 32)))
+    >>> ap.match_xy_edges_z(xedges, yedges, z)
+    array([[ 0,  1,  2,  0,  1,  2],
+           [ 1,  2,  3,  1,  2,  3],
+           [ 0,  0,  0,  1,  1,  1],
+           [ 1,  1,  1,  2,  2,  2],
+           [11, 21, 31, 12, 22, 32]])
+    >>> ap.match_xy_edges_z(xedges, yedges, z, iteration_order="y_first")
+    array([[ 0,  0,  1,  1,  2,  2],
+           [ 1,  1,  2,  2,  3,  3],
+           [ 0,  1,  0,  1,  0,  1],
+           [ 1,  2,  1,  2,  1,  2],
+           [11, 12, 21, 22, 31, 32]])
+    """
+    xedges = np.asarray(xedges)
+    yedges = np.asarray(yedges)
+    z = np.asarray(z)
+
+    if xedges.ndim != 1 or yedges.ndim != 1:
+        raise ValueError("xedges and yedges must be one-dimensional")
+
+    expected_shape = (len(xedges) - 1, len(yedges) - 1)
+    if z.shape != expected_shape:
+        raise ValueError(f"{z.shape=} does not match {expected_shape=}")
+
+    if iteration_order not in ("x_first", "y_first"):
+        raise ValueError(f"{iteration_order=} must be 'x_first' or 'y_first'")
+
+    # Each z[i, j] belongs to:
+    # xedges[i] <= x <= xedges[i+1]
+    # yedges[j] <= y <= yedges[j+1]
+    xlower, ylower = np.meshgrid(xedges[:-1], yedges[:-1], indexing="ij")
+    xupper, yupper = np.meshgrid(xedges[1:], yedges[1:], indexing="ij")
+
+    dtype = np.result_type(xedges, yedges, z)
+    result = np.empty((5, z.size), dtype=dtype)
+
+    flatten_order = "C" if iteration_order == "y_first" else "F"
+    result[0] = xlower.ravel(order=flatten_order)
+    result[1] = xupper.ravel(order=flatten_order)
+    result[2] = ylower.ravel(order=flatten_order)
+    result[3] = yupper.ravel(order=flatten_order)
+    result[4] = z.ravel(order=flatten_order)
+
+    return result
+
+
 def for_pcolormesh(
     xcenters: ArrayLike,
     ycenters: ArrayLike,

@@ -173,6 +173,26 @@ class Hist2d:
             Either the lower or the upper bound must be provided if the bins have
             unequal size. Unnecessary for equally sized bins.
 
+        title : str, default ""
+            Optional title of the histogram.
+
+            May be used in :meth:`~Hist2d.plot`.
+
+        xlabel : str, default ""
+            Optional xlabel of the histogram.
+
+            May be used in :meth:`~Hist2d.plot`.
+
+        ylabel : str, default ""
+            Optional ylabel of the histogram.
+
+            May be used in :meth:`~Hist2d.plot`.
+
+        zlabel : str, default ""
+            Optional zlabel of the histogram.
+
+            May be used in :meth:`~Hist2d.plot`.
+
         Returns
         -------
         Hist2d
@@ -242,6 +262,26 @@ class Hist2d:
             The lower (upper) x (y) bound to use when converting centers to edges.
             Either the lower or the upper bound must be provided if the bins have
             unequal size. Unnecessary for equally sized bins.
+
+        title : str, default ""
+            Optional title of the histogram.
+
+            May be used in :meth:`~Hist2d.plot`.
+
+        xlabel : str, default ""
+            Optional xlabel of the histogram.
+
+            May be used in :meth:`~Hist2d.plot`.
+
+        ylabel : str, default ""
+            Optional ylabel of the histogram.
+
+            May be used in :meth:`~Hist2d.plot`.
+
+        zlabel : str, default ""
+            Optional zlabel of the histogram.
+
+            May be used in :meth:`~Hist2d.plot`.
 
         ignore_duplicates : bool, default False
             If False, duplicate (x, y) pairs cause a ValueError.
@@ -422,6 +462,34 @@ class Hist2d:
 
         hname : str
             The path to the 2D histogram within the root file.
+
+        title : str, default "__auto__"
+            Optional title of the histogram.
+
+            If "__auto__", use histogram title from ROOT file.
+
+            May be used in :meth:`~Hist2d.plot`.
+
+        xlabel : str, default "__auto__"
+            Optional xlabel of the histogram.
+
+            If "__auto__", use histogram xlabel from ROOT file.
+
+            May be used in :meth:`~Hist2d.plot`.
+
+        ylabel : str, default "__auto__"
+            Optional ylabel of the histogram.
+
+            If "__auto__", use histogram ylabel from ROOT file.
+
+            May be used in :meth:`~Hist2d.plot`.
+
+        zlabel : str, default "__auto__"
+            Optional zlabel of the histogram.
+
+            If "__auto__", use histogram zlabel from ROOT file.
+
+            May be used in :meth:`~Hist2d.plot`.
 
         Returns
         -------

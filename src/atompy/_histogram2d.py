@@ -367,6 +367,74 @@ class Hist2d:
         )
 
     @classmethod
+    def load(
+        cls,
+        fname: str | PathLike,
+        *,
+        data_layout: Literal["rows", "columns"] = "columns",
+        title="",
+        xlabel="",
+        ylabel="",
+        zlabel="",
+        **loadtxt_kwargs,
+    ) -> Self:
+        """
+        Load histogram saved by :meth:`.Hist2d.save`.
+
+        Wraps :func:`numpy.loadtxt`.
+
+        Parameters
+        ----------
+        fname : str
+            Filename.
+
+            Contents of the file should conform to the output of
+            :meth:`.Hist2d.save`.
+
+        data_layout : {"rows", "columns"}, default: "columns"
+            The layout of the data in the file.
+
+        title : str, default ""
+            Optional title of the histogram.
+
+            May be used in :meth:`~Hist2d.plot`.
+
+        xlabel : str, default ""
+            Optional xlabel of the histogram.
+
+            May be used in :meth:`~Hist2d.plot`.
+
+        ylabel : str, default ""
+            Optional ylabel of the histogram.
+
+            May be used in :meth:`~Hist2d.plot`.
+
+        zlabel : str, default ""
+            Optional zlabel of the histogram.
+
+            May be used in :meth:`~Hist2d.plot`.
+
+        **loadtxt_kwargs
+            Additional keyword arguments to pass to :meth:`numpy.loadtxt`.
+
+        Returns
+        -------
+        histogram : :class:`.Hist2d`
+        """
+        if data_layout not in ("columns", "rows"):
+            raise ValueError(f"{data_layout=}, but it must be 'columns' or 'rows'")
+        d = np.loadtxt(fname, **loadtxt_kwargs)
+        if data_layout == "columns":
+            d = d.T
+
+        xlower, ylower, z = columns_to_meshgrid(d[0], d[2], d[4])
+        xedges = np.r_[xlower, d[1, -1]]
+        yedges = np.r_[ylower, d[3, -1]]
+        return cls(
+            z, xedges, yedges, title=title, xlabel=xlabel, ylabel=ylabel, zlabel=zlabel
+        )
+
+    @classmethod
     def from_image(
         cls,
         image: ArrayLike,

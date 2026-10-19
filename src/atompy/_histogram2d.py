@@ -252,7 +252,7 @@ class Hist2d:
             The path to the text file.
 
         data_layout : {"rows", "columns"}, default: "columns"
-            The layout of the data in the file, either row-major or column-major.
+            The layout of the data in the file.
 
         xyz_indices : tuple[int, int, int], default: (0, 1, 2)
             A tuple specifying the column (or row, depending on `data_layout`)
@@ -800,7 +800,7 @@ class Hist2d:
         header : str, default "__auto__"
             Header of the output file.
 
-            If "__auto__", uses ``xlower xupper ylower yupper z``.
+            If "__auto__", header will be ``xlower xupper ylower yupper z``.
 
         layout : "columns" or "rows", default "columns"
             Control the layout of the output file.

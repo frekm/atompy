@@ -339,11 +339,125 @@ def columns_to_meshgrid(
             "Missing (x, y) combinations found. Set 'ignore_missing' to True if intended."
         )
 
-    dtype = np.result_type(z.dtype, fill_value_missing) if ignore_missing else z.dtype
-    result_z = np.full(shape, fill_value_missing, dtype=dtype)
+    if ignore_missing:
+        dtype = np.result_type(z.dtype, fill_value_missing)
+        result_z = np.full(shape, fill_value_missing, dtype=dtype)
+    else:
+        result_z = np.empty(shape, dtype=z.dtype)
     result_z[x_indices, y_indices] = z
 
     return unique_x, unique_y, result_z
+
+
+def columns_to_meshgrid_edges(
+    xlower: ArrayLike,
+    xupper: ArrayLike,
+    ylower: ArrayLike,
+    yupper: ArrayLike,
+    z: ArrayLike,
+    *,
+    ignore_duplicates: bool = False,
+    ignore_missing: bool = False,
+    fill_value_missing: float = np.nan,
+) -> tuple[NDArray[np.number], NDArray[np.number], NDArray[np.number]]:
+    """
+    Reinterpret data given as a look-up table as a mesh grid.
+
+    Parameters
+    ----------
+    xlower, xupper, ylower, yupper : ndarray
+        lower/upper x/y edges defining the cells of the z-values.
+
+    z : ndarray
+        Corresponding z-values.
+
+    ignore_duplicates : bool, default False
+        If False, duplicate (x, y) pairs cause a ValueError.
+
+        If True, the last z-value for each duplicate pair is used.
+
+    ignore_missing : bool, default False
+        If False, missing (x, y) combinations cause a ValueError.
+
+        If True, missing combinations are filled with `fill_value_missing`.
+
+    fill_value_missing : scalar, default np.nan
+        Value used to fill missing (x, y) combinations.
+
+    Returns
+    -------
+    x_edges : ndarray, shape (N+1,)
+        Sorted unique x-edges.
+
+    y_edges : ndarray, shape (M+1,)
+        Sorted unique y-edges.
+
+    z_meshgrid : ndarray, shape (N, M)
+        z_meshgrid[n, m] corresponds to x_edges[n] <= x <= x_edges[n+1],
+        unique_y[m] <= y <= unique_y[m+1].
+    """
+    xlower = np.asarray(xlower)
+    xupper = np.asarray(xupper)
+    ylower = np.asarray(ylower)
+    yupper = np.asarray(yupper)
+    z = np.asarray(z)
+
+    if any(arr.ndim != 1 for arr in (xlower, xupper, ylower, yupper, z)):
+        raise ValueError(
+            "xlower, xupper, ylower, yupper, and z must be one-dimensional arrays"
+        )
+
+    if not (xlower.shape == xupper.shape == ylower.shape == yupper.shape == z.shape):
+        raise ValueError(
+            "xlower, xupper, ylower, yupper, and z must have the same shape"
+        )
+
+    if np.any(xlower >= xupper) or np.any(ylower >= yupper):
+        raise ValueError("Each cell's lower bounds must be less than its upper bounds")
+
+    x_out = np.unique(np.concatenate((xlower, xupper)))
+    y_out = np.unique(np.concatenate((ylower, yupper)))
+
+    xlower_indices = np.searchsorted(x_out, xlower)
+    xupper_indices = np.searchsorted(x_out, xupper)
+    ylower_indices = np.searchsorted(y_out, ylower)
+    yupper_indices = np.searchsorted(y_out, yupper)
+
+    # Each row must describe exactly one grid cell.
+    if np.any(xupper_indices != xlower_indices + 1) or np.any(
+        yupper_indices != ylower_indices + 1
+    ):
+        raise ValueError(
+            "Input cells must correspond to adjacent edges in the output grid"
+        )
+
+    shape = (len(x_out) - 1, len(y_out) - 1)
+
+    flat_indices = np.ravel_multi_index((xlower_indices, ylower_indices), shape)
+
+    _, counts = np.unique(flat_indices, return_counts=True)
+
+    if not ignore_duplicates and np.any(counts > 1):
+        raise ValueError(
+            "Duplicate cells found. Set 'ignore_duplicates' to True if intended."
+        )
+
+    n_unique_cells = len(np.unique(flat_indices))
+    n_grid_cells = shape[0] * shape[1]
+
+    if not ignore_missing and n_unique_cells != n_grid_cells:
+        raise ValueError(
+            "Missing cells found. Set 'ignore_missing' to True if intended."
+        )
+
+    if ignore_missing:
+        dtype = np.result_type(z.dtype, fill_value_missing)
+        z_out = np.full(shape, fill_value_missing, dtype=dtype)
+    else:
+        z_out = np.empty(shape, dtype=z.dtype)
+    z_out[xlower_indices, ylower_indices] = z
+
+    return x_out, y_out, z_out
 
 
 def match_xyz(

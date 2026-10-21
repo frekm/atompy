@@ -1,7 +1,8 @@
 # Changelog
 ## v5.11.0
 - Add `match_xyz` and `match_xy_edges_z`
-- Add `Hist2d.save` and `Hist2d.load`
+- Add `Hist2d.save` and `Hist2d.from_txt_edges`
+- Add `columns_to_meshgrid_edges`
 
 ## v5.10.1
 - Improve conversion from column x,y,z-data to meshgrids

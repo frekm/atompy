@@ -61,5 +61,6 @@ Miscellaenous
     gauss
     crop
     columns_to_meshgrid
+    columns_to_meshgrid_edges
     match_xyz
     match_xy_edges_z

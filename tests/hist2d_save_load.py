@@ -9,9 +9,9 @@ z = ((11, 12), (21, 22), (31, 32))
 h1 = ap.Hist2d(z, xedges, yedges)
 
 h1.save("tests/hist2d_save.tmp.txt")
-h2 = ap.Hist2d.load("tests/hist2d_save.tmp.txt")
+h2 = ap.Hist2d.from_txt_edges("tests/hist2d_save.tmp.txt")
 
-fig, axs = plt.subplots(2, 1, layout="compressed")
+fig, axs = plt.subplots(1, 2, layout="compressed", figsize=(7, 3))
 
 h1.plot(axs[0])
 h2.plot(axs[1])

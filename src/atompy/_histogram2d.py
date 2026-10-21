@@ -21,6 +21,7 @@ from ._histogram1d import Hist1d
 from ._utils import (
     centers_to_edges,
     columns_to_meshgrid,
+    columns_to_meshgrid_edges,
     edges_to_centers,
     get_all_dividers,
     match_xy_edges_z,
@@ -246,6 +247,11 @@ class Hist2d:
         """
         Initiate a :class:`.Hist2d` from a text file.
 
+        The file should contain a table which matches
+        x/y-bin-centers to z values.
+
+        Wraps :func:`numpy.loadtxt`.
+
         Parameters
         ----------
         fname : str | PathLike
@@ -311,6 +317,10 @@ class Hist2d:
         Hist2d
             A new :class:`.Hist2d` instance.
 
+        See also
+        --------
+        from_txt_edges
+
         Examples
         --------
         Given a file named `data.txt` with the following content:
@@ -367,7 +377,7 @@ class Hist2d:
         )
 
     @classmethod
-    def load(
+    def from_txt_edges(
         cls,
         fname: str | PathLike,
         *,
@@ -383,7 +393,10 @@ class Hist2d:
         **loadtxt_kwargs,
     ) -> Self:
         """
-        Load histogram saved by :meth:`.Hist2d.save`.
+        Initiate a :class:`.Hist2d` from a text file.
+
+        The file should contain a table which matches
+        x/y-bin-edges to z values.
 
         Wraps :func:`numpy.loadtxt`.
 
@@ -441,6 +454,11 @@ class Hist2d:
         Returns
         -------
         histogram : :class:`.Hist2d`
+
+        See also
+        --------
+        from_txt
+        save
         """
         if data_layout not in ("columns", "rows"):
             raise ValueError(f"{data_layout=}, but it must be 'columns' or 'rows'")
@@ -450,21 +468,16 @@ class Hist2d:
 
         xli, xui, yli, yui, zi = indices
 
-        if np.any(d[xli, 1:] != d[xui, :-1]):
-            raise ValueError("lower x-edges don't match upper x-edges")
-        if np.any(d[yli, 1:] != d[yui, :-1]):
-            raise ValueError("lower y-edges don't match upper y-edges")
-
-        xlower, ylower, z = columns_to_meshgrid(
+        xedges, yedges, z = columns_to_meshgrid_edges(
             d[xli],
+            d[xui],
             d[yli],
+            d[yui],
             d[zi],
             ignore_duplicates=ignore_duplicates,
             ignore_missing=ignore_missing,
             fill_value_missing=fill_value_missing,
         )
-        xedges = np.r_[xlower, d[xui, -1]]
-        yedges = np.r_[ylower, d[yui, -1]]
         return cls(
             z, xedges, yedges, title=title, xlabel=xlabel, ylabel=ylabel, zlabel=zlabel
         )

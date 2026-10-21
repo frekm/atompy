@@ -372,6 +372,7 @@ class Hist2d:
         fname: str | PathLike,
         *,
         data_layout: Literal["rows", "columns"] = "columns",
+        indices: tuple[int, int, int, int, int] = (0, 1, 2, 3, 4),
         title="",
         xlabel="",
         ylabel="",
@@ -393,6 +394,10 @@ class Hist2d:
 
         data_layout : {"rows", "columns"}, default: "columns"
             The layout of the data in the file.
+
+        indices : (int, int, int, int, int), default (0, 1, 2, 3, 4)
+            Indices corresponding to
+            (lower x-edges, upper x-edges, lower y-edges, upper y-edges, z)
 
         title : str, default ""
             Optional title of the histogram.
@@ -427,9 +432,10 @@ class Hist2d:
         if data_layout == "columns":
             d = d.T
 
-        xlower, ylower, z = columns_to_meshgrid(d[0], d[2], d[4])
-        xedges = np.r_[xlower, d[1, -1]]
-        yedges = np.r_[ylower, d[3, -1]]
+        xli, xui, yli, yui, zi = indices
+        xlower, ylower, z = columns_to_meshgrid(d[xli], d[yli], d[zi])
+        xedges = np.r_[xlower, d[xui, -1]]
+        yedges = np.r_[ylower, d[yui, -1]]
         return cls(
             z, xedges, yedges, title=title, xlabel=xlabel, ylabel=ylabel, zlabel=zlabel
         )

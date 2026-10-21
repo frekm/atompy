@@ -377,6 +377,9 @@ class Hist2d:
         xlabel="",
         ylabel="",
         zlabel="",
+        ignore_duplicates: bool = False,
+        ignore_missing: bool = False,
+        fill_value_missing: float = np.nan,
         **loadtxt_kwargs,
     ) -> Self:
         """
@@ -419,6 +422,19 @@ class Hist2d:
 
             May be used in :meth:`~Hist2d.plot`.
 
+        ignore_duplicates : bool, default False
+            If False, duplicate (x, y) pairs cause a ValueError.
+
+            If True, the last z-value for each duplicate pair is used.
+
+        ignore_missing : bool, default False
+            If False, missing (x, y) combinations cause a ValueError.
+
+            If True, missing combinations are filled with `fill_value_missing`.
+
+        fill_value_missing : scalar, default np.nan
+            Value used to fill missing (x, y) combinations.
+
         **loadtxt_kwargs
             Additional keyword arguments to pass to :meth:`numpy.loadtxt`.
 
@@ -433,7 +449,20 @@ class Hist2d:
             d = d.T
 
         xli, xui, yli, yui, zi = indices
-        xlower, ylower, z = columns_to_meshgrid(d[xli], d[yli], d[zi])
+
+        if np.any(d[xli, 1:] != d[xui, :-1]):
+            raise ValueError("lower x-edges don't match upper x-edges")
+        if np.any(d[yli, 1:] != d[yui, :-1]):
+            raise ValueError("lower y-edges don't match upper y-edges")
+
+        xlower, ylower, z = columns_to_meshgrid(
+            d[xli],
+            d[yli],
+            d[zi],
+            ignore_duplicates=ignore_duplicates,
+            ignore_missing=ignore_missing,
+            fill_value_missing=fill_value_missing,
+        )
         xedges = np.r_[xlower, d[xui, -1]]
         yedges = np.r_[ylower, d[yui, -1]]
         return cls(

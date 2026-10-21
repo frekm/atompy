@@ -40,3 +40,11 @@ def raise_unmatching_edges(
 def deprecated_keyword_doing_nothing_msg(keyword: str):
     msg = f"The keyword {keyword} is depcrecated and does nothing"
     return msg
+
+
+def normalize_columns_or_row_data(
+    data: NDArray[np.number], layout: Literal["columns", "rows"]
+) -> NDArray[np.number]:
+    if layout not in ("columns", "rows"):
+        raise ValueError(f"{layout=}, but it must be 'columns' or 'rows'")
+    return data if layout == "rows" else data.T

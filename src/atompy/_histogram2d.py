@@ -15,6 +15,7 @@ from numpy.typing import ArrayLike, NDArray
 from ._core import (
     deprecated_keyword_doing_nothing_msg,
     get_topmost_figure,
+    normalize_columns_or_row_data,
     raise_unmatching_edges,
 )
 from ._histogram1d import Hist1d
@@ -360,9 +361,10 @@ class Hist2d:
                 stacklevel=2,
             )
 
-        data = np.loadtxt(fname, **loadtxt_kwargs)
-        if data_layout == "columns":
-            data = data.T
+        data = normalize_columns_or_row_data(
+            np.loadtxt(fname, **loadtxt_kwargs), data_layout
+        )
+
         i, j, k = xyz_indices
         xcenters, ycenters, z = columns_to_meshgrid(
             data[i],
@@ -460,11 +462,9 @@ class Hist2d:
         from_txt
         save
         """
-        if data_layout not in ("columns", "rows"):
-            raise ValueError(f"{data_layout=}, but it must be 'columns' or 'rows'")
-        d = np.loadtxt(fname, **loadtxt_kwargs)
-        if data_layout == "columns":
-            d = d.T
+        d = normalize_columns_or_row_data(
+            np.loadtxt(fname, **loadtxt_kwargs), data_layout
+        )
 
         xli, xui, yli, yui, zi = indices
 
@@ -927,8 +927,6 @@ class Hist2d:
         **savetxt_kwargs
             Other keyword arguments of :func:`numpy.savetxt`.
         """
-        if layout not in ("columns", "rows"):
-            raise ValueError(f"{layout=}, but it must be 'columns' or 'rows'")
         if iteration_order not in ("x_first", "y_first"):
             raise ValueError(
                 f"{iteration_order=}, but it must be 'x_first' or 'y_first'"
@@ -937,8 +935,7 @@ class Hist2d:
         data = match_xy_edges_z(
             self.xedges, self.yedges, self.values, iteration_order=iteration_order
         )
-        if layout == "columns":
-            data = data.T
+        data = normalize_columns_or_row_data(data, layout)
 
         kwargs = savetxt_kwargs.copy()
         if header == "__auto__":

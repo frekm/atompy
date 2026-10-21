@@ -13,6 +13,7 @@ from numpy.typing import ArrayLike, NDArray
 from ._core import (
     deprecated_keyword_doing_nothing_msg,
     get_topmost_figure,
+    normalize_columns_or_row_data,
     raise_unmatching_edges,
 )
 from ._data_xy import DataXY
@@ -278,11 +279,9 @@ class Hist1d:
             >>> hist2.values
             array([11. 12. 13. 14. 15.])
         """
-        data = np.loadtxt(fname, **loadtxt_kwargs)
-        if data_layout == "columns":
-            data = data.T
-        elif data_layout != "rows":
-            raise ValueError(f"{data_layout=}, but it should be 'rows' or 'columns'")
+        data = normalize_columns_or_row_data(
+            np.loadtxt(fname, **loadtxt_kwargs), data_layout
+        )
         return cls.from_centers(
             data[idx_values], data[idx_centers], lower, upper, title, xlabel, ylabel
         )

@@ -10,6 +10,7 @@ from matplotlib.figure import Figure
 from numpy.typing import ArrayLike, NDArray
 
 from atompy import _core
+from atompy._core import normalize_columns_or_row_data
 
 
 class DataXYKwargs(TypedDict, total=True):
@@ -165,11 +166,9 @@ class DataXY:
             >>> data2.y
             array([11. 12. 13. 14. 15.])
         """
-        data = np.loadtxt(fname, **loadtxt_kwargs)
-        if data_layout == "columns":
-            data = data.T
-        elif data_layout != "rows":
-            raise ValueError(f"{data_layout=}, but it should be 'rows' or 'columns'")
+        data = normalize_columns_or_row_data(
+            np.loadtxt(fname, **loadtxt_kwargs), data_layout
+        )
         return cls(data[idx_x], data[idx_y], title=title, xlabel=xlabel, ylabel=ylabel)
 
     @classmethod

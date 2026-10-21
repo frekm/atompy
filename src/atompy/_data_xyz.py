@@ -10,7 +10,7 @@ from matplotlib.colors import LogNorm
 from matplotlib.figure import Figure
 from numpy.typing import ArrayLike, NDArray
 
-from atompy._core import NUMBER_T, get_topmost_figure
+from atompy._core import NUMBER_T, get_topmost_figure, normalize_columns_or_row_data
 from atompy._data_xy import DataXY
 from atompy._utils import columns_to_meshgrid
 
@@ -323,9 +323,9 @@ class DataXYZ:
         array([[11., 12., 13.],
                [21., 22., 23.]])
         """
-        data = np.loadtxt(fname, **loadtxt_kwargs)
-        if data_layout == "columns":
-            data = data.T
+        data = normalize_columns_or_row_data(
+            np.loadtxt(fname, **loadtxt_kwargs), data_layout
+        )
         i, j, k = xyz_indices
         x, y, zm = columns_to_meshgrid(
             data[i],

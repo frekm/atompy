@@ -841,7 +841,7 @@ class Hist1d:
         xlim: tuple[None | float, None | float] | None = None,
         ylim: tuple[None | float, None | float] | None = None,
         plot_fmt: str | None = None,
-        savefig_kwargs: dict[str, Any] = {},
+        savefig_kwargs: dict[str, Any] | None = None,
         use_fixed_layout: None = None,
         fixed_layout_kwargs: None = None,
         make_me_nice: None = None,
@@ -972,6 +972,8 @@ class Hist1d:
         ax.set_ylim(ylim)  # type: ignore
         if logscale:
             ax.set_yscale("log")
+        if savefig_kwargs is None:
+            savefig_kwargs = {}
         if fname is not None:
             fig.savefig(fname, **savefig_kwargs)
         return fig, ax
@@ -987,7 +989,7 @@ class Hist1d:
         xlim: tuple[None | float, None | float] | None = None,
         ylim: tuple[None | float, None | float] | None = None,
         start_at: float | Literal["auto"] = 0.0,
-        savefig_kwargs: dict[str, Any] = {},
+        savefig_kwargs: dict[str, Any] | None = None,
         use_fixed_layout: None = None,
         fixed_layout_kwargs: None = None,
         make_me_nice: None = None,
@@ -1119,6 +1121,8 @@ class Hist1d:
         ax.set_ylim(ylim)  # type: ignore
         if logscale:
             ax.set_yscale("log")
+        if savefig_kwargs is None:
+            savefig_kwargs = {}
         if fname is not None:
             fig.savefig(fname, **savefig_kwargs)
         return fig, ax

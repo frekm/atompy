@@ -329,6 +329,33 @@ class DataXY:
     def __iter__(self) -> Iterator[NDArray[np.float64]]:
         return iter(self._data.T)
 
+    def save(
+        self,
+        fname: str | PathLike,
+        *,
+        layout: Literal["columns", "rows"] = "columns",
+        **savetxt_kwargs,
+    ) -> None:
+        """
+        Save data to a file.
+
+        Wraps :func:`numpy.savetxt`.
+
+        Parameters
+        ----------
+        fname : str
+            Filename of the output.
+
+        layout : "columns" or "rows", default "columns"
+            Control the layout of the output file.
+
+        **savetxt_kwargs
+            Other keyword arguments of :func:`numpy.savetxt`.
+        """
+        np.savetxt(
+            fname, normalize_columns_or_row_data(self._data, layout), **savetxt_kwargs
+        )
+
     def asarray(self, copy: bool = False) -> NDArray[np.float64]:
         """
         Return a 2d ndarray of the data.

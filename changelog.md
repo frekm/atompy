@@ -3,6 +3,7 @@
 - Add `match_xyz` and `match_xy_edges_z`
 - Add `Hist2d.save` and `Hist2d.from_txt_edges`
 - Add `DataXYZ.save`
+- Add `DataXY.save`
 - Add `columns_to_meshgrid_edges`
 
 ## v5.10.1

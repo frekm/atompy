@@ -224,6 +224,14 @@ class Hist1d:
         **loadtxt_kwargs
             Additional :func:`numpy.loadtxt` keyword arguments.
 
+        Returns
+        -------
+        A :class:`.Hist1d` instance.
+
+        See also
+        --------
+        from_txt_edges
+
         Examples
         --------
         Assume a ``data.txt`` with::
@@ -285,6 +293,80 @@ class Hist1d:
         return cls.from_centers(
             data[idx_values], data[idx_centers], lower, upper, title, xlabel, ylabel
         )
+
+    @classmethod
+    def from_txt_edges(
+        cls,
+        fname: str | PathLike,
+        data_layout: Literal["rows", "columns"] = "columns",
+        indices: tuple[int, int, int] = (0, 1, 2),
+        title: str = "",
+        xlabel: str = "",
+        ylabel: str = "",
+        **loadtxt_kwargs,
+    ) -> Self:
+        """
+        Initiate a :class:`.Hist1d` from a text file.
+
+        Assumes that the histogram is saved as
+        lower-bin-edges, upper-bin-edges, bin-values.
+
+        The file is loaded using :func:`numpy.loadtxt`.
+
+        Parameters
+        ----------
+        fname : str or PathLike
+            The filename.
+
+        data_layout : "rows" or "columns", default "columns"
+            Specify if data is saved in the text file in rows or in columns.
+
+        indices : (int, int, int), default (0, 1, 2)
+            Control which index corresponds to what in the data file.
+
+            - indices[0]: lower edges
+            - indices[1]: upper edges
+            - indices[2]: values
+
+        title : str, default ""
+            Optional title of the histogram.
+
+        xlabel : str, default ""
+            Optional x-label of the histogram.
+
+        ylabel : str, default ""
+            Optional y-label of the histogram.
+
+        Other parameters
+        ----------------
+        **loadtxt_kwargs
+            Additional :func:`numpy.loadtxt` keyword arguments.
+
+        Returns
+        -------
+        A :class:`.Hist1d` instance.
+
+        See also
+        --------
+        from_txt
+        """
+        data = normalize_columns_or_row_data(
+            np.loadtxt(fname, **loadtxt_kwargs), data_layout
+        )
+
+        ilower, iupper, ivalues = indices
+
+        lower = np.sort(data[ilower])
+        upper = np.sort(data[iupper])
+
+        if np.any(upper <= lower):
+            raise ValueError("upper edges must be strictly larger than lower edges")
+        if np.any(lower[1:] != upper[:-1]):
+            raise ValueError("mismatch between upper and lower edges")
+
+        edges = np.r_[lower, upper[-1]]
+        values = data[ivalues]
+        return cls(values, edges, title=title, xlabel=xlabel, ylabel=ylabel)
 
     @classmethod
     def from_root(
@@ -477,6 +559,47 @@ class Hist1d:
         values_str = str(self.values)
         hist_str = f"Hist1d with (values, xedges, yedges) =\n{values_str}\n{edges_str}"
         return hist_str
+
+    def save(
+        self,
+        fname: str | PathLike,
+        header: str = "__auto__",
+        layout: Literal["columns", "rows"] = "columns",
+        **savetxt_kwargs,
+    ) -> None:
+        """
+        Save histogram to a file.
+
+        Saves three columns (or rows): lower-edges, upper-edges, values.
+
+        Wraps :func:`numpy.savetxt`.
+
+        Parameters
+        ----------
+        fname : str
+            Filename of the output.
+
+        header : str, default "__auto__"
+            Header of the output file.
+
+            If "__auto__", header will be ``lower-edges upper-edges values``.
+
+        layout : "columns" or "rows", default "columns"
+            Control the layout of the output file.
+
+        **savetxt_kwargs
+            Other keyword arguments of :func:`numpy.savetxt`.
+        """
+        data = np.array((self.edges[:-1], self.edges[1:], self.values))
+        data = normalize_columns_or_row_data(data, layout)
+
+        kwargs = savetxt_kwargs.copy()
+        if header == "__auto__":
+            delim = kwargs.get("delimiter", " ")
+            header = f"lower-edges{delim}upper-edges{delim}values"
+            kwargs["header"] = header
+
+        np.savetxt(fname, data, **kwargs)
 
     def convert_cosine_to_angles(self, full_range: bool = True) -> Self:
         """

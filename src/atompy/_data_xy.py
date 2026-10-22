@@ -72,11 +72,13 @@ class DataXY:
         ylabel: str = "",
         **plot_kwargs,
     ) -> None:
-        _x = np.asarray(x, dtype=np.float64, copy=True)
-        _y = np.asarray(y, dtype=np.float64, copy=True)
-        if _x.size != _y.size:
+        x = np.asarray(x)
+        y = np.asarray(y)
+        if x.ndim != y.ndim != 1:
+            raise ValueError("x and y must be one-dimensional")
+        if x.size != y.size:
             raise ValueError("x and y values don't match")
-        self._data = np.array((_x, _y))
+        self._data = np.vstack((x, y))
         self._title = title
         self._xlabel = xlabel
         self._ylabel = ylabel
@@ -272,7 +274,7 @@ class DataXY:
         self._ylabel = val
 
     @property
-    def x(self) -> NDArray[np.float64]:
+    def x(self) -> NDArray[np.number]:
         """
         x-data of the data set.
         """
@@ -283,7 +285,7 @@ class DataXY:
         self._data[0] = values
 
     @property
-    def y(self) -> NDArray[np.float64]:
+    def y(self) -> NDArray[np.number]:
         """
         y-data of the data set.
         """
@@ -294,7 +296,7 @@ class DataXY:
         self._data[1] = values
 
     @property
-    def xy(self) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+    def xy(self) -> tuple[NDArray[np.number], NDArray[np.number]]:
         """
         Tuple (x, y) data.
 
@@ -326,7 +328,7 @@ class DataXY:
     def __len__(self) -> int:
         return self._data.shape[1]
 
-    def __iter__(self) -> Iterator[NDArray[np.float64]]:
+    def __iter__(self) -> Iterator[NDArray[np.number]]:
         return iter(self._data.T)
 
     def save(
@@ -356,7 +358,7 @@ class DataXY:
             fname, normalize_columns_or_row_data(self._data, layout), **savetxt_kwargs
         )
 
-    def asarray(self, copy: bool = False) -> NDArray[np.float64]:
+    def asarray(self, copy: bool = False) -> NDArray[np.number]:
         """
         Return a 2d ndarray of the data.
 
@@ -367,49 +369,49 @@ class DataXY:
         """
         return self._data.copy() if copy else self._data
 
-    def xmin(self) -> float:
+    def xmin(self) -> np.number:
         """
         Get the minimum x-value.
         """
-        return float(np.amin(self.x))
+        return np.amin(self.x)
 
-    def xmax(self) -> float:
+    def xmax(self) -> np.number:
         """
         Get the maximum x-value.
         """
-        return float(np.amax(self.x))
+        return np.amax(self.x)
 
-    def ymin(self) -> float:
+    def ymin(self) -> np.number:
         """
         Get the minimum y-value.
         """
-        return float(np.amin(self.y))
+        return np.amin(self.y)
 
-    def ymax(self) -> float:
+    def ymax(self) -> np.number:
         """
         Get the maximum y-value.
         """
-        return float(np.amax(self.y))
+        return np.amax(self.y)
 
-    def xlims(self) -> tuple[float, float]:
+    def xlims(self) -> tuple[np.number, np.number]:
         """
         Get (xmin, xmax).
         """
         return self.xmin(), self.xmax()
 
-    def ylims(self) -> tuple[float, float]:
+    def ylims(self) -> tuple[np.number, np.number]:
         """
         Get (ymin, ymax).
         """
         return self.ymin(), self.ymax()
 
-    def sum(self) -> float:
+    def sum(self) -> np.number:
         """
         Calculate sum of y values.
         """
-        return float(np.sum(self.y))
+        return np.sum(self.y)
 
-    def integrate(self) -> float:
+    def integrate(self) -> np.number:
         """
         Integrate data.
 
@@ -420,7 +422,7 @@ class DataXY:
         --------
         norm_to_integral
         """
-        return float(np.trapezoid(self.y, self.x))
+        return np.trapezoid(self.y, self.x)
 
     def norm_to_integral(self) -> Self:
         """

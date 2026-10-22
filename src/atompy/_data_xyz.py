@@ -12,7 +12,7 @@ from numpy.typing import ArrayLike, NDArray
 
 from atompy._core import NUMBER_T, get_topmost_figure, normalize_columns_or_row_data
 from atompy._data_xy import DataXY
-from atompy._utils import columns_to_meshgrid
+from atompy._utils import columns_to_meshgrid, match_xyz
 
 
 class DataXYZKwargs(TypedDict, total=True):
@@ -426,6 +426,44 @@ class DataXYZ:
             fill_value_missing=fill_value_missing,
         )
         return cls(x_, y_, zm, title=title, xlabel=xlabel, ylabel=ylabel, zlabel=zlabel)
+
+    def save(
+        self,
+        fname: str | PathLike,
+        layout: Literal["columns", "rows"] = "columns",
+        iteration_order: Literal["x_first", "y_first"] = "x_first",
+        **savetxt_kwargs,
+    ) -> None:
+        """
+        Save the histogram to a file.
+
+        Saves three columns (or rows): x, y, z.
+
+        Wraps :func:`numpy.savetxt`.
+
+        Parameters
+        ----------
+        fname : str
+            Filename of the output.
+
+        layout : "columns" or "rows", default "columns"
+            Control the layout of the output file.
+
+        iteration_order : "x_first" or "y_first", default "x_first"
+            Control which dimension iterates first.
+
+        **savetxt_kwargs
+            Other keyword arguments of :func:`numpy.savetxt`.
+        """
+        if iteration_order not in ("x_first", "y_first"):
+            raise ValueError(
+                f"{iteration_order=}, but it must be 'x_first' or 'y_first'"
+            )
+
+        data = match_xyz(self.x, self.y, self.z, iteration_order=iteration_order)
+        data = normalize_columns_or_row_data(data, layout)
+
+        np.savetxt(fname, data, **savetxt_kwargs)
 
     def xmin(self) -> np.number:
         """

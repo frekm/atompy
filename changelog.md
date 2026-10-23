@@ -3,7 +3,7 @@
 - Add `match_xyz` and `match_xy_edges_z`
 - Add `Hist2d.save` and `Hist2d.from_txt_edges`
 - Add `Hist1d.save`, `Hist1d.from_txt_edges`, `Hist1d.compute_errors`,
-  `Hist1d.plot_errorbar`, and `Hist1d.normfac`
+  `Hist1d.plot_errorbar`, `Hist1d.scale`, and `Hist1d.scale_factor`
 - Add `DataXYZ.save`
 - Add `DataXY.save`
 - Add `columns_to_meshgrid_edges`

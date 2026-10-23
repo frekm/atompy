@@ -851,6 +851,36 @@ class Hist1d:
         """
         return np.amin(self.values)
 
+    def scale(self, factor: float):
+        """
+        Scale histogram values.
+
+        Also updates :attr:`Hist1d.scale_factor`.
+
+        Parameters
+        ----------
+        factor : float
+            The scale factor.
+
+        Returns
+        -------
+        scaled_histogram : :class:`.Hist1d`
+
+        See also
+        --------
+        norm_to_integral
+        norm_to_sum
+        norm_to_max
+        """
+        new_values = np.multiply(self.values, factor).copy()
+        new_edges = self.edges.copy()
+        return type(self)(
+            new_values,
+            new_edges,
+            scale_factor=factor * self.scale_factor,
+            **self.labels_dict,
+        )
+
     def norm_to_integral(self) -> Self:
         """
         Return the histogram normalized to :meth:`.Hist1d.integrate`.
@@ -867,16 +897,9 @@ class Hist1d:
         --------
         norm_to_max
         norm_to_sum
+        scale
         """
-        scale_factor = 1.0 / self.integrate()
-        new_values = np.multiply(self.values, scale_factor).copy()
-        new_edges = self.edges.copy()
-        return type(self)(
-            new_values,
-            new_edges,
-            scale_factor=scale_factor * self.scale_factor,
-            **self.labels_dict,
-        )
+        return self.scale(1.0 / self.integrate())
 
     def norm_to_max(self) -> Self:
         """
@@ -894,16 +917,9 @@ class Hist1d:
         --------
         norm_to_integral
         norm_to_sum
+        scale
         """
-        scale_factor = 1.0 / self.max()
-        new_values = np.multiply(self.values, scale_factor).copy()
-        new_edges = self.edges.copy()
-        return type(self)(
-            new_values,
-            new_edges,
-            scale_factor=scale_factor * self.scale_factor,
-            **self.labels_dict,
-        )
+        return self.scale(1.0 / self.max())
 
     def norm_to_sum(self) -> Self:
         """
@@ -926,16 +942,9 @@ class Hist1d:
         --------
         norm_to_integral
         norm_to_max
+        scale
         """
-        scale_factor = 1.0 / self.sum()
-        new_values = np.multiply(self.values, scale_factor).copy()
-        new_edges = self.edges.copy()
-        return type(self)(
-            new_values,
-            new_edges,
-            scale_factor=scale_factor * self.scale_factor,
-            **self.labels_dict,
-        )
+        return self.scale(1.0 / self.max())
 
     def for_step(
         self, extent_to: None | float = None

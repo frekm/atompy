@@ -18,6 +18,7 @@ class DataXYKwargs(TypedDict, total=True):
     xlabel: str
     ylabel: str
     plot_kwargs: dict[str, Any]
+    scale_factor: float
 
 
 class DataXY:
@@ -41,6 +42,9 @@ class DataXY:
     ylabel : str, default ""
         Optional y-label of the data.
 
+    scale_factor : float, default 1.0
+        Scale factor associated with `y`.
+
     **plot_kwargs
         Other keyword parameters will be stored in :attr:`.DataXY.plot_kwargs`,
         which is used by :meth:`.DataXY.plot`.
@@ -52,6 +56,8 @@ class DataXY:
     y : ndarray
 
     xy : tuple[ndarray, ndarray]
+
+    scale_factor : float
 
     title : str
 
@@ -70,6 +76,7 @@ class DataXY:
         title: str = "",
         xlabel: str = "",
         ylabel: str = "",
+        scale_factor: float = 1.0,
         **plot_kwargs,
     ) -> None:
         _x = np.asarray(x, dtype=np.float64, copy=True)
@@ -81,6 +88,7 @@ class DataXY:
         self._xlabel = xlabel
         self._ylabel = ylabel
         self._plot_kwargs: dict[str, Any] = plot_kwargs
+        self._scale_factor = scale_factor
 
     @classmethod
     def from_txt(
@@ -230,7 +238,17 @@ class DataXY:
             "xlabel": copy.copy(self.xlabel),
             "ylabel": copy.copy(self.ylabel),
             "plot_kwargs": self.plot_kwargs.copy(),
+            "scale_factor": self.scale_factor,
         }
+
+    @property
+    def scale_factor(self) -> float:
+        """Normalization factor associated with y-data."""
+        return self._scale_factor
+
+    @scale_factor.setter
+    def scale_factor(self, value: float) -> None:
+        self._scale_factor = value
 
     @property
     def title(self) -> str:
@@ -422,6 +440,32 @@ class DataXY:
         """
         return float(np.trapezoid(self.y, self.x))
 
+    def scale(self, factor: float) -> Self:
+        """
+        Scale y-data.
+
+        Also updates :attr:`DataXY.scale_factor`.
+
+        Parameters
+        ----------
+        factor : float
+            The scale factor.
+
+        Returns
+        -------
+        scaled_data : :class:`.DataXY`
+
+        See also
+        --------
+        norm_to_integral
+        norm_to_sum
+        norm_to_max
+        """
+        new_y = np.multiply(self.y, factor).copy()
+        kwargs = self._kwargs
+        kwargs["scale_factor"] = self.scale_factor * factor
+        return type(self)(self.x.copy(), new_y, **kwargs)
+
     def norm_to_integral(self) -> Self:
         """
         Return the data normalized to :meth:`.DataXY.integrate`.
@@ -433,13 +477,11 @@ class DataXY:
 
         See also
         --------
+        scale
         norm_to_max
         norm_to_sum
         """
-        new_x = self.x.copy()
-        new_y = np.divide(self.y, self.integrate()).copy()
-        new_title = f"{self.title} / integral"
-        return type(self)(new_x, new_y, new_title, self.xlabel, self.ylabel)
+        return self.scale(1.0 / self.integrate())
 
     def norm_to_max(self) -> Self:
         """
@@ -454,11 +496,9 @@ class DataXY:
         --------
         norm_to_integral
         norm_to_sum
+        scale
         """
-        new_x = self.x.copy()
-        new_y = np.divide(self.y, self.ymax()).copy()
-        new_title = f"{self.title} / max"
-        return type(self)(new_x, new_y, new_title, self.xlabel, self.ylabel)
+        return self.scale(1.0 / self.ymax())
 
     def norm_to_sum(self) -> Self:
         """
@@ -473,11 +513,9 @@ class DataXY:
         --------
         norm_to_integral
         norm_to_max
+        scale
         """
-        new_x = self.x.copy()
-        new_y = np.divide(self.y, self.sum()).copy()
-        new_title = f"{self.title} / sum"
-        return type(self)(new_x, new_y, new_title, self.xlabel, self.ylabel)
+        return self.scale(1.0 / self.sum())
 
     def copy(self) -> Self:
         """Return a copy of data."""

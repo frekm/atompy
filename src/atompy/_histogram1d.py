@@ -15,6 +15,7 @@ from ._core import (
     get_topmost_figure,
     normalize_columns_or_row_data,
     raise_unmatching_edges,
+    warn_unmatching_normfacs,
 )
 from ._data_xy import DataXY
 from ._utils import centers_to_edges, get_all_dividers
@@ -24,6 +25,13 @@ class Hist1dLabelsDict(TypedDict, total=True):
     title: str
     xlabel: str
     ylabel: str
+
+
+class _KwargsDict(TypedDict, total=True):
+    title: str
+    xlabel: str
+    ylabel: str
+    normfac: float
 
 
 class Hist1d:
@@ -76,6 +84,8 @@ class Hist1d:
 
     nbins : int
 
+    normfac : float
+
     labels_dict : dict
     """
 
@@ -86,7 +96,8 @@ class Hist1d:
         title: str = "",
         xlabel: str = "",
         ylabel: str = "",
-    ):
+        normfac: float = 1.0,
+    ) -> None:
         self._values = np.asarray(values).astype(np.float64)
         self._edges = np.asarray(edges).astype(np.float64)
         if len(self._values) != len(self._edges) - 1:
@@ -95,6 +106,7 @@ class Hist1d:
         self.title = title
         self.xlabel = xlabel
         self.ylabel = ylabel
+        self._normfac = normfac
 
     @classmethod
     def from_centers(
@@ -106,6 +118,7 @@ class Hist1d:
         title: str = "",
         xlabel: str = "",
         ylabel: str = "",
+        normfac: float = 1.0,
     ) -> Self:
         """
         Initiate a :class:`.Hist1d` instance from values and bin-centers.
@@ -121,6 +134,9 @@ class Hist1d:
 
         Parameters
         ----------
+        values : array_like
+            The histogram values, e.g., counts.
+
         centers : ndarray, shape(n)
             centers of the bins
 
@@ -139,6 +155,9 @@ class Hist1d:
 
         ylabel : str, default ""
             Optional y-label of the histogram.
+
+        normfac : float, default 1.0
+            Normalization factor associated with `values`.
 
         See also
         --------
@@ -167,7 +186,7 @@ class Hist1d:
         values = np.asarray(values, copy=True).astype(np.float64)
         if len(values) != len(edges) - 1:
             raise ValueError("shape of values does not match shape of centers")
-        return cls(values, edges, title, xlabel, ylabel)
+        return cls(values, edges, title, xlabel, ylabel, normfac)
 
     @classmethod
     def from_txt(
@@ -181,6 +200,7 @@ class Hist1d:
         title: str = "",
         xlabel: str = "",
         ylabel: str = "",
+        normfac: float = 1.0,
         **loadtxt_kwargs,
     ) -> Self:
         """
@@ -218,6 +238,9 @@ class Hist1d:
 
         ylabel : str, default ""
             Optional y-label of the histogram.
+
+        normfac : float, default 1.0
+            Normalization factor associated with `values`.
 
         Other parameters
         ----------------
@@ -291,7 +314,14 @@ class Hist1d:
             np.loadtxt(fname, **loadtxt_kwargs), data_layout
         )
         return cls.from_centers(
-            data[idx_values], data[idx_centers], lower, upper, title, xlabel, ylabel
+            data[idx_values],
+            data[idx_centers],
+            lower,
+            upper,
+            title,
+            xlabel,
+            ylabel,
+            normfac,
         )
 
     @classmethod
@@ -303,6 +333,7 @@ class Hist1d:
         title: str = "",
         xlabel: str = "",
         ylabel: str = "",
+        normfac: float = 1.0,
         **loadtxt_kwargs,
     ) -> Self:
         """
@@ -337,6 +368,9 @@ class Hist1d:
         ylabel : str, default ""
             Optional y-label of the histogram.
 
+        normfac : float, default 1.0
+            Normalization factor associated with `values`.
+
         Other parameters
         ----------------
         **loadtxt_kwargs
@@ -366,7 +400,9 @@ class Hist1d:
 
         edges = np.r_[lower, upper[-1]]
         values = data[ivalues]
-        return cls(values, edges, title=title, xlabel=xlabel, ylabel=ylabel)
+        return cls(
+            values, edges, title=title, xlabel=xlabel, ylabel=ylabel, normfac=normfac
+        )
 
     @classmethod
     def from_root(
@@ -376,6 +412,7 @@ class Hist1d:
         title: str | Literal["__auto__"] = "__auto__",
         xlabel: str | Literal["__auto__"] = "__auto__",
         ylabel: str | Literal["__auto__"] = "__auto__",
+        normfac: float = 1.0,
     ) -> Self:
         """
         Initiate a :class:`.Hist1d` from a `ROOT <https://root.cern.ch/>`__ file.
@@ -388,6 +425,24 @@ class Hist1d:
         hname : str
             The name of the histogram within the ROOT file,
             e.g., ``path/to/histogram1d``.
+
+        title : str, default "__auto__"
+            Optional title of the histogram.
+
+            If "__auto__", use title of imported ROOT histogram.
+
+        xlabel : str, default "__auto__"
+            Optional x-label of the histogram.
+
+            If "__auto__", use x-label of imported ROOT histogram.
+
+        ylabel : str, default "__auto__"
+            Optional y-label of the histogram.
+
+            If "__auto__", use y-label of imported ROOT histogram.
+
+        normfac : float, default 1.0
+            Normalization factor associated with `values`.
         """
         with uproot.open(fname) as file:  # type: ignore
             hist: Any = file[hname]
@@ -403,7 +458,7 @@ class Hist1d:
                 else ylabel
             )
             values, edges = hist.to_numpy()
-            return cls(values, edges, title_, xlabel_, ylabel_)
+            return cls(values, edges, title_, xlabel_, ylabel_, normfac)
 
     @staticmethod
     def _calculate_centers(edges: NDArray[np.float64]) -> NDArray[np.float64]:
@@ -458,6 +513,15 @@ class Hist1d:
         return self._centers
 
     @property
+    def normfac(self) -> float:
+        """Normalization factor associated with the histogram values."""
+        return self._normfac
+
+    @normfac.setter
+    def normfac(self, value: float) -> None:
+        self._normfac = value
+
+    @property
     def nbins(self) -> int:
         """Number of bins."""
         return len(self.values)
@@ -472,18 +536,31 @@ class Hist1d:
         """A dictionary of the histogram's title, xlabel and ylabel."""
         return {"title": self.title, "xlabel": self.xlabel, "ylabel": self.ylabel}
 
+    @property
+    def _kwargs(self) -> _KwargsDict:
+        return {
+            "title": self.title,
+            "xlabel": self.xlabel,
+            "ylabel": self.ylabel,
+            "normfac": self.normfac,
+        }
+
     def __add__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
             return NotImplemented
         raise_unmatching_edges(self.edges, other.edges)
+        warn_unmatching_normfacs(self.normfac, other.normfac)
 
         return type(self)(
-            self.values + other.values, self.edges.copy(), **self.labels_dict
+            self.values + other.values,
+            self.edges.copy(),
+            **self._kwargs,
         )
 
     def __iadd__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
             return NotImplemented
+        warn_unmatching_normfacs(self.normfac, other.normfac)
         self.title = f"{self.title} + {other.title}"
         self.values += other.values
         return self
@@ -492,13 +569,13 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         raise_unmatching_edges(self.edges, other.edges)
-        return type(self)(
-            self.values - other.values, self.edges.copy(), **self.labels_dict
-        )
+        warn_unmatching_normfacs(self.normfac, other.normfac)
+        return type(self)(self.values - other.values, self.edges.copy(), **self._kwargs)
 
     def __isub__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
             return NotImplemented
+        warn_unmatching_normfacs(self.normfac, other.normfac)
         self.values -= other.values
         self.title = f"{self.title} $-$ {other.title}"
         return self
@@ -507,13 +584,13 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         raise_unmatching_edges(self.edges, other.edges)
-        return type(self)(
-            self.values * other.values, self.edges.copy(), **self.labels_dict
-        )
+        warn_unmatching_normfacs(self.normfac, other.normfac)
+        return type(self)(self.values * other.values, self.edges.copy(), **self._kwargs)
 
     def __imul__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
             return NotImplemented
+        warn_unmatching_normfacs(self.normfac, other.normfac)
         self.values *= other.values
         self.title = rf"{self.title} $\times$ {other.title}"
         return self
@@ -522,13 +599,13 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         raise_unmatching_edges(self.edges, other.edges)
-        return type(self)(
-            self.values / other.values, self.edges.copy(), **self.labels_dict
-        )
+        warn_unmatching_normfacs(self.normfac, other.normfac)
+        return type(self)(self.values / other.values, self.edges.copy(), **self._kwargs)
 
     def __itruediv__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
             return NotImplemented
+        warn_unmatching_normfacs(self.normfac, other.normfac)
         self.values /= other.values
         self.title = f"{self.title} / {other.title}"
         return self
@@ -537,19 +614,21 @@ class Hist1d:
         if not isinstance(other, Hist1d):
             return NotImplemented
         raise_unmatching_edges(self.edges, other.edges)
+        warn_unmatching_normfacs(self.normfac, other.normfac)
         return type(self)(
-            self.values // other.values, self.edges.copy(), **self.labels_dict
+            self.values // other.values, self.edges.copy(), **self._kwargs
         )
 
     def __ifloordiv__(self, other: "Hist1d") -> Self:
         if not isinstance(other, Hist1d):
             return NotImplemented
+        warn_unmatching_normfacs(self.normfac, other.normfac)
         self.values //= other.values
         self.title = rf"$\lfloor${self.title} / {other.title}$\rfloor$"
         return self
 
     def __neg__(self) -> Self:
-        return type(self)(-self.values, self.edges, **self.labels_dict)
+        return type(self)(-self.values, self.edges, **self._kwargs)
 
     def __iter__(self) -> Iterator[NDArray[Any]]:
         return iter([self.values, self.centers])
@@ -638,7 +717,7 @@ class Hist1d:
             angles = np.append(angles, angles[1:] + np.pi)
             values = np.append(values, np.flip(values))
 
-        return type(self)(values, angles, **self.labels_dict)
+        return type(self)(values, angles, **self._kwargs)
 
     def rebin(self, factor: int) -> Self:
         """
@@ -680,7 +759,7 @@ class Hist1d:
         for i in range(new_edges.size - 1):
             new_edges[i] = self.edges[i * factor]
 
-        return type(self)(new_hist, new_edges, **self.labels_dict)
+        return type(self)(new_hist, new_edges, **self._kwargs)
 
     def binsizes(self) -> NDArray[np.float64]:
         """
@@ -776,14 +855,20 @@ class Hist1d:
         hist : :class:`Hist1d`
             The normalized histogram.
 
+            :attr:`.Hist1d.normfac` of the returned histogram will be
+            ``1.0 / original.integrate()``.
+
         See also
         --------
         norm_to_max
         norm_to_sum
         """
-        new_values = np.divide(self.values, self.integrate()).copy()
+        normfac = 1.0 / self.integrate()
+        new_values = np.multiply(self.values, normfac).copy()
         new_edges = self.edges.copy()
-        return type(self)(new_values, new_edges, **self.labels_dict)
+        return type(self)(
+            new_values, new_edges, normfac=normfac * self.normfac, **self.labels_dict
+        )
 
     def norm_to_max(self) -> Self:
         """
@@ -794,14 +879,20 @@ class Hist1d:
         hist : :class:`Hist1d`
             The normalized histogram.
 
+            :attr:`.Hist1d.normfac` of the returned histogram will be
+            ``1.0 / original.max()``.
+
         See also
         --------
         norm_to_integral
         norm_to_sum
         """
-        new_values = np.divide(self.values, np.amax(self.values)).copy()
+        normfac = 1.0 / self.max()
+        new_values = np.multiply(self.values, normfac).copy()
         new_edges = self.edges.copy()
-        return type(self)(new_values, new_edges, **self.labels_dict)
+        return type(self)(
+            new_values, new_edges, normfac=normfac * self.normfac, **self.labels_dict
+        )
 
     def norm_to_sum(self) -> Self:
         """
@@ -817,14 +908,20 @@ class Hist1d:
         hist : :class:`Hist1d`
             The normalized histogram.
 
+            :attr:`.Hist1d.normfac` of the returned histogram will be
+            ``1.0 / original.sum()``.
+
         See also
         --------
         norm_to_integral
         norm_to_max
         """
-        new_values = np.divide(self.values, self.sum()).copy()
+        normfac = 1.0 / self.sum()
+        new_values = np.multiply(self.values, normfac).copy()
         new_edges = self.edges.copy()
-        return type(self)(new_values, new_edges, **self.labels_dict)
+        return type(self)(
+            new_values, new_edges, normfac=normfac * self.normfac, **self.labels_dict
+        )
 
     def for_step(
         self, extent_to: None | float = None
@@ -951,7 +1048,7 @@ class Hist1d:
 
     def copy(self) -> Self:
         """Return a copy of the histogram."""
-        return type(self)(self.values.copy(), self.edges.copy(), **self.labels_dict)
+        return type(self)(self.values.copy(), self.edges.copy(), **self._kwargs)
 
     def plot(
         self,
@@ -1319,14 +1416,12 @@ class Hist1d:
         if squeeze:
             new_values = self.values.copy()[idx]
             new_edges = self.edges.copy()[np.append(idx, idx[-1] + 1)]
-            return type(self)(
-                new_values, new_edges, self.title, self.xlabel, self.ylabel
-            )
+            return type(self)(new_values, new_edges, **self._kwargs)
         else:
             new_values = np.full(self.values.shape, setval)
             new_values[idx] = self.values[idx]
             new_edges = self.edges.copy()
-            return type(self)(new_values, new_edges, **self.labels_dict)
+            return type(self)(new_values, new_edges, **self._kwargs)
 
     def remove(
         self,
@@ -1384,7 +1479,7 @@ class Hist1d:
         idx = np.flatnonzero(
             np.logical_and(lower <= self.edges[:-1], self.edges[1:] <= upper)
         )
-        new_hist = type(self)(self.values.copy(), self.edges.copy(), **self.labels_dict)
+        new_hist = type(self)(self.values.copy(), self.edges.copy(), **self._kwargs)
         new_hist.values[idx] = setval
         return new_hist
 
@@ -1414,9 +1509,10 @@ class Hist1d:
 
         """
         raise_unmatching_edges(self.edges, other.edges, "x")
+        warn_unmatching_normfacs(self.normfac, other.normfac)
         new_edges = self.edges.copy()
         new_values = (self.values - other.values) / (self.values + other.values)
-        return type(self)(new_values, new_edges, **self.labels_dict)
+        return type(self)(new_values, new_edges, **self._kwargs)
 
     def pad_with(self, value: float) -> Self:
         """
@@ -1449,7 +1545,7 @@ class Hist1d:
         new_values[0] = value
         new_values[1:-1] = self.values
         new_values[-1] = value
-        return type(self)(new_values, new_edges, **self.labels_dict)
+        return type(self)(new_values, new_edges, **self._kwargs)
 
     def xy(self) -> DataXY:
         """

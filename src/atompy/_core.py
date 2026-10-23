@@ -1,3 +1,4 @@
+import warnings
 from typing import Any, Literal, TypeVar, cast
 
 import numpy as np
@@ -35,6 +36,11 @@ def raise_unmatching_edges(
 ) -> None:
     if not np.allclose(a, b):
         raise UnmatchingEdgesError(xy)
+
+
+def warn_unmatching_normfacs(f0: float, f1: float) -> None:
+    if not np.allclose(f0, f1):
+        warnings.warn("Normalization factors do not match!", stacklevel=2)
 
 
 def deprecated_keyword_doing_nothing_msg(keyword: str):

@@ -38,7 +38,7 @@ def raise_unmatching_edges(
         raise UnmatchingEdgesError(xy)
 
 
-def warn_unmatching_normfacs(f0: float, f1: float) -> None:
+def warn_unmatching_scale_factors(f0: float, f1: float) -> None:
     if not np.allclose(f0, f1):
         warnings.warn("Normalization factors do not match!", stacklevel=2)
 

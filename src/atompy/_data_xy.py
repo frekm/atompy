@@ -18,7 +18,7 @@ class DataXYKwargs(TypedDict, total=True):
     xlabel: str
     ylabel: str
     plot_kwargs: dict[str, Any]
-    scale_factor: float
+    scaled_by: float
 
 
 class DataXY:
@@ -42,7 +42,7 @@ class DataXY:
     ylabel : str, default ""
         Optional y-label of the data.
 
-    scale_factor : float, default 1.0
+    scaled_by : float, default 1.0
         Scale factor associated with `y`.
 
     **plot_kwargs
@@ -57,7 +57,7 @@ class DataXY:
 
     xy : tuple[ndarray, ndarray]
 
-    scale_factor : float
+    scaled_by : float
 
     title : str
 
@@ -76,7 +76,7 @@ class DataXY:
         title: str = "",
         xlabel: str = "",
         ylabel: str = "",
-        scale_factor: float = 1.0,
+        scaled_by: float = 1.0,
         **plot_kwargs,
     ) -> None:
         _x = np.asarray(x, dtype=np.float64, copy=True)
@@ -88,7 +88,7 @@ class DataXY:
         self._xlabel = xlabel
         self._ylabel = ylabel
         self._plot_kwargs: dict[str, Any] = plot_kwargs
-        self._scale_factor = scale_factor
+        self._scaled_by = scaled_by
 
     @classmethod
     def from_txt(
@@ -238,17 +238,17 @@ class DataXY:
             "xlabel": copy.copy(self.xlabel),
             "ylabel": copy.copy(self.ylabel),
             "plot_kwargs": self.plot_kwargs.copy(),
-            "scale_factor": self.scale_factor,
+            "scaled_by": self.scaled_by,
         }
 
     @property
-    def scale_factor(self) -> float:
+    def scaled_by(self) -> float:
         """Normalization factor associated with y-data."""
-        return self._scale_factor
+        return self._scaled_by
 
-    @scale_factor.setter
-    def scale_factor(self, value: float) -> None:
-        self._scale_factor = value
+    @scaled_by.setter
+    def scaled_by(self, value: float) -> None:
+        self._scaled_by = value
 
     @property
     def title(self) -> str:
@@ -444,7 +444,7 @@ class DataXY:
         """
         Scale y-data.
 
-        Also updates :attr:`DataXY.scale_factor`.
+        Also updates :attr:`DataXY.scaled_by`.
 
         Parameters
         ----------
@@ -463,7 +463,7 @@ class DataXY:
         """
         new_y = np.multiply(self.y, factor).copy()
         kwargs = self._kwargs
-        kwargs["scale_factor"] = self.scale_factor * factor
+        kwargs["scaled_by"] = self.scaled_by * factor
         return type(self)(self.x.copy(), new_y, **kwargs)
 
     def norm_to_integral(self) -> Self:

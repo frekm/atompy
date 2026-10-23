@@ -1,5 +1,5 @@
 import warnings
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from os import PathLike
 from typing import Any, Literal, Self, TypedDict
 
@@ -1573,3 +1573,49 @@ class Hist1d:
         array([10., 11., 12.])
         """
         return DataXY(self.centers, self.values, **self.labels_dict)
+
+    def compute_errors(self, f: Callable = np.sqrt) -> NDArray[np.float64]:
+        """
+        Calculate errors associated with :attr:`Hist1d.values`.
+
+        Considers :attr:`Hist1d.normfac`.
+
+        Parameters
+        ----------
+        f : Callable, default :func:`numpy.sqrt`
+            Errors will be calculated using this function as
+            `errors = f(values / normfac) * normfac`.
+
+        Returns
+        -------
+        errors: ndarray
+
+        Examples
+        --------
+
+        >>> import atompy as ap
+        >>> h = ap.Hist1d.from_centers((10, 20, 30, 40), (0, 1, 2, 3))
+
+        By default, `compute_errors()` calculates the square root of the histogram values:
+
+        >>> h.compute_errors()
+        array([3.16227766, 4.47213595, 5.47722558, 6.32455532])
+
+        One can provide a custom function that is used, e.g., the identity function:
+
+        >>> h.compute_errors(lambda x: x)
+        array([10., 20., 30., 40.])
+
+        `compute_errors()` takes :attr:`Hist1d.normfac` into consideration, resulting
+        in correctly scaled errors when normalizing the histogram.
+
+        >>> h.integrate()
+        np.float64(100.0)
+        >>> h.norm_to_integral().values
+        array([0.1, 0.2, 0.3, 0.4])
+        >>> h.norm_to_integral().compute_errors()
+        array([0.03162278, 0.04472136, 0.05477226, 0.06324555])
+        """
+        original_values = self.values / self.normfac
+        errors = f(original_values) * self.normfac
+        return errors

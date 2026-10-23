@@ -1073,6 +1073,10 @@ class Hist1d:
 
         Parameters
         ----------
+        ax : :class:`matplotlib.axes.Axes`, optional
+            If provided, plot into this axes, otherwise create a new figure
+            and axes.
+
         fname : str, optional
             If provided, the plot will be saved to this file
             using :func:`matplotlib.figure.Figure.savefig`.
@@ -1221,9 +1225,16 @@ class Hist1d:
 
         Parameters
         ----------
+        ax : :class:`matplotlib.axes.Axes`, optional
+            If provided, plot into this axes, otherwise create a new figure
+            and axes.
+
         fname : str, optional
             If provided, the plot will be saved to this file
             using :meth:`matplotlib.figure.Figure.savefig`.
+
+            Additional keyword arguments for ``savefig`` can be provided
+            with `savefig_kwargs`.
 
         xlabel : str, default "__auto__"
             Label for the x-axis.
@@ -1337,6 +1348,108 @@ class Hist1d:
         y[1:-1] = np.repeat(self.values, 2)
         y[-1] = start_at if start_at != "auto" else self.values[-1]
         ax.plot(x, y, "-", **plot_kwargs)
+        ax.set_xlim(xlim)  # type: ignore
+        ax.set_ylim(ylim)  # type: ignore
+        if logscale:
+            ax.set_yscale("log")
+        if savefig_kwargs is None:
+            savefig_kwargs = {}
+        if fname is not None:
+            fig.savefig(fname, **savefig_kwargs)
+        return fig, ax
+
+    def plot_errorbar(
+        self,
+        ax: Axes | None = None,
+        *,
+        errorfunc: Callable = np.sqrt,
+        fname: str | None = None,
+        xlabel: str | Literal["__auto__"] = "__auto__",
+        ylabel: str | Literal["__auto__"] = "__auto__",
+        title: str | Literal["__auto__"] = "__auto__",
+        logscale: bool = False,
+        xlim: tuple[None | float, None | float] | None = None,
+        ylim: tuple[None | float, None | float] | None = None,
+        savefig_kwargs: dict[str, Any] | None = None,
+        **errorbar_kwargs,
+    ) -> tuple[Figure, Axes]:
+        """
+        Plot histogram using :func:`matplotlib.pyplot.errorbar`.
+
+        Parameters
+        ----------
+        ax : :class:`matplotlib.axes.Axes`, optional
+            If provided, plot into this axes, otherwise create a new figure
+            and axes.
+
+        errorfunc : Callable, default :func:`numpy.sqrt`
+            Use this function to calculate errors using
+            :meth:`Hist1d.errors`.
+
+        fname : str, optional
+            If provided, the plot will be saved to this file
+            using :func:`matplotlib.figure.Figure.savefig`.
+
+        xlabel : str, default "__auto__"
+            Label for the x-axis.
+
+            If "__auto__", use `Hist1d.xlabel`.
+
+        ylabel : str, default "__auto__"
+            Label for the y-axis.
+
+            If "__auto__", use `Hist1d.ylabel`.
+
+        title : str, default "__auto__"
+            Title of the plot.
+
+            If "__auto__", use `Hist1d.title`.
+
+        logscale : bool, optional
+            If True, use a logarithmic y scale.
+
+        xlim : tuple[float | None, float | None], optional
+            Limits for the x-axis.
+
+        ylim : tuple[float | None, float | None], optional
+            Limits for the y-axis.
+
+        savefig_kwargs : dict, optional
+            Additional keyword arguments passed to
+            :func:`~matplotlib.figure.Figure.savefig`.
+
+        Other parameters
+        ----------------
+        errorbar_kwargs : dict, optional
+            Additional keyword arguments passed to
+            :obj:`matplotlib.pyplot.plot`.
+
+            If `yerr` is provided, `errorfunc` has no effect.
+
+        Returns
+        -------
+        tuple of :class:`matplotlib.figure.Figure`, :class:`matplotlib.axes.Axes`
+            A tuple containing the matplotlib Figure and Axes.
+
+        Examples
+        --------
+
+        .. plot:: _examples/histogram1d/plot_errorbar.py
+            :include-source:
+        """
+        if ax is None:
+            fig, ax = plt.subplots(1, 1)
+        else:
+            fig = get_topmost_figure(ax)
+        kwargs = errorbar_kwargs.copy()
+        kwargs.setdefault("yerr", self.compute_errors(errorfunc))
+        ax.errorbar(*self.for_plot(), **kwargs)
+        ax.set_xlabel(xlabel if xlabel != "__auto__" else self.xlabel)
+        ax.set_ylabel(ylabel if ylabel != "__auto__" else self.ylabel)
+        title_ = title if title != "__auto__" else self.title
+        ax.set_title(title_)
+        if title_ != "":
+            fig.canvas.manager.set_window_title(title_)  # type: ignore
         ax.set_xlim(xlim)  # type: ignore
         ax.set_ylim(ylim)  # type: ignore
         if logscale:

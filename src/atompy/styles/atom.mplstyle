@@ -22,8 +22,10 @@ axes.linewidth: 0.8
 grid.linewidth: 0.8
 
 lines.linewidth: 2.0
-lines.markersize: 3.0
+lines.markersize: 5.0
 errorbar.capsize: 3.0
+errorbar.capthick: 0.8
+errorbar.elinewidth: 0.8
 
 xtick.major.size: 3.5
 xtick.minor.size: 2.0

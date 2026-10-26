@@ -625,6 +625,52 @@ class DataXY:
         cond = (ymin <= self.x) & (self.x < ymax)
         return self._get_gated_data(~cond, squeeze, ysetval)
 
+    def compute_errors(self, f: Callable = np.sqrt) -> NDArray[np.float64]:
+        """
+        Calculate errors associated with :attr:`DataXY.y`.
+
+        Considers :attr:`DataXY.scaled_by`.
+
+        Parameters
+        ----------
+        f : Callable, default :func:`numpy.sqrt`
+            Errors will be calculated using this function as
+            `errors = f(values / scaled_by) * scaled_by`.
+
+        Returns
+        -------
+        errors: ndarray
+
+        Examples
+        --------
+
+        >>> import atompy as ap
+        >>> d = ap.DataXY((1, 2, 3, 4), (10, 20, 30, 40))
+
+        By default, `compute_errors()` calculates the square root of the y-values:
+
+        >>> d.compute_errors()
+        array([3.16227766, 4.47213595, 5.47722558, 6.32455532])
+
+        One can provide a custom function that is used, e.g., the identity function:
+
+        >>> d.compute_errors(lambda x: x)
+        array([10., 20., 30., 40.])
+
+        `compute_errors()` takes :attr:`DataXY.scaled_by` into consideration, resulting
+        in correctly scaled errors when, e.g., y-data has been normalized.
+
+        >>> d.integrate()
+        np.float64(75.0)
+        >>> d.norm_to_integral().compute_errors()
+        array([0.0421637 , 0.05962848, 0.07302967, 0.0843274 ])
+        >>> d.norm_to_integral().y
+        array([0.13333333, 0.26666667, 0.4       , 0.53333333])
+        """
+        original_values = self.y / self.scaled_by
+        errors = f(original_values) * self.scaled_by
+        return errors
+
     def plot(
         self,
         ax: Axes | None = None,
@@ -733,6 +779,109 @@ class DataXY:
             ax.set_xscale("log")
         if logscale_y:
             ax.set_yscale("log")
+        if fname is not None:
+            fig.savefig(fname, **savefig_kwargs)
+        return fig, ax
+
+    def plot_errorbar(
+        self,
+        ax: Axes | None = None,
+        *,
+        errorfunc: Callable = np.sqrt,
+        fname: str | None = None,
+        xlabel: str | Literal["__auto__"] = "__auto__",
+        ylabel: str | Literal["__auto__"] = "__auto__",
+        title: str | Literal["__auto__"] = "__auto__",
+        logscale: bool = False,
+        xlim: tuple[None | float, None | float] | None = None,
+        ylim: tuple[None | float, None | float] | None = None,
+        savefig_kwargs: dict[str, Any] | None = None,
+        **errorbar_kwargs,
+    ) -> tuple[Figure, Axes]:
+        """
+        Plot data using :func:`matplotlib.pyplot.errorbar`.
+
+        Parameters
+        ----------
+        ax : :class:`matplotlib.axes.Axes`, optional
+            If provided, plot into this axes, otherwise create a new figure
+            and axes.
+
+        errorfunc : Callable, default :func:`numpy.sqrt`
+            Use this function to calculate errors using
+            :meth:`Hist1d.errors`.
+
+        fname : str, optional
+            If provided, the plot will be saved to this file
+            using :func:`matplotlib.figure.Figure.savefig`.
+
+        xlabel : str, default "__auto__"
+            Label for the x-axis.
+
+            If "__auto__", use `DataXY.xlabel`.
+
+        ylabel : str, default "__auto__"
+            Label for the y-axis.
+
+            If "__auto__", use `DataXY.ylabel`.
+
+        title : str, default "__auto__"
+            Title of the plot.
+
+            If "__auto__", use `DataXY.title`.
+
+        logscale : bool, optional
+            If True, use a logarithmic y scale.
+
+        xlim : tuple[float | None, float | None], optional
+            Limits for the x-axis.
+
+        ylim : tuple[float | None, float | None], optional
+            Limits for the y-axis.
+
+        savefig_kwargs : dict, optional
+            Additional keyword arguments passed to
+            :func:`~matplotlib.figure.Figure.savefig`.
+
+        Other parameters
+        ----------------
+        errorbar_kwargs : dict, optional
+            Additional keyword arguments passed to
+            :obj:`matplotlib.pyplot.plot`.
+
+            If `yerr` is provided, `errorfunc` has no effect.
+
+        Returns
+        -------
+        tuple of :class:`matplotlib.figure.Figure`, :class:`matplotlib.axes.Axes`
+            A tuple containing the matplotlib Figure and Axes.
+
+        Examples
+        --------
+
+        .. plot:: _examples/dataxy/plot_errorbar.py
+            :include-source:
+        """
+        if ax is None:
+            fig, ax = plt.subplots(1, 1)
+        else:
+            fig = _core.get_topmost_figure(ax)
+        kwargs = errorbar_kwargs.copy()
+        kwargs.setdefault("yerr", self.compute_errors(errorfunc))
+        kwargs.setdefault("fmt", "o")
+        ax.errorbar(self.x, self.y, **kwargs)
+        ax.set_xlabel(xlabel if xlabel != "__auto__" else self.xlabel)
+        ax.set_ylabel(ylabel if ylabel != "__auto__" else self.ylabel)
+        title_ = title if title != "__auto__" else self.title
+        ax.set_title(title_)
+        if title_ != "":
+            fig.canvas.manager.set_window_title(title_)  # type: ignore
+        ax.set_xlim(xlim)  # type: ignore
+        ax.set_ylim(ylim)  # type: ignore
+        if logscale:
+            ax.set_yscale("log")
+        if savefig_kwargs is None:
+            savefig_kwargs = {}
         if fname is not None:
             fig.savefig(fname, **savefig_kwargs)
         return fig, ax

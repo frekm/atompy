@@ -5,7 +5,8 @@
 - Add `Hist1d.save`, `Hist1d.from_txt_edges`, `Hist1d.compute_errors`,
   `Hist1d.plot_errorbar`, `Hist1d.scale`, and `Hist1d.scaled_by`
 - Add `DataXYZ.save`
-- Add `DataXY.save`
+- Add `DataXY.save`, `DataXY.scale`, `DataXY.scaled_by`,
+  `DataXY.compute_errors`, and `DataXY.plot_errorbar`
 - Add `columns_to_meshgrid_edges`
 
 ## v5.10.1
@@ -32,8 +33,8 @@
 
 ## v5.7.3
 
-- Remove histogram titles automatically updating when adding histograms, renormalizing,
-  etc.
+- Remove histogram titles automatically updating when adding histograms,
+  renormalizing, etc.
 - Minor fixes
 
 ## v5.7.2
@@ -65,8 +66,8 @@
 - Add `Hist1d/2d.copy`
 - Add `Hist2d.from_image`
 - Add tutorial
-- `CoordinateSystem` and `CoordinateSystemArray` can now be initialized with three
-  vectors.
+- `CoordinateSystem` and `CoordinateSystemArray` can now be initialized with
+  three vectors.
 
 ## v5.4.1
 
@@ -128,8 +129,8 @@
 
 - Added more normalization methods to `Hist1d` and `Hist2d`
 - Added `bins` and `binwidth` properties to `Hist1d`
-- Added `xbins`, `ybins`, `xbinwidths`, `ybinwidths`, `binareas`, and `histogram`
-  properties to `Hist2d`
+- Added `xbins`, `ybins`, `xbinwidths`, `ybinwidths`, `binareas`, and
+  `histogram` properties to `Hist2d`
 - Bugfixes in `Hist1d` and `Hist2d` caused by shallow copies
 - Updated documentation
 
@@ -202,7 +203,8 @@
 
 ## v4.10.0
 
-- Added `fit_polar`, `eval_polarfit`, `eval_polarfit_even`, and `add_polar_guideline`.
+- Added `fit_polar`, `eval_polarfit`, `eval_polarfit_even`,
+  and `add_polar_guideline`.
 
 ## v4.9.1
 

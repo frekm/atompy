@@ -1466,6 +1466,7 @@ class Hist1d:
             fig = get_topmost_figure(ax)
         kwargs = errorbar_kwargs.copy()
         kwargs.setdefault("yerr", self.compute_errors(errorfunc))
+        kwargs.setdefault("fmt", "o")
         ax.errorbar(*self.for_plot(), **kwargs)
         ax.set_xlabel(xlabel if xlabel != "__auto__" else self.xlabel)
         ax.set_ylabel(ylabel if ylabel != "__auto__" else self.ylabel)
@@ -1732,18 +1733,21 @@ class Hist1d:
         >>> import atompy as ap
         >>> h = ap.Hist1d.from_centers((10, 20, 30, 40), (0, 1, 2, 3))
 
-        By default, `compute_errors()` calculates the square root of the histogram values:
+        By default, `compute_errors()` calculates the square root of the
+        histogram values:
 
         >>> h.compute_errors()
         array([3.16227766, 4.47213595, 5.47722558, 6.32455532])
 
-        One can provide a custom function that is used, e.g., the identity function:
+        One can provide a custom function that is used, e.g., the
+        identity function:
 
         >>> h.compute_errors(lambda x: x)
         array([10., 20., 30., 40.])
 
-        `compute_errors()` takes :attr:`Hist1d.scaled_by` into consideration, resulting
-        in correctly scaled errors when normalizing the histogram.
+        `compute_errors()` takes :attr:`Hist1d.scaled_by` into consideration,
+        resulting in correctly scaled errors when, e.g., the histogram values
+        have been normalized.
 
         >>> h.integrate()
         np.float64(100.0)

@@ -67,26 +67,6 @@ class Hist1d:
 
     ylabel : str, default ""
         Optional y-label of the histogram.
-
-    Attributes
-    ----------
-    edges : ndarray
-
-    bin_edges : ndarray
-
-    values : ndarray
-
-    hist : ndarray
-
-    centers : ndarray
-
-    limits : (float, float)
-
-    nbins : int
-
-    scaled_by : float
-
-    labels_dict : dict
     """
 
     def __init__(

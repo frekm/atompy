@@ -79,42 +79,6 @@ class Hist2d:
         Optional zlabel of the histogram.
 
         May be used in :meth:`~Hist2d.plot`.
-
-    Attributes
-    ----------
-    values : ndarray, shape(m, n)
-
-    H : ndarray, shape(m, n)
-
-    xedges : ndarray, shape(m+1,)
-
-    yedges : ndarray, shape(n+1,)
-
-    xcenters : ndarray, shape(m,)
-
-    ycenters : ndarray, shape(n,)
-
-    xbins : int
-
-    ybins : int
-
-    nbins : (int, int)
-
-    xlim : (float, float)
-
-    ylim : (float, float)
-
-    limits : ((float, float), (float, float))
-
-    title : str
-
-    xlabel : str
-
-    ylabel : str
-
-    zlabel : str
-
-    labels_dict : dict
     """
 
     def __init__(

@@ -50,29 +50,6 @@ class DataXYZ:
 
     zlabel : str, default ""
         Optional z-label of the data.
-
-    Attributes
-    ----------
-    x : ndarray
-
-    xmesh : ndarray
-
-    y : ndarray
-
-    ymesh : ndarray
-
-    z : ndarray
-
-    zmesh : ndarray
-
-    title : str
-
-    xlabel : str
-
-    ylabel : str
-
-    zlabel : str
-
     """
 
     def __init__(

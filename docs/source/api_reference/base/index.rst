@@ -33,6 +33,7 @@ Data
 
     DataXY
     DataXYZ
+    Function
 
 Histograms
 ==========

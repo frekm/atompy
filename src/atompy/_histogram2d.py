@@ -1,8 +1,7 @@
 import copy
 import warnings
-from collections.abc import Callable
 from os import PathLike
-from typing import Any, Concatenate, Literal, Self, TypedDict
+from typing import Any, Literal, Self, TypedDict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,8 +12,9 @@ from matplotlib.colors import LogNorm
 from matplotlib.figure import Figure
 from numpy.typing import ArrayLike, NDArray
 
+from atompy._plottable import Plottable3d
+
 from ._core import (
-    P,
     deprecated_keyword_doing_nothing_msg,
     get_topmost_figure,
     normalize_columns_or_row_data,
@@ -38,7 +38,7 @@ class _LabelsDict(TypedDict, total=True):
     zlabel: str
 
 
-class Hist2d:
+class Hist2d(Plottable3d):
     """
     A histogram class providing basic 2D-histogram methods.
 
@@ -92,7 +92,9 @@ class Hist2d:
         xlabel: str = "",
         ylabel: str = "",
         zlabel: str = "",
+        **plot_kwargs,
     ):
+        super().__init__(title, xlabel, ylabel, zlabel, **plot_kwargs)
         self._values = np.asarray(values).astype(np.float64)
         self._xedges = np.asarray(xedges).astype(np.float64)
         self._yedges = np.asarray(yedges).astype(np.float64)
@@ -102,45 +104,6 @@ class Hist2d:
             raise ValueError("yedges and values don't match")
         self._xcenters = edges_to_centers(self._xedges)
         self._ycenters = edges_to_centers(self._yedges)
-        self._title = title
-        self._xlabel = xlabel
-        self._ylabel = ylabel
-        self._zlabel = zlabel
-        self._plot: Callable[..., Any] = self.plot_default
-
-    @property
-    def plot(self) -> Callable[..., Any]:
-        """
-        Plot data.
-
-        By default, calls :meth:`Hist2d.plot_default`, but that can be changed
-        using :meth:`~Hist2d.set_plot_method`.
-        """
-        return self._plot
-
-    def set_plot_method(
-        self,
-        method: Callable[Concatenate["Hist2d", P], Any] | None,
-    ) -> None:
-        """
-        Set a custom plot method.
-
-        Call :attr:`Hist2d.plot_custom` to us it.
-
-        Parameters
-        ----------
-        method : Callable
-            A custom plot method.
-
-            The first input parameter must be of type :class:`!Hist2d`.
-            No other restrictions exist on the call signature.
-
-            If None, :attr:`!Hist2d.plot` will call :meth:`Hist2d.plot_default`.
-        """
-        if method is None:
-            self._plot = self.plot_default
-        else:
-            self._plot = lambda *args, **kwargs: method(self, *args, **kwargs)
 
     @classmethod
     def from_centers(
@@ -732,42 +695,6 @@ class Hist2d:
     def limits(self) -> tuple[tuple[float, float], tuple[float, float]]:
         """(xlim, ylim)"""
         return self.xlim, self.ylim
-
-    @property
-    def title(self) -> str:
-        """Histogram title."""
-        return self._title
-
-    @title.setter
-    def title(self, value: str) -> None:
-        self._title = value
-
-    @property
-    def xlabel(self) -> str:
-        """Histogram xlabel."""
-        return self._xlabel
-
-    @xlabel.setter
-    def xlabel(self, value: str) -> None:
-        self._xlabel = value
-
-    @property
-    def ylabel(self) -> str:
-        """Histogram ylabel."""
-        return self._ylabel
-
-    @ylabel.setter
-    def ylabel(self, value: str) -> None:
-        self._ylabel = value
-
-    @property
-    def zlabel(self) -> str:
-        """Histogram zlabel."""
-        return self._zlabel
-
-    @zlabel.setter
-    def zlabel(self, value: str) -> None:
-        self._zlabel = value
 
     @property
     def labels_dict(self) -> _LabelsDict:

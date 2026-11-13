@@ -1,7 +1,7 @@
 import copy
 from collections.abc import Callable, Iterator
 from os import PathLike
-from typing import Any, Concatenate, Literal, Self, TypedDict
+from typing import Any, Literal, Self, TypedDict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,7 +9,8 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from numpy.typing import ArrayLike, NDArray
 
-from atompy._core import P, get_topmost_figure, normalize_columns_or_row_data
+from atompy._core import get_topmost_figure, normalize_columns_or_row_data
+from atompy._plottable import Plottable2d
 
 
 class DataXYKwargs(TypedDict, total=True):
@@ -20,7 +21,7 @@ class DataXYKwargs(TypedDict, total=True):
     scaled_by: float
 
 
-class DataXY:
+class DataXY(Plottable2d):
     """
     A class representing xy-data.
 
@@ -59,51 +60,13 @@ class DataXY:
         scaled_by: float = 1.0,
         **plot_kwargs,
     ) -> None:
+        super().__init__(title, xlabel, ylabel, **plot_kwargs)
         _x = np.asarray(x, dtype=np.float64, copy=True)
         _y = np.asarray(y, dtype=np.float64, copy=True)
         if _x.size != _y.size:
             raise ValueError("x and y values don't match")
         self._data = np.array((_x, _y))
-        self._title = title
-        self._xlabel = xlabel
-        self._ylabel = ylabel
-        self._plot_kwargs: dict[str, Any] = plot_kwargs
         self._scaled_by = scaled_by
-        self._plot: Callable[..., Any] = self.plot_default
-
-    @property
-    def plot(self) -> Callable[..., Any]:
-        """
-        Plot data.
-
-        By default, calls :meth:`DataXY.plot_default`, but that can be changed
-        using :meth:`~DataXY.set_plot_method`.
-        """
-        return self._plot
-
-    def set_plot_method(
-        self,
-        method: Callable[Concatenate["DataXY", P], Any] | None,
-    ) -> None:
-        """
-        Set a custom plot method.
-
-        Call :attr:`DataXY.plot_custom` to us it.
-
-        Parameters
-        ----------
-        method : Callable
-            A custom plot method.
-
-            The first input parameter must be of type :class:`!DataXY`.
-            No other restrictions exist on the call signature.
-
-            If None, :attr:`!DataXY.plot` will call :meth:`DataXY.plot_default`.
-        """
-        if method is None:
-            self._plot = self.plot_default
-        else:
-            self._plot = lambda *args, **kwargs: method(self, *args, **kwargs)
 
     @classmethod
     def from_txt(
@@ -266,45 +229,6 @@ class DataXY:
         self._scaled_by = value
 
     @property
-    def title(self) -> str:
-        """
-        Title of the data.
-
-        May be used for :meth:`.DataXY.plot`.
-        """
-        return self._title
-
-    @title.setter
-    def title(self, val: str) -> None:
-        self._title = val
-
-    @property
-    def xlabel(self) -> str:
-        """
-        X label of the data.
-
-        May be used for :meth:`.DataXY.plot`.
-        """
-        return self._xlabel
-
-    @xlabel.setter
-    def xlabel(self, val: str) -> None:
-        self._xlabel = val
-
-    @property
-    def ylabel(self) -> str:
-        """
-        Y label of the data.
-
-        May be used for :meth:`.DataXY.plot`.
-        """
-        return self._ylabel
-
-    @ylabel.setter
-    def ylabel(self, val: str) -> None:
-        self._ylabel = val
-
-    @property
     def x(self) -> NDArray[np.float64]:
         """
         x-data of the data set.
@@ -338,23 +262,6 @@ class DataXY:
             plt.plot(*data.xy, **data.plot_kwargs)
         """
         return self.x, self.y
-
-    @property
-    def plot_kwargs(self) -> dict[str, Any]:
-        """
-        Keyword arguments for :func:`matplotlib.pyplot.plot`.
-
-        Use, for example, like
-
-        .. code-block:: python
-
-            plt.plot(*data.xy, **data.plot_kwargs)
-        """
-        return self._plot_kwargs
-
-    @plot_kwargs.setter
-    def plot_kwargs(self, new_dict) -> None:
-        self._plot_kwargs = new_dict.copy()
 
     def __len__(self) -> int:
         return self._data.shape[1]
@@ -640,7 +547,9 @@ class DataXY:
         cond = (ymin <= self.x) & (self.x < ymax)
         return self._get_gated_data(~cond, squeeze, ysetval)
 
-    def compute_errors(self, f: Callable = np.sqrt) -> NDArray[np.float64]:
+    def compute_errors(
+        self, f: Callable[[NDArray[np.float64]], NDArray[np.float64]] = np.sqrt
+    ) -> NDArray[np.float64]:
         """
         Calculate errors associated with :attr:`DataXY.y`.
 
@@ -802,7 +711,7 @@ class DataXY:
         self,
         ax: Axes | None = None,
         *,
-        errorfunc: Callable = np.sqrt,
+        errorfunc: Callable[[NDArray[np.float64]], NDArray[np.float64]] = np.sqrt,
         fname: str | None = None,
         xlabel: str | Literal["__auto__"] = "__auto__",
         ylabel: str | Literal["__auto__"] = "__auto__",

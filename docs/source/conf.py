@@ -6,11 +6,12 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-import sys
 import os
-from atompy import __version__
+import sys
 
 from intersphinx_registry import get_intersphinx_mapping
+
+from atompy import __version__
 
 sys.path.append(os.path.abspath("../../src/"))
 
@@ -41,6 +42,7 @@ autosummary = True
 autodoc_default_options = {
     "members": False,  # Include all members (methods, attributes)
     "undoc-members": False,  # Include undocumented members
+    "inherited-members": True,
     "private-members": False,  # Include private members, if necessary
     "special-members": False,  # Include special methods like __init__, __str__, etc.
 }

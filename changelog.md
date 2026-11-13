@@ -1,6 +1,7 @@
 # Changelog
 ## v5.12.0
 - Add `set_plot_method`
+- Add `Function`
 
 ## v5.11.0
 - Add `match_xyz` and `match_xy_edges_z`

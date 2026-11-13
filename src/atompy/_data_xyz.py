@@ -1,7 +1,6 @@
 import copy
-from collections.abc import Callable
 from os import PathLike
-from typing import Any, Concatenate, Literal, Self, TypedDict
+from typing import Any, Literal, Self, TypedDict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,8 +10,9 @@ from matplotlib.colors import LogNorm
 from matplotlib.figure import Figure
 from numpy.typing import ArrayLike, NDArray
 
-from atompy._core import NUMBER_T, P, get_topmost_figure, normalize_columns_or_row_data
+from atompy._core import NUMBER_T, get_topmost_figure, normalize_columns_or_row_data
 from atompy._data_xy import DataXY
+from atompy._plottable import Plottable3d
 from atompy._utils import columns_to_meshgrid, match_xyz
 
 
@@ -23,7 +23,7 @@ class DataXYZKwargs(TypedDict, total=True):
     zlabel: str
 
 
-class DataXYZ:
+class DataXYZ(Plottable3d):
     """
     A class representing xyz-data.
 
@@ -62,7 +62,9 @@ class DataXYZ:
         xlabel: str = "",
         ylabel: str = "",
         zlabel: str = "",
+        **plot_kwargs,
     ) -> None:
+        super().__init__(title, xlabel, ylabel, zlabel, **plot_kwargs)
         _x = np.ravel(x)
         _y = np.ravel(y)
         _z = np.asarray(z)
@@ -74,45 +76,6 @@ class DataXYZ:
         self._xmesh = xm
         self._ymesh = ym
         self._zmesh = _z
-        self._title = title
-        self._xlabel = xlabel
-        self._ylabel = ylabel
-        self._zlabel = zlabel
-        self._plot: Callable[..., Any] = self.plot_default
-
-    @property
-    def plot(self) -> Callable[..., Any]:
-        """
-        Plot data.
-
-        By default, calls :meth:`DataXYZ.plot_default`, but that can be changed
-        using :meth:`~DataXYZ.set_plot_method`.
-        """
-        return self._plot
-
-    def set_plot_method(
-        self,
-        method: Callable[Concatenate["DataXYZ", P], Any] | None,
-    ) -> None:
-        """
-        Set a custom plot method.
-
-        Call :attr:`DataXYZ.plot_custom` to us it.
-
-        Parameters
-        ----------
-        method : Callable
-            A custom plot method.
-
-            The first input parameter must be of type :class:`!DataXYZ`.
-            No other restrictions exist on the call signature.
-
-            If None, :attr:`!DataXYZ.plot` will call :meth:`DataXYZ.plot_default`.
-        """
-        if method is None:
-            self._plot = self.plot_default
-        else:
-            self._plot = lambda *args, **kwargs: method(self, *args, **kwargs)
 
     @property
     def x(self) -> NDArray[NUMBER_T]:
@@ -195,58 +158,6 @@ class DataXYZ:
             "ylabel": copy.copy(self.ylabel),
             "zlabel": copy.copy(self.ylabel),
         }
-
-    @property
-    def title(self) -> str:
-        """
-        Title of the data.
-
-        May be used for :meth:`.DataXYZ.plot`.
-        """
-        return self._title
-
-    @title.setter
-    def title(self, val: str) -> None:
-        self._title = val
-
-    @property
-    def xlabel(self) -> str:
-        """
-        X label of the data.
-
-        May be used for :meth:`.DataXYZ.plot`.
-        """
-        return self._xlabel
-
-    @xlabel.setter
-    def xlabel(self, val: str) -> None:
-        self._xlabel = val
-
-    @property
-    def ylabel(self) -> str:
-        """
-        Y label of the data.
-
-        May be used for :meth:`.DataXYZ.plot`.
-        """
-        return self._ylabel
-
-    @ylabel.setter
-    def ylabel(self, val: str) -> None:
-        self._ylabel = val
-
-    @property
-    def zlabel(self) -> str:
-        """
-        Z label of the data.
-
-        May be used for :meth:`.DataXYZ.plot`.
-        """
-        return self._zlabel
-
-    @zlabel.setter
-    def zlabel(self, val: str) -> None:
-        self._zlabel = val
 
     @classmethod
     def from_txt(

@@ -1,7 +1,7 @@
 import warnings
 from collections.abc import Callable, Iterator
 from os import PathLike
-from typing import Any, Concatenate, Literal, Self, TypedDict
+from typing import Any, Literal, Self, TypedDict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,8 +10,9 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from numpy.typing import ArrayLike, NDArray
 
+from atompy._plottable import Plottable2d
+
 from ._core import (
-    P,
     deprecated_keyword_doing_nothing_msg,
     get_topmost_figure,
     normalize_columns_or_row_data,
@@ -35,7 +36,7 @@ class _KwargsDict(TypedDict, total=True):
     scaled_by: float
 
 
-class Hist1d:
+class Hist1d(Plottable2d):
     """
     A histogram class providing basic histogram methods.
 
@@ -78,51 +79,15 @@ class Hist1d:
         xlabel: str = "",
         ylabel: str = "",
         scaled_by: float = 1.0,
+        **plot_kwargs,
     ) -> None:
+        super().__init__(title, xlabel, ylabel, **plot_kwargs)
         self._values = np.asarray(values).astype(np.float64)
         self._edges = np.asarray(edges).astype(np.float64)
         if len(self._values) != len(self._edges) - 1:
             raise ValueError("shape of values does not match shape of edges")
         self._centers = self._calculate_centers(self._edges)
-        self.title = title
-        self.xlabel = xlabel
-        self.ylabel = ylabel
         self._scaled_by = scaled_by
-        self._plot: Callable[..., Any] = self.plot_default
-
-    @property
-    def plot(self) -> Callable[..., Any]:
-        """
-        Plot data.
-
-        By default, calls :meth:`Hist1d.plot_default`, but that can be changed
-        using :meth:`~Hist1d.set_plot_method`.
-        """
-        return self._plot
-
-    def set_plot_method(
-        self,
-        method: Callable[Concatenate["Hist1d", P], Any] | None,
-    ) -> None:
-        """
-        Set a custom plot method.
-
-        Call :attr:`Hist1d.plot_custom` to us it.
-
-        Parameters
-        ----------
-        method : Callable
-            A custom plot method.
-
-            The first input parameter must be of type :class:`!Hist1d`.
-            No other restrictions exist on the call signature.
-
-            If None, :attr:`!Hist1d.plot` will call :meth:`Hist1d.plot_default`.
-        """
-        if method is None:
-            self._plot = self.plot_default
-        else:
-            self._plot = lambda *args, **kwargs: method(self, *args, **kwargs)
 
     @classmethod
     def from_centers(
@@ -1401,7 +1366,7 @@ class Hist1d:
         self,
         ax: Axes | None = None,
         *,
-        errorfunc: Callable = np.sqrt,
+        errorfunc: Callable[[NDArray[np.float64]], NDArray[np.float64]] = np.sqrt,
         fname: str | None = None,
         xlabel: str | Literal["__auto__"] = "__auto__",
         ylabel: str | Literal["__auto__"] = "__auto__",
@@ -1727,7 +1692,9 @@ class Hist1d:
         """
         return DataXY(self.centers, self.values, **self.labels_dict)
 
-    def compute_errors(self, f: Callable = np.sqrt) -> NDArray[np.float64]:
+    def compute_errors(
+        self, f: Callable[[NDArray[np.float64]], NDArray[np.float64]] = np.sqrt
+    ) -> NDArray[np.float64]:
         """
         Calculate errors associated with :attr:`Hist1d.values`.
 

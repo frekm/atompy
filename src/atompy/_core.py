@@ -1,5 +1,5 @@
 import warnings
-from typing import Any, Literal, TypeVar, cast
+from typing import Any, Literal, ParamSpec, TypeVar, cast
 
 import numpy as np
 from matplotlib.axes import Axes
@@ -9,6 +9,7 @@ from numpy.typing import NDArray
 from .errors import UnmatchingEdgesError
 
 NUMBER_T = TypeVar("NUMBER_T", bound=np.number)
+P = ParamSpec("P")
 
 
 def get_topmost_figure(ax: Axes) -> Figure:

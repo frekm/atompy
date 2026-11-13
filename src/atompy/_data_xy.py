@@ -1,7 +1,7 @@
 import copy
 from collections.abc import Callable, Iterator
 from os import PathLike
-from typing import Any, Literal, Self, TypedDict
+from typing import Any, Concatenate, Literal, Self, TypedDict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,8 +9,7 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from numpy.typing import ArrayLike, NDArray
 
-from atompy import _core
-from atompy._core import normalize_columns_or_row_data
+from atompy._core import P, get_topmost_figure, normalize_columns_or_row_data
 
 
 class DataXYKwargs(TypedDict, total=True):
@@ -48,25 +47,6 @@ class DataXY:
     **plot_kwargs
         Other keyword parameters will be stored in :attr:`.DataXY.plot_kwargs`,
         which is used by :meth:`.DataXY.plot`.
-
-    Attributes
-    ----------
-    x : ndarray
-
-    y : ndarray
-
-    xy : tuple[ndarray, ndarray]
-
-    scaled_by : float
-
-    title : str
-
-    xlabel : str
-
-    ylabel : str
-
-    plot_kwargs : dict
-
     """
 
     def __init__(
@@ -89,6 +69,41 @@ class DataXY:
         self._ylabel = ylabel
         self._plot_kwargs: dict[str, Any] = plot_kwargs
         self._scaled_by = scaled_by
+        self._plot: Callable[..., Any] = self.plot_default
+
+    @property
+    def plot(self) -> Callable[..., Any]:
+        """
+        Plot data.
+
+        By default, calls :meth:`DataXY.plot_default`, but that can be changed
+        using :meth:`~DataXY.set_plot_method`.
+        """
+        return self._plot
+
+    def set_plot_method(
+        self,
+        method: Callable[Concatenate["DataXY", P], Any] | None,
+    ) -> None:
+        """
+        Set a custom plot method.
+
+        Call :attr:`DataXY.plot_custom` to us it.
+
+        Parameters
+        ----------
+        method : Callable
+            A custom plot method.
+
+            The first input parameter must be of type :class:`!DataXY`.
+            No other restrictions exist on the call signature.
+
+            If None, :attr:`!DataXY.plot` will call :meth:`DataXY.plot_default`.
+        """
+        if method is None:
+            self._plot = self.plot_default
+        else:
+            self._plot = lambda *args, **kwargs: method(self, *args, **kwargs)
 
     @classmethod
     def from_txt(
@@ -671,7 +686,7 @@ class DataXY:
         errors = f(original_values) * self.scaled_by
         return errors
 
-    def plot(
+    def plot_default(
         self,
         ax: Axes | None = None,
         fname: str | None = None,
@@ -762,7 +777,7 @@ class DataXY:
         if ax is None:
             fig, ax = plt.subplots(1, 1)
         else:
-            fig = _core.get_topmost_figure(ax)
+            fig = get_topmost_figure(ax)
         if plot_fmt is None:
             ax.plot(*self.xy, **_plot_kwargs)
         else:
@@ -865,7 +880,7 @@ class DataXY:
         if ax is None:
             fig, ax = plt.subplots(1, 1)
         else:
-            fig = _core.get_topmost_figure(ax)
+            fig = get_topmost_figure(ax)
         kwargs = errorbar_kwargs.copy()
         kwargs.setdefault("yerr", self.compute_errors(errorfunc))
         kwargs.setdefault("fmt", "o")

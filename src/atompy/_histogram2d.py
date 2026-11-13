@@ -1,7 +1,8 @@
 import copy
 import warnings
+from collections.abc import Callable
 from os import PathLike
-from typing import Any, Literal, Self, TypedDict
+from typing import Any, Concatenate, Literal, Self, TypedDict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,6 +14,7 @@ from matplotlib.figure import Figure
 from numpy.typing import ArrayLike, NDArray
 
 from ._core import (
+    P,
     deprecated_keyword_doing_nothing_msg,
     get_topmost_figure,
     normalize_columns_or_row_data,
@@ -79,42 +81,6 @@ class Hist2d:
         Optional zlabel of the histogram.
 
         May be used in :meth:`~Hist2d.plot`.
-
-    Attributes
-    ----------
-    values : ndarray, shape(m, n)
-
-    H : ndarray, shape(m, n)
-
-    xedges : ndarray, shape(m+1,)
-
-    yedges : ndarray, shape(n+1,)
-
-    xcenters : ndarray, shape(m,)
-
-    ycenters : ndarray, shape(n,)
-
-    xbins : int
-
-    ybins : int
-
-    nbins : (int, int)
-
-    xlim : (float, float)
-
-    ylim : (float, float)
-
-    limits : ((float, float), (float, float))
-
-    title : str
-
-    xlabel : str
-
-    ylabel : str
-
-    zlabel : str
-
-    labels_dict : dict
     """
 
     def __init__(
@@ -140,6 +106,41 @@ class Hist2d:
         self._xlabel = xlabel
         self._ylabel = ylabel
         self._zlabel = zlabel
+        self._plot: Callable[..., Any] = self.plot_default
+
+    @property
+    def plot(self) -> Callable[..., Any]:
+        """
+        Plot data.
+
+        By default, calls :meth:`Hist2d.plot_default`, but that can be changed
+        using :meth:`~Hist2d.set_plot_method`.
+        """
+        return self._plot
+
+    def set_plot_method(
+        self,
+        method: Callable[Concatenate["Hist2d", P], Any] | None,
+    ) -> None:
+        """
+        Set a custom plot method.
+
+        Call :attr:`Hist2d.plot_custom` to us it.
+
+        Parameters
+        ----------
+        method : Callable
+            A custom plot method.
+
+            The first input parameter must be of type :class:`!Hist2d`.
+            No other restrictions exist on the call signature.
+
+            If None, :attr:`!Hist2d.plot` will call :meth:`Hist2d.plot_default`.
+        """
+        if method is None:
+            self._plot = self.plot_default
+        else:
+            self._plot = lambda *args, **kwargs: method(self, *args, **kwargs)
 
     @classmethod
     def from_centers(
@@ -1971,7 +1972,7 @@ class Hist2d:
         savetxt_kwargs.setdefault("header", f"{xlabel}\t{ylabel}\t{zlabel}")
         np.savetxt(fname, out, **savetxt_kwargs)
 
-    def plot(
+    def plot_default(
         self,
         ax: Axes | None = None,
         fname: str | None = None,

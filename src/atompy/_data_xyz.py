@@ -1,6 +1,7 @@
 import copy
+from collections.abc import Callable
 from os import PathLike
-from typing import Any, Literal, Self, TypedDict
+from typing import Any, Concatenate, Literal, Self, TypedDict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,7 +11,7 @@ from matplotlib.colors import LogNorm
 from matplotlib.figure import Figure
 from numpy.typing import ArrayLike, NDArray
 
-from atompy._core import NUMBER_T, get_topmost_figure, normalize_columns_or_row_data
+from atompy._core import NUMBER_T, P, get_topmost_figure, normalize_columns_or_row_data
 from atompy._data_xy import DataXY
 from atompy._utils import columns_to_meshgrid, match_xyz
 
@@ -50,29 +51,6 @@ class DataXYZ:
 
     zlabel : str, default ""
         Optional z-label of the data.
-
-    Attributes
-    ----------
-    x : ndarray
-
-    xmesh : ndarray
-
-    y : ndarray
-
-    ymesh : ndarray
-
-    z : ndarray
-
-    zmesh : ndarray
-
-    title : str
-
-    xlabel : str
-
-    ylabel : str
-
-    zlabel : str
-
     """
 
     def __init__(
@@ -100,6 +78,41 @@ class DataXYZ:
         self._xlabel = xlabel
         self._ylabel = ylabel
         self._zlabel = zlabel
+        self._plot: Callable[..., Any] = self.plot_default
+
+    @property
+    def plot(self) -> Callable[..., Any]:
+        """
+        Plot data.
+
+        By default, calls :meth:`DataXYZ.plot_default`, but that can be changed
+        using :meth:`~DataXYZ.set_plot_method`.
+        """
+        return self._plot
+
+    def set_plot_method(
+        self,
+        method: Callable[Concatenate["DataXYZ", P], Any] | None,
+    ) -> None:
+        """
+        Set a custom plot method.
+
+        Call :attr:`DataXYZ.plot_custom` to us it.
+
+        Parameters
+        ----------
+        method : Callable
+            A custom plot method.
+
+            The first input parameter must be of type :class:`!DataXYZ`.
+            No other restrictions exist on the call signature.
+
+            If None, :attr:`!DataXYZ.plot` will call :meth:`DataXYZ.plot_default`.
+        """
+        if method is None:
+            self._plot = self.plot_default
+        else:
+            self._plot = lambda *args, **kwargs: method(self, *args, **kwargs)
 
     @property
     def x(self) -> NDArray[NUMBER_T]:
@@ -1130,7 +1143,7 @@ class DataXYZ:
         elif shading == "nearest" or shading == "gouraud":
             return self.xmesh, self.ymesh, self.z.T
 
-    def plot(
+    def plot_default(
         self,
         ax: Axes | None = None,
         fname: str | None = None,

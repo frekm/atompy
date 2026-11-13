@@ -415,8 +415,8 @@ def columns_to_meshgrid_edges(
     if np.any(xlower >= xupper) or np.any(ylower >= yupper):
         raise ValueError("Each cell's lower bounds must be less than its upper bounds")
 
-    x_out = np.unique(np.concatenate((xlower, xupper)))
-    y_out = np.unique(np.concatenate((ylower, yupper)))
+    x_out: NDArray[np.number] = np.unique(np.concatenate((xlower, xupper)))
+    y_out: NDArray[np.number] = np.unique(np.concatenate((ylower, yupper)))
 
     xlower_indices = np.searchsorted(x_out, xlower)
     xupper_indices = np.searchsorted(x_out, xupper)

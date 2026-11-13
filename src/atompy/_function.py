@@ -1,39 +1,19 @@
 from collections.abc import Callable
 from os import PathLike
-from typing import Any, Literal, Self, TypedDict
+from typing import Any, Literal, Self
 
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy.interpolate as sci
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from numpy.typing import ArrayLike, NDArray
 
 from atompy._core import get_topmost_figure, normalize_columns_or_row_data
+from atompy._plottable import Plottable2d
+from atompy._utils import interpolate
 
 
-class FunctionPlotArgs(TypedDict, total=True):
-    title: str
-    xlabel: str
-    ylabel: str
-    plot_kwargs: dict[str, Any]
-
-
-def _interpolate(x: NDArray, y: NDArray, xlog: bool, ylog: bool) -> Callable:
-    x_interp = np.log10(x) if xlog else x
-    y_interp = np.log10(y) if ylog else y
-
-    interpolator = sci.PchipInterpolator(x_interp, y_interp, extrapolate=False)
-
-    def f(x):
-        x_transformed = np.log10(x) if xlog else x
-        y_transformed = interpolator(x_transformed)
-        return 10**y_transformed if ylog else y_transformed
-
-    return f
-
-
-class Function:
+class Function(Plottable2d):
     def __init__(
         self,
         f: Callable,
@@ -49,16 +29,14 @@ class Function:
         f_kwargs: dict[str, Any] | None = None,
         plot_kwargs: dict[str, Any] | None = None,
     ) -> None:
+        plot_kwargs = {} if plot_kwargs is None else plot_kwargs
+        super().__init__(title, xlabel, ylabel, **plot_kwargs)
         self._f = f
         self._f_kwargs = {} if f_kwargs is None else f_kwargs
-        self._plot_kwargs = {} if plot_kwargs is None else plot_kwargs
         self._xlog = xlog
         self._ylog = ylog
         self._xlims = xlims
         self._steps = steps
-        self.title = title
-        self.xlabel = xlabel
-        self.ylabel = ylabel
         if interval not in ("inclusive", "exclusive"):
             raise ValueError(f"{interval=}, but it must be 'inclusive' or 'exclusive'")
         self._endpoint = interval == "inclusive"
@@ -87,7 +65,7 @@ class Function:
         if np.any(np.diff(x) <= 0):
             raise ValueError("x must be monotonically increasing")
 
-        f = _interpolate(x, y, xlog, ylog)
+        f = interpolate(x, y, xlog, ylog)
         return cls(
             f,
             (x[0], x[-1]),
@@ -235,7 +213,7 @@ class Function:
         elif ylims[0] < current_ylims[0] or ylims[1] > current_ylims[1]:
             raise ValueError(f"input {ylims=} exceeds {current_ylims=}")
 
-        f_inv = _interpolate(y, x, self.ylog, self.xlog)
+        f_inv = interpolate(y, x, self.ylog, self.xlog)
 
         steps = self.steps if steps == "same" else steps
         title = self.title if title == "__auto__" else title
@@ -255,7 +233,9 @@ class Function:
             plot_kwargs=plot_kwargs,
         )
 
-    def plot(self, ax: Axes | None = None, fmt="-", **kwargs) -> tuple[Figure, Axes]:
+    def plot_default(
+        self, ax: Axes | None = None, fmt="-", **kwargs
+    ) -> tuple[Figure, Axes]:
         if ax is None:
             fig, ax = plt.subplots(1, 1)
         else:
@@ -273,11 +253,3 @@ class Function:
         ax.set_title(self.title)
 
         return fig, ax
-
-
-class CompoundFunction:
-    def __init__(self, *functions: Callable) -> None:
-        # check that functions don't have overlapping x-range
-        # save functions somehow
-        # __call__ should pick appropriate function to return a value
-        raise NotImplementedError

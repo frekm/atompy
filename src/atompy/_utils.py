@@ -7,6 +7,7 @@ from typing import Any, Literal
 import matplotlib
 import matplotlib.colors as mcolors
 import numpy as np
+import scipy.interpolate as sci
 import uproot
 from numpy.random import Generator
 from numpy.typing import ArrayLike, NDArray
@@ -1219,3 +1220,22 @@ def sample_distribution_discrete(
     probabilities_ = probabilities / np.sum(probabilities)
     rng = np.random.default_rng()
     return rng.choice(values, size, p=probabilities_)
+
+
+def interpolate(
+    x: NDArray[np.number],
+    y: NDArray[np.number],
+    xlog: bool,
+    ylog: bool,
+) -> Callable[[NDArray[np.number]], NDArray[np.number]]:
+    x_interp = np.log10(x) if xlog else x
+    y_interp = np.log10(y) if ylog else y
+
+    interpolator = sci.PchipInterpolator(x_interp, y_interp, extrapolate=False)
+
+    def f(x: NDArray[np.number]) -> NDArray[np.number]:
+        x_transformed = np.log10(x) if xlog else x
+        y_transformed = interpolator(x_transformed)
+        return 10**y_transformed if ylog else y_transformed
+
+    return f

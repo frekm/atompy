@@ -1,7 +1,7 @@
 import warnings
 from collections.abc import Callable, Iterator
 from os import PathLike
-from typing import Any, Literal, Self, TypedDict
+from typing import Any, Concatenate, Literal, Self, TypedDict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,6 +11,7 @@ from matplotlib.figure import Figure
 from numpy.typing import ArrayLike, NDArray
 
 from ._core import (
+    P,
     deprecated_keyword_doing_nothing_msg,
     get_topmost_figure,
     normalize_columns_or_row_data,
@@ -87,6 +88,41 @@ class Hist1d:
         self.xlabel = xlabel
         self.ylabel = ylabel
         self._scaled_by = scaled_by
+        self._plot: Callable[..., Any] = self.plot_default
+
+    @property
+    def plot(self) -> Callable[..., Any]:
+        """
+        Plot data.
+
+        By default, calls :meth:`Hist1d.plot_default`, but that can be changed
+        using :meth:`~Hist1d.set_plot_method`.
+        """
+        return self._plot
+
+    def set_plot_method(
+        self,
+        method: Callable[Concatenate["Hist1d", P], Any] | None,
+    ) -> None:
+        """
+        Set a custom plot method.
+
+        Call :attr:`Hist1d.plot_custom` to us it.
+
+        Parameters
+        ----------
+        method : Callable
+            A custom plot method.
+
+            The first input parameter must be of type :class:`!Hist1d`.
+            No other restrictions exist on the call signature.
+
+            If None, :attr:`!Hist1d.plot` will call :meth:`Hist1d.plot_default`.
+        """
+        if method is None:
+            self._plot = self.plot_default
+        else:
+            self._plot = lambda *args, **kwargs: method(self, *args, **kwargs)
 
     @classmethod
     def from_centers(
@@ -1053,7 +1089,7 @@ class Hist1d:
         """Return a copy of the histogram."""
         return type(self)(self.values.copy(), self.edges.copy(), **self._kwargs)
 
-    def plot(
+    def plot_default(
         self,
         ax: Axes | None = None,
         fname: str | None = None,

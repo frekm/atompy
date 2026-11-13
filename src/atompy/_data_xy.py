@@ -99,11 +99,6 @@ class DataXY:
             No other restrictions exist on the call signature.
 
             If None, :attr:`!DataXY.plot` will call :meth:`DataXY.plot_default`.
-
-        Examples
-        --------
-        .. plot:: _examples/dataxy/plot_custom.py
-            :include-source:
         """
         if method is None:
             self._plot = self.plot_default

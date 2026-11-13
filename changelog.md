@@ -1,4 +1,7 @@
 # Changelog
+## v5.12.0
+- Add `set_plot_method`
+
 ## v5.11.0
 - Add `match_xyz` and `match_xy_edges_z`
 - Add `Hist2d.save` and `Hist2d.from_txt_edges`

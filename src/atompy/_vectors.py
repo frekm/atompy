@@ -1,17 +1,17 @@
+from __future__ import annotations
+
 import collections
+import operator
 from collections.abc import Sequence
-from typing import Self, TypeVar, Union, overload
+from typing import Self, TypeVar, overload
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 T = TypeVar("T")
 
-VectorLike = Union[ArrayLike, "Vector"]
-VectorArrayLike = Union[ArrayLike, "Vector", "VectorArray", Sequence["Vector"]]
 
-
-def asvector(input: VectorLike) -> "Vector":
+def asvector(input: VectorLike) -> Vector:
     """
     Convert Vector-like input to a Vector.
 
@@ -38,7 +38,6 @@ def asvector(input: VectorLike) -> "Vector":
         >>> ap.asvector(ap.Vector(1, 2, 3))
         Vector(1.0, 2.0, 3.0)
     """
-    # TODO use `asvector` in operator overloads of Vector
     if isinstance(input, Vector):
         return input
     else:
@@ -67,7 +66,7 @@ def _process_vectorarray_init(vectors: VectorArrayLike) -> NDArray[np.float64]:
     return _vecs.astype(np.float64)
 
 
-def asvectorarray(input: VectorArrayLike) -> "VectorArray":
+def asvectorarray(input: VectorArrayLike) -> VectorArray:
     """
     Convert VectorArray-like input to a VectorArray.
 
@@ -111,10 +110,10 @@ class VectorArrayIter:
         self.vectors = vectors
         self.index = 0
 
-    def __iter__(self) -> "VectorArrayIter":
+    def __iter__(self) -> VectorArrayIter:
         return self
 
-    def __next__(self) -> "Vector":
+    def __next__(self) -> Vector:
         if self.index == len(self.vectors):
             raise StopIteration
         self.index += 1
@@ -198,66 +197,77 @@ class Vector:
         return f"({self.x}, {self.y}, {self.z})"
 
     def __repr__(self) -> str:
-        return f"Vector{str(self)}"
+        return f"Vector{self!s}"
 
     def __iter__(self):
         return iter(self._arr)
 
-    def __neg__(self) -> "Vector":
-        return Vector(*(-self._arr))
+    def __neg__(self) -> Self:
+        return type(self)(*(-self._arr))
 
-    def __add__(self, other: "Vector") -> "Vector":
-        if isinstance(other, Vector):
-            return Vector(*(self._arr + other._arr))
-        else:
+    def __pos__(self) -> Self:
+        return self
+
+    def _combine(self, other: VectorLike, op, *, reflected=False) -> Self:
+        try:
+            other = asvector(other)
+        except ValueError:
             return NotImplemented
-
-    def __iadd__(self, other: "Vector") -> "Vector":
-        if isinstance(other, Vector):
-            self._arr += other._arr
-            return self
+        if reflected:
+            return type(self)(*op(other._arr, self._arr))
         else:
-            return NotImplemented
+            return type(self)(*op(self._arr, other._arr))
 
-    def __sub__(self, other: "Vector") -> "Vector":
-        if isinstance(other, Vector):
-            return Vector(*(self._arr - other._arr))
-        else:
+    def _combine_in_place(self, other: Vector, op) -> Self:
+        if not isinstance(other, type(self)):
             return NotImplemented
+        op(self._arr, other._arr)
+        return self
 
-    def __isub__(self, other: "Vector") -> "Vector":
-        if isinstance(other, Vector):
-            self._arr -= other._arr
-            return self
-        else:
-            return NotImplemented
+    def __add__(self, other: VectorLike) -> Self:
+        return self._combine(other, operator.add)
 
-    def __mul__(self, fac: float) -> "Vector":
+    def __radd__(self, other: VectorLike) -> Self:
+        return self._combine(other, operator.add, reflected=True)
+
+    def __iadd__(self, other: Vector) -> Self:
+        return self._combine_in_place(other, operator.iadd)
+
+    def __sub__(self, other: VectorLike) -> Self:
+        return self._combine(other, operator.sub)
+
+    def __rsub__(self, other: VectorLike) -> Self:
+        return self._combine(other, operator.sub, reflected=True)
+
+    def __isub__(self, other: Vector) -> Self:
+        return self._combine_in_place(other, operator.isub)
+
+    def __mul__(self, fac: float) -> Self:
         return self.scale(fac, copy=True)
 
-    def __rmul__(self, fac: float) -> "Vector":
+    def __rmul__(self, fac: float) -> Self:
         return self.__mul__(fac)
 
-    def __imul__(self, fac: float) -> "Vector":
+    def __imul__(self, fac: float) -> Self:
         return self.scale(fac, copy=False)
 
-    def __truediv__(self, divider: float) -> "Vector":
+    def __truediv__(self, divider: float) -> Self:
         return self.scale(1.0 / divider, copy=True)
 
-    def __rtruediv__(self, divider: float) -> "Vector":
+    def __rtruediv__(self, divider: float) -> Self:
         return self.__mul__(1.0 / divider)
 
-    def __itruediv__(self, divider: float) -> "Vector":
+    def __itruediv__(self, divider: float) -> Self:
         return self.scale(1.0 / divider, copy=False)
 
     def __eq__(self, other: object) -> bool:
         try:
-            other = asvector(other)  # ty:ignore[invalid-argument-type]
+            other = asvector(other)
         except ValueError:
             return False
         return bool(np.all(self._arr == other._arr))
 
-    def scale(self, fac: float, copy: bool = True) -> "Vector":
+    def scale(self, fac: float, copy: bool = True) -> Self:
         """
         Scale the vector.
 
@@ -276,16 +286,16 @@ class Vector:
         """
         if copy:
             new_arr = self._arr * fac
-            return Vector(*new_arr)
+            return type(self)(*new_arr)
         else:
             self._arr *= fac
             return self
 
     @overload
-    def dot(self, other: "Vector") -> float: ...
+    def dot(self, other: Vector) -> float: ...
     @overload
-    def dot(self, other: "VectorArray") -> NDArray[np.float64]: ...
-    def dot(self, other: Union["Vector", "VectorArray"]) -> float | NDArray[np.float64]:
+    def dot(self, other: VectorArray) -> NDArray[np.float64]: ...
+    def dot(self, other: Vector | VectorArray) -> float | NDArray[np.float64]:
         """
         Calculate dot (inner) product with `other`.
 
@@ -309,18 +319,16 @@ class Vector:
             >>> vec_a.dot(vec_b)
             10.0
         """
-        if isinstance(other, Vector) or isinstance(other, VectorArray):
+        if isinstance(other, (Vector, VectorArray)):
             return self.x * other.x + self.y * other.y + self.z * other.z
         else:
-            raise ValueError("other must be type Vector or VectorArray")
+            raise TypeError("other must be type Vector or VectorArray")
 
     @overload
-    def cross(self, other: "Vector") -> "Vector": ...
+    def cross(self, other: Vector) -> Vector: ...
     @overload
-    def cross(self, other: "VectorArray") -> "VectorArray": ...
-    def cross(
-        self, other: Union["Vector", "VectorArray"]
-    ) -> Union["Vector", "VectorArray"]:
+    def cross(self, other: VectorArray) -> VectorArray: ...
+    def cross(self, other: Vector | VectorArray) -> Vector | VectorArray:
         """
         Calculate cross (outer) product with `other`.
 
@@ -348,12 +356,12 @@ class Vector:
         result_y = self.z * other.x - self.x * other.z
         result_z = self.x * other.y - self.y * other.x
         if isinstance(other, Vector):
-            return Vector(result_x, result_y, result_z)  # type: ignore
+            return Vector(float(result_x), float(result_y), float(result_z))
         elif isinstance(other, VectorArray):
             result = np.array([result_x, result_y, result_z]).T
             return VectorArray(result)
         else:
-            raise ValueError("other must be type Vector or VectorArray")
+            raise TypeError("other must be type Vector or VectorArray")
 
     def mag(self) -> float:
         """
@@ -365,7 +373,7 @@ class Vector:
         """
         return float(np.sqrt(self.dot(self)))
 
-    def norm(self, copy=True) -> "Vector":
+    def norm(self, copy=True) -> Vector:
         """
         Return the vector normalized to 1.
 
@@ -427,12 +435,10 @@ class Vector:
         return float(np.arccos(self.cos_theta()))
 
     @overload
-    def angle_to(self, other: "Vector") -> float: ...
+    def angle_to(self, other: Vector) -> float: ...
     @overload
-    def angle_to(self, other: "VectorArray") -> NDArray[np.float64]: ...
-    def angle_to(
-        self, other: Union["Vector", "VectorArray"]
-    ) -> float | NDArray[np.float64]:
+    def angle_to(self, other: VectorArray) -> NDArray[np.float64]: ...
+    def angle_to(self, other: Vector | VectorArray) -> float | NDArray[np.float64]:
         r"""
         Calculate the angle to vector `other`.
 
@@ -454,7 +460,7 @@ class Vector:
         res = np.arccos(self.dot(other) / self.mag() / other.mag())
         return float(res) if isinstance(other, Vector) else res
 
-    def copy(self) -> "Vector":
+    def copy(self) -> Vector:
         """Return a copy of the vector."""
         return Vector(*self._arr.copy())
 
@@ -476,7 +482,7 @@ class Vector:
         """
         return self._arr
 
-    def rotate(self, angle_rad: float, axis: VectorLike) -> "Vector":
+    def rotate(self, angle_rad: float, axis: VectorLike) -> Self:
         """
         Rotate a vector by `angle_rad` around `axis`
 
@@ -533,7 +539,7 @@ class Vector:
         for (i, j), _ in np.ndenumerate(rot_matrix):
             new_components[i] += rot_matrix[i, j] * self[j]
 
-        return Vector(*new_components)
+        return type(self)(*new_components)
 
 
 class VectorArray:
@@ -644,7 +650,7 @@ class VectorArray:
 
     def __setitem__(self, i: int | slice, val: VectorArrayLike | VectorLike) -> None:
         if isinstance(i, int):
-            val = tuple(iter(asvector(val)))  # type: ignore
+            val = tuple(iter(asvector(val)))
         elif isinstance(i, slice):
             val = asvectorarray(val)._arr
         self._arr[i] = val
@@ -663,69 +669,79 @@ class VectorArray:
     def __len__(self) -> int:
         return len(self._arr)
 
-    def __neg__(self) -> "VectorArray":
-        return VectorArray(-self._arr)
+    def __neg__(self) -> Self:
+        return type(self)(-self._arr.copy())
 
-    def __add__(self, other: Union["VectorArray", "Vector"]) -> "VectorArray":
-        if isinstance(self, VectorArray) or isinstance(self, Vector):
-            return VectorArray(self._arr + other._arr)
+    def __pos__(self) -> Self:
+        return self
+
+    def _combine(
+        self, other: VectorLike | VectorArrayLike, op, *, reflected=False
+    ) -> Self:
+        try:
+            other = asvector(other)
+        except ValueError:
+            try:
+                other = asvectorarray(other)
+            except ValueError:
+                return NotImplemented
+        if reflected:
+            return type(self)(*op(other._arr, self._arr))
         else:
+            return type(self)(*op(self._arr, other._arr))
+
+    def _combine_in_place(self, other: VectorArray, op) -> Self:
+        if not isinstance(other, type(self)):
             return NotImplemented
+        op(self._arr, other._arr)
+        return self
 
-    def __radd__(self, other: Union["VectorArray", "Vector"]) -> "VectorArray":
-        return self + other
+    def __add__(self, other: VectorLike | VectorArrayLike) -> Self:
+        return self._combine(other, operator.add)
 
-    def __iadd__(self, other: Union["VectorArray", "Vector"]) -> "VectorArray":
-        if isinstance(self, VectorArray) or isinstance(self, Vector):
-            self._arr += other._arr
-            return self
-        else:
-            return NotImplemented
+    def __radd__(self, other: VectorLike | VectorArrayLike) -> Self:
+        return self._combine(other, operator.add, reflected=True)
 
-    def __sub__(self, other: Union["VectorArray", "Vector"]) -> "VectorArray":
-        if isinstance(self, VectorArray) or isinstance(self, Vector):
-            return VectorArray(self._arr - other._arr)
-        else:
-            return NotImplemented
+    def __iadd__(self, other: VectorArray) -> Self:
+        return self._combine_in_place(other, operator.iadd)
 
-    def __rsub__(self, other: Union["VectorArray", "Vector"]) -> "VectorArray":
-        return -self + other
+    def __sub__(self, other: VectorLike | VectorArrayLike) -> Self:
+        return self._combine(other, operator.sub)
 
-    def __isub__(self, other: Union["VectorArray", "Vector"]) -> "VectorArray":
-        if isinstance(self, VectorArray) or isinstance(self, Vector):
-            self._arr -= other._arr
-            return self
-        else:
-            return NotImplemented
+    def __rsub__(self, other: VectorLike | VectorArrayLike) -> Self:
+        return self._combine(other, operator.sub, reflected=True)
 
-    def __mul__(self, fac: ArrayLike) -> "VectorArray":
+    def __isub__(self, other: VectorArray) -> Self:
+        return self._combine_in_place(other, operator.isub)
+
+    def __mul__(self, fac: ArrayLike) -> Self:
         try:
             _fac = np.asarray(fac).astype(np.float64)
         except ValueError:
             return NotImplemented
         return self.scale(_fac, copy=True)
 
-    def __rmul__(self, fac: ArrayLike) -> "VectorArray":
+    def __rmul__(self, fac: ArrayLike) -> Self:
         return self.__mul__(fac)
 
-    def __imul__(self, fac: ArrayLike) -> "VectorArray":
+    def __imul__(self, fac: ArrayLike) -> Self:
         try:
             _fac = np.asarray(fac).astype(np.float64)
         except ValueError:
             return NotImplemented
         return self.scale(_fac, copy=False)
 
-    def __truediv__(self, fac: ArrayLike) -> "VectorArray":
+    def __truediv__(self, fac: ArrayLike) -> Self:
         try:
             _fac = 1.0 / np.asarray(fac).astype(np.float64)
         except ValueError:
             return NotImplemented
         return self.scale(_fac, copy=True)
 
-    def __rtruediv__(self, fac: ArrayLike) -> "VectorArray":
+    def __rtruediv__(self, fac: ArrayLike) -> Self:
         return self.__truediv__(fac)
 
-    def __itruediv__(self, fac: ArrayLike) -> "VectorArray":
+    def __itruediv__(self, fac: ArrayLike) -> Self:
         try:
             _fac = 1.0 / np.asarray(fac).astype(np.float64)
         except ValueError:
@@ -734,12 +750,12 @@ class VectorArray:
 
     def __eq__(self, other: object) -> bool:
         try:
-            other = asvectorarray(other)  # ty:ignore[invalid-argument-type]
+            other = asvectorarray(other)
         except ValueError:
             return False
         return bool(np.all(self._arr == other._arr))
 
-    def scale(self, fac: ArrayLike, copy: bool = True) -> "VectorArray":
+    def scale(self, fac: ArrayLike, copy: bool = True) -> Self:
         """
         Scale the vector.
 
@@ -766,7 +782,7 @@ class VectorArray:
                 new_arr = np.einsum("ij,i->ij", self._arr, fac)
             else:
                 new_arr = self._arr * fac
-            return VectorArray(new_arr)
+            return type(self)(new_arr)
         else:
             if fac.ndim > 0:
                 np.einsum("ij,i->ij", self._arr, fac, out=self._arr)
@@ -774,7 +790,7 @@ class VectorArray:
                 np.multiply(self._arr, fac, out=self._arr)
             return self
 
-    def dot(self, other: Union["Vector", "VectorArray"]) -> NDArray[np.float64]:
+    def dot(self, other: Vector | VectorArray) -> NDArray[np.float64]:
         """
         Calculate dot (inner) product with `other`.
 
@@ -795,12 +811,12 @@ class VectorArray:
             >>> vecs_a.dot(vecs_b)
             array([50., 77., 50.])
         """
-        if isinstance(other, Vector) or isinstance(other, VectorArray):
+        if isinstance(other, (Vector, VectorArray)):
             return self.x * other.x + self.y * other.y + self.z * other.z
         else:
-            raise ValueError("other must be type Vector or VectorArray")
+            raise TypeError("other must be type Vector or VectorArray")
 
-    def cross(self, other: Union["Vector", "VectorArray"]) -> "VectorArray":
+    def cross(self, other: Vector | VectorArray) -> VectorArray:
         """
         Calculate cross (outer) product with `other`.
 
@@ -822,14 +838,14 @@ class VectorArray:
             VectorArray([[0. 0. 1.]
                          [1. 0. 0.]])
         """
-        if isinstance(other, Vector) or isinstance(other, VectorArray):
+        if isinstance(other, (Vector, VectorArray)):
             result_x = self.y * other.z - self.z * other.y
             result_y = self.z * other.x - self.x * other.z
             result_z = self.x * other.y - self.y * other.x
             result = np.array([result_x, result_y, result_z]).T
             return VectorArray(result)
         else:
-            raise ValueError("other must be type Vector or VectorArray")
+            raise TypeError("other must be type Vector or VectorArray")
 
     def mag(self) -> NDArray[np.float64]:
         """
@@ -841,7 +857,7 @@ class VectorArray:
         """
         return np.sqrt(self.dot(self))
 
-    def norm(self, copy=True) -> "VectorArray":
+    def norm(self, copy=True) -> VectorArray:
         """
         Return the vectors normalized to 1.
 
@@ -902,7 +918,7 @@ class VectorArray:
         """
         return np.arccos(self.cos_theta())
 
-    def angle_to(self, other: Union["Vector", "VectorArray"]) -> NDArray[np.float64]:
+    def angle_to(self, other: Vector | VectorArray) -> NDArray[np.float64]:
         r"""
         Calculate the angles to vector `other`.
 
@@ -919,11 +935,11 @@ class VectorArray:
         """
         return np.arccos(self.dot(other) / self.mag() / other.mag())
 
-    def copy(self) -> "VectorArray":
+    def copy(self) -> Self:
         """Return a copy of the vector."""
-        return VectorArray(self._arr.copy())
+        return type(self)(self._arr.copy())
 
-    def rotate(self, angle_rad: ArrayLike, axis: VectorLike) -> "VectorArray":
+    def rotate(self, angle_rad: ArrayLike, axis: VectorLike) -> Self:
         """
         Rotate vectors by `angle_rad` around `axis`
 
@@ -1004,11 +1020,11 @@ class VectorArray:
         rot_matrix = np.round(rot_matrix, 0)
         new_components = np.matvec(rot_matrix, self._arr)
 
-        return VectorArray(new_components)
+        return type(self)(new_components)
 
     def remove(
         self, condition: NDArray[np.bool], squeeze: bool = True, setval: float = np.nan
-    ) -> "VectorArray":
+    ) -> Self:
         """
         Remove all vectors ``i`` where ``condition[i] == True``.
 
@@ -1056,11 +1072,11 @@ class VectorArray:
             result_x = result_x.filled(setval)
             result_y = result_y.filled(setval)
             result_z = result_z.filled(setval)
-        return VectorArray(np.array([result_x, result_y, result_z]).T)
+        return type(self)(np.array([result_x, result_y, result_z]).T)
 
     def keep(
         self, condition: NDArray[np.bool], squeeze: bool = True, setval: float = np.nan
-    ) -> "VectorArray":
+    ) -> Self:
         """
         Keep all vectors ``i`` where ``condition[i] == True``.
 
@@ -1098,3 +1114,7 @@ class VectorArray:
                          [6. 7. 8.]])
         """
         return self.remove(np.logical_not(condition), squeeze=squeeze, setval=setval)
+
+
+VectorLike = ArrayLike | Vector
+VectorArrayLike = ArrayLike | Vector | VectorArray | Sequence[Vector]

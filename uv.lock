@@ -40,7 +40,7 @@ wheels = [
 
 [[package]]
 name = "atompy"
-version = "5.13.0.dev0"
+version = "5.13.0"
 source = { editable = "." }
 dependencies = [
     { name = "joblib" },

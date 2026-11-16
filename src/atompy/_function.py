@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import operator
 from collections.abc import Callable
 from os import PathLike
 from typing import Any, Literal, Self
@@ -53,9 +56,10 @@ class Function(Plottable2d):
         Keyword arguments stored in :attr:`.Function.plot_kwargs`,
         which are used by :attr:`.Function.plot`.
     """
+
     def __init__(
         self,
-        f: Callable,
+        f: Callable[[Any], NDArray[np.number]],
         xlims: tuple[float, float],
         *,
         steps: int = 100,
@@ -307,6 +311,124 @@ class Function(Plottable2d):
     def xy(self) -> tuple[NDArray[np.number], NDArray[np.number]]:
         """Tuple (x, y) data."""
         return self.x, self.y
+
+    def compatible_with(self, other: object) -> bool:
+        """
+        Check if `other` is a compatible function.
+
+        `other` is compatible the following are identical
+        - :attr:`xlims`,
+        - :attr:`xlog`,
+        - :attr:`ylog`,
+        - :attr:`interval`,
+        - the keyword arguments for both functions.
+
+        Compatible functions can be added, substracted, etc...
+
+        Parameters
+        ----------
+        other : :class:`.Function`
+
+        Returns
+        -------
+        compatibility : bool
+        """
+
+        if not isinstance(other, Function):
+            return False
+        return (
+            self._xlims == other._xlims
+            and self._xlog == other._xlog
+            and self._ylog == other._ylog
+            and self._endpoint == other._endpoint
+            and self._f_kwargs == other._f_kwargs
+        )
+
+    def _combine(self, other: Function | float, op, *, reflected: bool = False) -> Self:
+        kwargs: dict[str, Any] = {
+            "xlabel": self.xlabel,
+            "ylabel": self.ylabel,
+            "interval": "inclusive" if self._endpoint else "exclusive",
+            "f_kwargs": self._f_kwargs,
+        }
+
+        if not isinstance(other, Function):
+            try:
+                other = float(other)
+            except (TypeError, ValueError):
+                return NotImplemented
+
+            kwargs["steps"] = self.steps
+            return type(self)(
+                lambda x: op(self._f(x, **self._f_kwargs), other), self.xlims, **kwargs
+            )
+
+        if not self.compatible_with(other):
+            raise ValueError("functions are not compatible")
+
+        if reflected:
+            f = lambda x: op(
+                other._f(x, **other._f_kwargs), self._f(x, **self._f_kwargs)
+            )
+        else:
+            f = lambda x: op(
+                self._f(x, **self._f_kwargs), other._f(x, **other._f_kwargs)
+            )
+
+        kwargs["steps"] = max(self.steps, other.steps)
+        return type(self)(f, self.xlims, **kwargs)
+
+    def __add__(self, other: Function | float) -> Self:
+        return self._combine(other, operator.add)
+
+    def __radd__(self, other: Function | float) -> Self:
+        return self._combine(other, operator.add, reflected=True)
+
+    def __sub__(self, other: Function | float) -> Self:
+        return self._combine(other, operator.sub)
+
+    def __rsub__(self, other: Function | float) -> Self:
+        return self._combine(other, operator.sub, reflected=True)
+
+    def __floordiv__(self, other: Function | float) -> Self:
+        return self._combine(other, operator.floordiv)
+
+    def __rfloordiv__(self, other: Function | float) -> Self:
+        return self._combine(other, operator.floordiv, reflected=True)
+
+    def __truediv__(self, other: Function | float) -> Self:
+        return self._combine(other, operator.truediv)
+
+    def __rtruediv__(self, other: Function | float) -> Self:
+        return self._combine(other, operator.truediv, reflected=True)
+
+    def __pow__(self, other: Function | float, modulo=None) -> Self:
+        if modulo is not None:
+            return NotImplemented
+        return self._combine(other, operator.pow)
+
+    def __rpow__(self, other: Function | float) -> Self:
+        return self._combine(other, operator.pow, reflected=True)
+
+    def __mul__(self, other: Function | float) -> Self:
+        return self._combine(other, operator.mul)
+
+    def __rmul__(self, other: Function | float) -> Self:
+        return self._combine(other, operator.mul, reflected=True)
+
+    def __neg__(self) -> Self:
+        return type(self)(
+            lambda x: -1.0 * self._f(x, **self._f_kwargs),
+            self.xlims,
+            steps=self.steps,
+            xlog=self.xlog,
+            ylog=self.ylog,
+            xlabel=self.xlabel,
+            ylabel=self.ylabel,
+            interval="inclusive" if self._endpoint else "exclusive",
+            f_kwargs=self._f_kwargs.copy(),
+            plot_kwargs=self.plot_kwargs,
+        )
 
     def scaled(self, factor: float) -> Self:
         """

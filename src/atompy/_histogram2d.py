@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import operator
 import warnings
 from os import PathLike
 from typing import Any, Literal, Self
@@ -693,95 +696,70 @@ class Hist2d(Plottable3d):
         """Dictionary of the title and labels."""
         return self.labels
 
-    def __add__(self, other: "Hist2d") -> Self:
+    def _combine(self, other: Hist2d, op, *, reflected=False) -> Self:
         if not isinstance(other, Hist2d):
             return NotImplemented
         raise_unmatching_edges(self.xedges, other.xedges, "x")
         raise_unmatching_edges(self.yedges, other.yedges, "y")
         return type(self)(
-            self.values + other.values,
+            op(self.values, other.values, op),
             self.xedges.copy(),
             self.yedges.copy(),
             **self.labels,
         )
 
-    def __iadd__(self, other: "Hist2d") -> Self:
-        if not isinstance(other, Hist2d):
-            return NotImplemented
-        self.values += other.values
-        return self
-
-    def __sub__(self, other: "Hist2d") -> Self:
-        if not isinstance(other, Hist2d):
+    def _combine_in_place(self, other: Hist2d, op) -> Self:
+        if not isinstance(other, type(self)):
             return NotImplemented
         raise_unmatching_edges(self.xedges, other.xedges, "x")
         raise_unmatching_edges(self.yedges, other.yedges, "y")
-        return type(self)(
-            self.values - other.values,
-            self.xedges.copy(),
-            self.yedges.copy(),
-            **self.labels,
-        )
-
-    def __isub__(self, other: "Hist2d") -> Self:
-        if not isinstance(other, Hist2d):
-            return NotImplemented
-        self.values -= other.values
+        op(self.values, other.values, op)
         return self
 
-    def __mul__(self, other: "Hist2d") -> Self:
-        if not isinstance(other, Hist2d):
-            return NotImplemented
-        raise_unmatching_edges(self.xedges, other.xedges, "x")
-        raise_unmatching_edges(self.yedges, other.yedges, "y")
-        return type(self)(
-            self.values * other.values,
-            self.xedges.copy(),
-            self.yedges.copy(),
-            **self.labels,
-        )
+    def __add__(self, other: Hist2d) -> Self:
+        return self._combine(other, operator.add)
 
-    def __imul__(self, other: "Hist2d") -> Self:
-        if not isinstance(other, Hist2d):
-            return NotImplemented
-        self.values *= other.values
-        return self
+    def __radd__(self, other: Hist2d) -> Self:
+        return self._combine(other, operator.add, reflected=True)
 
-    def __truediv__(self, other: "Hist2d") -> Self:
-        if not isinstance(other, Hist2d):
-            return NotImplemented
-        raise_unmatching_edges(self.xedges, other.xedges, "x")
-        raise_unmatching_edges(self.yedges, other.yedges, "y")
-        return type(self)(
-            self.values / other.values,
-            self.xedges.copy(),
-            self.yedges.copy(),
-            **self.labels,
-        )
+    def __iadd__(self, other: Hist2d) -> Self:
+        return self._combine_in_place(other, operator.iadd)
 
-    def __itruediv__(self, other: "Hist2d") -> Self:
-        if not isinstance(other, Hist2d):
-            return NotImplemented
-        self.values /= other.values
-        return self
+    def __sub__(self, other: Hist2d) -> Self:
+        return self._combine(other, operator.sub)
 
-    def __floordiv__(self, other: "Hist2d") -> Self:
-        if not isinstance(other, Hist2d):
-            return NotImplemented
-        raise_unmatching_edges(self.xedges, other.xedges, "x")
-        raise_unmatching_edges(self.yedges, other.yedges, "y")
-        return type(self)(
-            self.values // other.values,
-            self.xedges.copy(),
-            self.yedges.copy(),
-            **self.labels,
-        )
+    def __rsub__(self, other: Hist2d) -> Self:
+        return self._combine(other, operator.sub, reflected=True)
 
-    def __ifloordiv__(self, other: "Hist2d") -> Self:
-        if not isinstance(other, Hist2d):
-            return NotImplemented
-        self.values //= other.values
-        return self
+    def __isub__(self, other: Hist2d) -> Self:
+        return self._combine_in_place(other, operator.isub)
+
+    def __mul__(self, other: Hist2d) -> Self:
+        return self._combine(other, operator.mul)
+
+    def __rmul__(self, other: Hist2d) -> Self:
+        return self._combine(other, operator.mul, reflected=True)
+
+    def __imul__(self, other: Hist2d) -> Self:
+        return self._combine_in_place(other, operator.imul)
+
+    def __truediv__(self, other: Hist2d) -> Self:
+        return self._combine(other, operator.truediv)
+
+    def __rtruediv__(self, other: Hist2d) -> Self:
+        return self._combine(other, operator.truediv, reflected=True)
+
+    def __itruediv__(self, other: Hist2d) -> Self:
+        return self._combine_in_place(other, operator.itruediv)
+
+    def __floordiv__(self, other: Hist2d) -> Self:
+        return self._combine(other, operator.floordiv)
+
+    def __rfloordiv__(self, other: Hist2d) -> Self:
+        return self._combine(other, operator.floordiv, reflected=True)
+
+    def __ifloordiv__(self, other: Hist2d) -> Self:
+        return self._combine_in_place(other, operator.ifloordiv)
 
     def __neg__(self) -> Self:
         return type(self)(-self.values, self.xedges, self.yedges, **self.labels)
@@ -859,7 +837,7 @@ class Hist2d(Plottable3d):
 
         np.savetxt(fname, data, **kwargs)
 
-    def norm_diff(self, other: "Hist2d") -> Self:
+    def norm_diff(self, other: Hist2d) -> Self:
         """
         Return the normalized difference between two histograms.
 

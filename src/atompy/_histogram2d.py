@@ -1111,13 +1111,7 @@ class Hist2d(Plottable3d):
             else:
                 new_values = np.full_like(self.values, fill_value=setval)
                 return type(self)(
-                    new_values,
-                    self.xedges.copy(),
-                    self.yedges.copy(),
-                    self.title,
-                    self.xlabel,
-                    self.ylabel,
-                    self.zlabel,
+                    new_values, self.xedges.copy(), self.yedges.copy(), **self.labels
                 )
 
         if squeeze:
@@ -1128,26 +1122,12 @@ class Hist2d(Plottable3d):
             new_yedges = self.yedges[
                 np.concatenate(([False], ymask)) | np.concatenate((ymask, [False]))
             ]
-            return type(self)(
-                new_values,
-                new_xedges,
-                new_yedges,
-                self.title,
-                self.xlabel,
-                self.ylabel,
-                self.zlabel,
-            )
+            return type(self)(new_values, new_xedges, new_yedges, **self.labels)
         else:
             new_values = np.full_like(self.values, fill_value=setval)
             new_values[np.ix_(xmask, ymask)] = self.values[np.ix_(xmask, ymask)]
             return type(self)(
-                new_values,
-                self.xedges.copy(),
-                self.yedges.copy(),
-                self.title,
-                self.xlabel,
-                self.ylabel,
-                self.zlabel,
+                new_values, self.xedges.copy(), self.yedges.copy(), **self.labels
             )
 
     def remove(
@@ -1197,13 +1177,7 @@ class Hist2d(Plottable3d):
         new_values[np.ix_(x_remove_mask, y_remove_mask)] = setval
 
         return type(self)(
-            new_values,
-            self.xedges.copy(),
-            self.yedges.copy(),
-            self.title,
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            new_values, self.xedges.copy(), self.yedges.copy(), **self.labels
         )
 
     def integrate(self) -> float:
@@ -1305,9 +1279,8 @@ class Hist2d(Plottable3d):
         return Hist1d(
             np.sum(self.values, axis=1),
             self.xedges.copy(),
-            self.title,
-            self.xlabel,
-            self.zlabel,
+            xlabel=self.xlabel,
+            ylabel=self.zlabel,
         )
 
     def project_onto_y(self) -> Hist1d:
@@ -1335,9 +1308,8 @@ class Hist2d(Plottable3d):
         return Hist1d(
             np.sum(self.values, axis=0),
             self.yedges.copy(),
-            self.title,
-            self.ylabel,
-            self.zlabel,
+            xlabel=self.ylabel,
+            ylabel=self.zlabel,
         )
 
     def _calculate_profile(
@@ -1515,13 +1487,7 @@ class Hist2d(Plottable3d):
         no_zeros = self.values.copy()
         no_zeros[no_zeros == 0.0] = np.nan
         return type(self)(
-            no_zeros,
-            self.xedges.copy(),
-            self.yedges.copy(),
-            self.title,
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            no_zeros, self.xedges.copy(), self.yedges.copy(), **self.labels
         )
 
     def norm_to_sum(self) -> Self:
@@ -1548,10 +1514,8 @@ class Hist2d(Plottable3d):
             self.values / np.sum(self.values),
             self.xedges.copy(),
             self.yedges.copy(),
-            f"{self.title} / sum",
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            xlabel=self.xlabel,
+            ylabel=self.ylabel,
         )
 
     def norm_to_integral(self) -> Self:
@@ -1580,10 +1544,8 @@ class Hist2d(Plottable3d):
             self.values / self.integrate(),
             self.xedges.copy(),
             self.yedges.copy(),
-            f"{self.title} / integral",
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            xlabel=self.xlabel,
+            ylabel=self.ylabel,
         )
 
     def norm_to_max(self) -> Self:
@@ -1610,10 +1572,8 @@ class Hist2d(Plottable3d):
             self.values / np.amax(self.values),
             self.xedges.copy(),
             self.yedges.copy(),
-            f"{self.title} / max",
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            xlabel=self.xlabel,
+            ylabel=self.ylabel,
         )
 
     def norm_col_to_sum(self) -> Self:
@@ -1635,10 +1595,8 @@ class Hist2d(Plottable3d):
             self.values / self.values.sum(axis=1, keepdims=True),
             self.xedges.copy(),
             self.yedges.copy(),
-            self.title,
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            xlabel=self.xlabel,
+            ylabel=self.ylabel,
         )
 
     def norm_to_xbins(self) -> Self:
@@ -1665,10 +1623,8 @@ class Hist2d(Plottable3d):
             self.values / self.xbins,
             self.xedges.copy(),
             self.yedges.copy(),
-            self.title,
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            xlabel=self.xlabel,
+            ylabel=self.ylabel,
         )
 
     def norm_to_ybins(self) -> Self:
@@ -1695,10 +1651,8 @@ class Hist2d(Plottable3d):
             self.values / self.ybins,
             self.xedges.copy(),
             self.yedges.copy(),
-            self.title,
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            xlabel=self.xlabel,
+            ylabel=self.ylabel,
         )
 
     def norm_col_to_integral(self) -> Self:
@@ -1723,10 +1677,8 @@ class Hist2d(Plottable3d):
             self.values / integrals,
             self.xedges.copy(),
             self.yedges.copy(),
-            self.title,
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            xlabel=self.xlabel,
+            ylabel=self.ylabel,
         )
 
     def norm_col_to_max(self) -> Self:
@@ -1748,10 +1700,8 @@ class Hist2d(Plottable3d):
             self.values / self.values.max(axis=1, keepdims=True),
             self.xedges.copy(),
             self.yedges.copy(),
-            self.title,
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            xlabel=self.xlabel,
+            ylabel=self.ylabel,
         )
 
     def norm_row_to_sum(self) -> Self:
@@ -1773,10 +1723,8 @@ class Hist2d(Plottable3d):
             self.values / self.values.sum(axis=0, keepdims=True),
             self.xedges.copy(),
             self.yedges.copy(),
-            self.title,
-            self.xlabel,
-            self.ylabel,
-            self.zlabel,
+            xlabel=self.xlabel,
+            ylabel=self.ylabel,
         )
 
     def norm_row_to_integral(self) -> Self:
@@ -1801,7 +1749,8 @@ class Hist2d(Plottable3d):
             self.values / integrals,
             self.xedges.copy(),
             self.yedges.copy(),
-            **self.labels,
+            xlabel=self.xlabel,
+            ylabel=self.ylabel,
         )
 
     def norm_row_to_max(self) -> Self:
@@ -1823,7 +1772,8 @@ class Hist2d(Plottable3d):
             self.values / self.values.max(axis=0, keepdims=True),
             self.xedges.copy(),
             self.yedges.copy(),
-            **self.labels,
+            xlabel=self.xlabel,
+            ylabel=self.ylabel,
         )
 
     def save_to_file(self, fname: str, **savetxt_kwargs) -> None:
@@ -1855,10 +1805,10 @@ class Hist2d(Plottable3d):
                 out[ix + iy * nx, 1] = y
                 out[ix + iy * nx, 2] = self.values[ix, iy]
         savetxt_kwargs.setdefault("delimiter", "\t")
-        xlabel = "x" if self.xlabel == "" else self.xlabel
-        ylabel = "y" if self.ylabel == "" else self.ylabel
-        zlabel = "values" if self.zlabel == "" else self.zlabel
-        savetxt_kwargs.setdefault("header", f"{xlabel}\t{ylabel}\t{zlabel}")
+        if self.xlabel and self.ylabel and self.zlabel:
+            savetxt_kwargs.setdefault(
+                "header", f"{self.xlabel}\t{self.ylabel}\t{self.zlabel}"
+            )
         np.savetxt(fname, out, **savetxt_kwargs)
 
     def plot_default(

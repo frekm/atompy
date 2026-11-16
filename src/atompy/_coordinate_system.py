@@ -250,7 +250,7 @@ class CoordinateSystemArray:
     def __getitem__(self, i: slice) -> Self: ...
 
     def __getitem__(self, i: int | slice) -> CoordinateSystem | Self:
-        if not (isinstance(i, int) or isinstance(i, slice)):
+        if not (isinstance(i, (int, slice))):
             raise TypeError(f"i must be int or slice, but is {type(i)}")
         cls_ = CoordinateSystem if isinstance(i, int) else type(self)
-        return cls_(self.x_axis[i], self.y_axis[i], self.z_axis[i])  # type: ignore
+        return cls_(self.x_axis[i], self.y_axis[i], self.z_axis[i])

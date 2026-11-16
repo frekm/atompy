@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import operator
 import warnings
 from collections.abc import Callable, Iterator
 from os import PathLike
@@ -526,87 +529,69 @@ class Hist1d(Plottable2d):
             "scaled_by": self.scaled_by,
         }
 
-    def __add__(self, other: "Hist1d") -> Self:
+    def _combine(self, other: Hist1d, op, *, reflected=False) -> Self:
         if not isinstance(other, Hist1d):
             return NotImplemented
         raise_unmatching_edges(self.edges, other.edges)
         warn_unmatching_scale_factors(self.scaled_by, other.scaled_by)
-
         return type(self)(
-            self.values + other.values,
+            op(self.values, other.values, op),
             self.edges.copy(),
             **self._kwargs,
         )
 
-    def __iadd__(self, other: "Hist1d") -> Self:
-        if not isinstance(other, Hist1d):
-            return NotImplemented
-        warn_unmatching_scale_factors(self.scaled_by, other.scaled_by)
-        self.title = f"{self.title} + {other.title}"
-        self.values += other.values
-        return self
-
-    def __sub__(self, other: "Hist1d") -> Self:
-        if not isinstance(other, Hist1d):
+    def _combine_in_place(self, other, op) -> Self:
+        if not isinstance(other, type(self)):
             return NotImplemented
         raise_unmatching_edges(self.edges, other.edges)
         warn_unmatching_scale_factors(self.scaled_by, other.scaled_by)
-        return type(self)(self.values - other.values, self.edges.copy(), **self._kwargs)
-
-    def __isub__(self, other: "Hist1d") -> Self:
-        if not isinstance(other, Hist1d):
-            return NotImplemented
-        warn_unmatching_scale_factors(self.scaled_by, other.scaled_by)
-        self.values -= other.values
-        self.title = f"{self.title} $-$ {other.title}"
+        op(self.values, other.values)
         return self
 
-    def __mul__(self, other: "Hist1d") -> Self:
-        if not isinstance(other, Hist1d):
-            return NotImplemented
-        raise_unmatching_edges(self.edges, other.edges)
-        warn_unmatching_scale_factors(self.scaled_by, other.scaled_by)
-        return type(self)(self.values * other.values, self.edges.copy(), **self._kwargs)
+    def __add__(self, other: Hist1d) -> Self:
+        return self._combine(other, operator.add)
 
-    def __imul__(self, other: "Hist1d") -> Self:
-        if not isinstance(other, Hist1d):
-            return NotImplemented
-        warn_unmatching_scale_factors(self.scaled_by, other.scaled_by)
-        self.values *= other.values
-        self.title = rf"{self.title} $\times$ {other.title}"
-        return self
+    def __radd__(self, other: Hist1d) -> Self:
+        return self._combine(other, operator.add, reflected=True)
 
-    def __truediv__(self, other: "Hist1d") -> Self:
-        if not isinstance(other, Hist1d):
-            return NotImplemented
-        raise_unmatching_edges(self.edges, other.edges)
-        warn_unmatching_scale_factors(self.scaled_by, other.scaled_by)
-        return type(self)(self.values / other.values, self.edges.copy(), **self._kwargs)
+    def __iadd__(self, other: Hist1d) -> Self:
+        return self._combine_in_place(other, operator.iadd)
 
-    def __itruediv__(self, other: "Hist1d") -> Self:
-        if not isinstance(other, Hist1d):
-            return NotImplemented
-        warn_unmatching_scale_factors(self.scaled_by, other.scaled_by)
-        self.values /= other.values
-        self.title = f"{self.title} / {other.title}"
-        return self
+    def __sub__(self, other: Hist1d) -> Self:
+        return self._combine(other, operator.sub)
 
-    def __floordiv__(self, other: "Hist1d") -> Self:
-        if not isinstance(other, Hist1d):
-            return NotImplemented
-        raise_unmatching_edges(self.edges, other.edges)
-        warn_unmatching_scale_factors(self.scaled_by, other.scaled_by)
-        return type(self)(
-            self.values // other.values, self.edges.copy(), **self._kwargs
-        )
+    def __rsub__(self, other: Hist1d) -> Self:
+        return self._combine(other, operator.sub, reflected=True)
 
-    def __ifloordiv__(self, other: "Hist1d") -> Self:
-        if not isinstance(other, Hist1d):
-            return NotImplemented
-        warn_unmatching_scale_factors(self.scaled_by, other.scaled_by)
-        self.values //= other.values
-        self.title = rf"$\lfloor${self.title} / {other.title}$\rfloor$"
-        return self
+    def __isub__(self, other: Hist1d) -> Self:
+        return self._combine_in_place(other, operator.isub)
+
+    def __mul__(self, other: Hist1d) -> Self:
+        return self._combine(other, operator.mul)
+
+    def __rmul__(self, other: Hist1d) -> Self:
+        return self._combine(other, operator.mul, reflected=True)
+
+    def __imul__(self, other: Hist1d) -> Self:
+        return self._combine_in_place(other, operator.imul)
+
+    def __truediv__(self, other: Hist1d) -> Self:
+        return self._combine(other, operator.truediv)
+
+    def __rtruediv__(self, other: Hist1d) -> Self:
+        return self._combine(other, operator.truediv, reflected=True)
+
+    def __itruediv__(self, other: Hist1d) -> Self:
+        return self._combine_in_place(other, operator.itruediv)
+
+    def __floordiv__(self, other: Hist1d) -> Self:
+        return self._combine(other, operator.floordiv)
+
+    def __rfloordiv__(self, other: Hist1d) -> Self:
+        return self._combine(other, operator.floordiv, reflected=True)
+
+    def __ifloordiv__(self, other: Hist1d) -> Self:
+        return self._combine_in_place(other, operator.ifloordiv)
 
     def __neg__(self) -> Self:
         return type(self)(-self.values, self.edges, **self._kwargs)
@@ -1633,7 +1618,7 @@ class Hist1d(Plottable2d):
         new_hist.values[idx] = setval
         return new_hist
 
-    def norm_diff(self, other: "Hist1d") -> Self:
+    def norm_diff(self, other: Hist1d) -> Self:
         """
         Return the normalized difference between two histograms.
 

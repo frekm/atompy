@@ -272,6 +272,21 @@ class DataXY(Plottable2d):
         return self.x, self.y
 
     def compatible_with(self, other: object) -> bool:
+        """
+        Check if `other` is a compatible data set.
+
+        `other` is compatible if x-data are equal.
+
+        Compatible functions can be added, substracted, etc...
+
+        Parameters
+        ----------
+        other : object
+
+        Returns
+        -------
+        compatibility : bool
+        """
         if not isinstance(other, DataXY):
             return False
         return bool(np.all(self.x == other.x))

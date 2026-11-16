@@ -345,6 +345,21 @@ class DataXYZ(Plottable3d):
         return cls(x_, y_, zm, title=title, xlabel=xlabel, ylabel=ylabel, zlabel=zlabel)
 
     def compatible_with(self, other: object) -> bool:
+        """
+        Check if `other` is a compatible data set.
+
+        `other` is compatible if x- and y-data are equal.
+
+        Compatible functions can be added, substracted, etc...
+
+        Parameters
+        ----------
+        other : object
+
+        Returns
+        -------
+        compatibility : bool
+        """
         if not isinstance(other, DataXYZ):
             return False
         return bool(

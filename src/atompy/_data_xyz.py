@@ -1,4 +1,3 @@
-import copy
 from os import PathLike
 from typing import Any, Literal, Self, TypedDict
 
@@ -149,15 +148,6 @@ class DataXYZ(Plottable3d):
         Alias of :attr:`.DataXYZ.z`.
         """
         return self.z
-
-    @property
-    def _kwargs(self) -> DataXYZKwargs:
-        return {
-            "title": copy.copy(self.title),
-            "xlabel": copy.copy(self.xlabel),
-            "ylabel": copy.copy(self.ylabel),
-            "zlabel": copy.copy(self.ylabel),
-        }
 
     @classmethod
     def from_txt(
@@ -574,7 +564,7 @@ class DataXYZ(Plottable3d):
         np.float64(1.0)
         """
         normed_z = self.z.copy() / self.integrate()
-        kwargs = self._kwargs.copy()
+        kwargs = self.labels
         kwargs["title"] = kwargs["title"] if title == "__auto__" else title
         kwargs["xlabel"] = kwargs["xlabel"] if xlabel == "__auto__" else xlabel
         kwargs["ylabel"] = kwargs["ylabel"] if ylabel == "__auto__" else ylabel
@@ -630,7 +620,7 @@ class DataXYZ(Plottable3d):
         np.float64(1.0)
         """
         normed_z = self.z.copy() / self.zmax()
-        kwargs = self._kwargs.copy()
+        kwargs = self.labels
         kwargs["title"] = kwargs["title"] if title == "__auto__" else title
         kwargs["xlabel"] = kwargs["xlabel"] if xlabel == "__auto__" else xlabel
         kwargs["ylabel"] = kwargs["ylabel"] if ylabel == "__auto__" else ylabel
@@ -797,7 +787,7 @@ class DataXYZ(Plottable3d):
                 self.x[x_indices].copy(),
                 self.y[y_indices].copy(),
                 self.z[np.ix_(x_indices, y_indices)].copy(),
-                **self._kwargs.copy(),
+                **self.labels,
             )
 
         new_z = np.full_like(self.z, fill_value=setval, dtype=np.float64)
@@ -1019,7 +1009,7 @@ class DataXYZ(Plottable3d):
             self.x.copy(),
             self.y.copy(),
             self.z.copy(),
-            **self._kwargs.copy(),
+            **self.labels,
         )
 
     def for_pcolormesh(

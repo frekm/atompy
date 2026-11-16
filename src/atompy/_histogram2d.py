@@ -1,7 +1,6 @@
-import copy
 import warnings
 from os import PathLike
-from typing import Any, Literal, Self, TypedDict
+from typing import Any, Literal, Self
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,7 +11,7 @@ from matplotlib.colors import LogNorm
 from matplotlib.figure import Figure
 from numpy.typing import ArrayLike, NDArray
 
-from atompy._plottable import Plottable3d
+from atompy._plottable import Plottable3d, TitleXYZLabelDict
 
 from ._core import (
     deprecated_keyword_doing_nothing_msg,
@@ -29,13 +28,6 @@ from ._utils import (
     get_all_dividers,
     match_xy_edges_z,
 )
-
-
-class _LabelsDict(TypedDict, total=True):
-    title: str
-    xlabel: str
-    ylabel: str
-    zlabel: str
 
 
 class Hist2d(Plottable3d):
@@ -697,15 +689,9 @@ class Hist2d(Plottable3d):
         return self.xlim, self.ylim
 
     @property
-    def labels_dict(self) -> _LabelsDict:
+    def labels_dict(self) -> TitleXYZLabelDict:
         """Dictionary of the title and labels."""
-        d: _LabelsDict = {
-            "title": copy.copy(self.title),
-            "xlabel": copy.copy(self.xlabel),
-            "ylabel": copy.copy(self.ylabel),
-            "zlabel": copy.copy(self.zlabel),
-        }
-        return d
+        return self.labels
 
     def __add__(self, other: "Hist2d") -> Self:
         if not isinstance(other, Hist2d):
@@ -716,7 +702,7 @@ class Hist2d(Plottable3d):
             self.values + other.values,
             self.xedges.copy(),
             self.yedges.copy(),
-            **self.labels_dict,
+            **self.labels,
         )
 
     def __iadd__(self, other: "Hist2d") -> Self:
@@ -734,7 +720,7 @@ class Hist2d(Plottable3d):
             self.values - other.values,
             self.xedges.copy(),
             self.yedges.copy(),
-            **self.labels_dict,
+            **self.labels,
         )
 
     def __isub__(self, other: "Hist2d") -> Self:
@@ -752,7 +738,7 @@ class Hist2d(Plottable3d):
             self.values * other.values,
             self.xedges.copy(),
             self.yedges.copy(),
-            **self.labels_dict,
+            **self.labels,
         )
 
     def __imul__(self, other: "Hist2d") -> Self:
@@ -770,7 +756,7 @@ class Hist2d(Plottable3d):
             self.values / other.values,
             self.xedges.copy(),
             self.yedges.copy(),
-            **self.labels_dict,
+            **self.labels,
         )
 
     def __itruediv__(self, other: "Hist2d") -> Self:
@@ -788,7 +774,7 @@ class Hist2d(Plottable3d):
             self.values // other.values,
             self.xedges.copy(),
             self.yedges.copy(),
-            **self.labels_dict,
+            **self.labels,
         )
 
     def __ifloordiv__(self, other: "Hist2d") -> Self:
@@ -798,7 +784,7 @@ class Hist2d(Plottable3d):
         return self
 
     def __neg__(self) -> Self:
-        return type(self)(-self.values, self.xedges, self.yedges, **self.labels_dict)
+        return type(self)(-self.values, self.xedges, self.yedges, **self.labels)
 
     def __pos__(self) -> Self:
         return self
@@ -903,7 +889,7 @@ class Hist2d(Plottable3d):
         new_xedges = self.xedges.copy()
         new_yedges = self.yedges.copy()
         new_values = (self.values - other.values) / (self.values + other.values)
-        return type(self)(new_values, new_xedges, new_yedges, **self.labels_dict)
+        return type(self)(new_values, new_xedges, new_yedges, **self.labels)
 
     def rebin_x(self, fac: int) -> Self:
         """
@@ -948,9 +934,7 @@ class Hist2d(Plottable3d):
         new_xedges[-1] = self.xedges[-1]
         for i in range(new_xedges.size):
             new_xedges[i] = self.xedges[i * fac]
-        return type(self)(
-            new_values, new_xedges, self.yedges.copy(), **self.labels_dict
-        )
+        return type(self)(new_values, new_xedges, self.yedges.copy(), **self.labels)
 
     def rebin_y(self, fac: int) -> Self:
         """
@@ -1839,7 +1823,7 @@ class Hist2d(Plottable3d):
             self.values / integrals,
             self.xedges.copy(),
             self.yedges.copy(),
-            **self.labels_dict,
+            **self.labels,
         )
 
     def norm_row_to_max(self) -> Self:
@@ -1861,7 +1845,7 @@ class Hist2d(Plottable3d):
             self.values / self.values.max(axis=0, keepdims=True),
             self.xedges.copy(),
             self.yedges.copy(),
-            **self.labels_dict,
+            **self.labels,
         )
 
     def save_to_file(self, fname: str, **savetxt_kwargs) -> None:
@@ -2068,5 +2052,5 @@ class Hist2d(Plottable3d):
             self.values.copy(),
             self.xedges.copy(),
             self.yedges.copy(),
-            **self.labels_dict,
+            **self.labels,
         )

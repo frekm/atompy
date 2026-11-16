@@ -328,9 +328,7 @@ class Function(Plottable2d):
             xlog=self.xlog,
             ylog=self.ylog,
             interval="inclusive" if self._endpoint else "exclusive",
-            title=self.title,
-            xlabel=self.xlabel,
-            ylabel=self.ylabel,
+            **self.labels,
             f_kwargs=self._f_kwargs,
             plot_kwargs=self.plot_kwargs,
         )
@@ -458,9 +456,7 @@ class Function(Plottable2d):
             steps=steps,
             xlog=self.ylog,
             ylog=self.xlog,
-            title=title,
-            xlabel=xlabel,
-            ylabel=ylabel,
+            **self.labels,
             plot_kwargs=plot_kwargs,
         )
 

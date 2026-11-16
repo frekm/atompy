@@ -10,6 +10,7 @@ from matplotlib.figure import Figure
 from numpy.typing import ArrayLike, NDArray
 
 from atompy._core import get_topmost_figure, normalize_columns_or_row_data
+from atompy._function import Function
 from atompy._plottable import Plottable2d
 
 
@@ -268,6 +269,43 @@ class DataXY(Plottable2d):
 
     def __iter__(self) -> Iterator[NDArray[np.float64]]:
         return iter(self._data.T)
+
+    def interpolated(
+        self,
+        *,
+        steps: int = 100,
+        xlog: bool = False,
+        ylog: bool = False,
+    ) -> Function:
+        """
+        Get an interpolation function from the data.
+
+        Paramaters
+        ----------
+        steps : int, default 100
+            Number of x-points used in the interpolation.
+
+        xlog : bool, default False
+            If True, use logarithmically spaced x-values.
+
+        ylog : bool, default False
+            If True, use logarithmic interpolation when applicable.
+
+        Returns
+        -------
+        interpolated_function : :class:`.Function`
+
+        Examples
+        --------
+        .. plot:: _examples/dataxy/interpolated.py
+            :include-source:
+        """
+        labels = self.labels
+        if self.title:
+            labels["title"] = f"{self.title} (interp.)"
+        return Function.from_xy(
+            self.x, self.y, steps=steps, xlog=xlog, ylog=ylog, **labels
+        )
 
     def save(
         self,

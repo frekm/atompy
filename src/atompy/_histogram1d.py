@@ -10,7 +10,10 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from numpy.typing import ArrayLike, NDArray
 
-from atompy._plottable import Plottable2d
+from atompy._data_xy import DataXY
+from atompy._function import Function
+from atompy._plottable import Plottable2d, TitleXYLabelDict
+from atompy._utils import centers_to_edges, get_all_dividers
 
 from ._core import (
     deprecated_keyword_doing_nothing_msg,
@@ -19,14 +22,6 @@ from ._core import (
     raise_unmatching_edges,
     warn_unmatching_scale_factors,
 )
-from ._data_xy import DataXY
-from ._utils import centers_to_edges, get_all_dividers
-
-
-class Hist1dLabelsDict(TypedDict, total=True):
-    title: str
-    xlabel: str
-    ylabel: str
 
 
 class _KwargsDict(TypedDict, total=True):
@@ -518,7 +513,7 @@ class Hist1d(Plottable2d):
         return float(self.edges[0]), float(self.edges[-1])
 
     @property
-    def labels_dict(self) -> Hist1dLabelsDict:
+    def labels_dict(self) -> TitleXYLabelDict:
         """A dictionary of the histogram's title, xlabel and ylabel."""
         return {"title": self.title, "xlabel": self.xlabel, "ylabel": self.ylabel}
 
@@ -624,6 +619,43 @@ class Hist1d(Plottable2d):
         values_str = str(self.values)
         hist_str = f"Hist1d with (values, xedges, yedges) =\n{values_str}\n{edges_str}"
         return hist_str
+
+    def interpolated(
+        self,
+        *,
+        steps: int = 100,
+        xlog: bool = False,
+        ylog: bool = False,
+    ) -> Function:
+        """
+        Get an interpolation function from histogram.
+
+        Paramaters
+        ----------
+        steps : int, default 100
+            Number of x-points used in the interpolation.
+
+        xlog : bool, default False
+            If True, use logarithmically spaced x-values.
+
+        ylog : bool, default False
+            If True, use logarithmic interpolation when applicable.
+
+        Returns
+        -------
+        interpolated_function : :class:`.Function`
+
+        Examples
+        --------
+        .. plot:: _examples/histogram1d/interpolated.py
+            :include-source:
+        """
+        labels = self.labels
+        if self.title:
+            labels["title"] = f"{self.title} (interp.)"
+        return Function.from_xy(
+            self.centers, self.values, steps=steps, xlog=xlog, ylog=ylog, **labels
+        )
 
     def save(
         self,
@@ -859,7 +891,7 @@ class Hist1d(Plottable2d):
             new_values,
             new_edges,
             scaled_by=factor * self.scaled_by,
-            **self.labels_dict,
+            **self.labels,
         )
 
     def norm_to_integral(self) -> Self:
@@ -1690,7 +1722,7 @@ class Hist1d(Plottable2d):
         >>> xy.y
         array([10., 11., 12.])
         """
-        return DataXY(self.centers, self.values, **self.labels_dict)
+        return DataXY(self.centers, self.values, **self.labels)
 
     def compute_errors(
         self, f: Callable[[NDArray[np.float64]], NDArray[np.float64]] = np.sqrt

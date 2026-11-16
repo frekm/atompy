@@ -1,7 +1,19 @@
 from collections.abc import Callable
-from typing import Any, Concatenate, ParamSpec, Self
+from typing import Any, Concatenate, ParamSpec, Self, TypedDict
 
 P = ParamSpec("P")
+
+class TitleXYLabelDict(TypedDict, total=True):
+    title: str
+    xlabel: str
+    ylabel: str
+
+
+class TitleXYZLabelDict(TypedDict, total=True):
+    title: str
+    xlabel: str
+    ylabel: str
+    zlabel: str
 
 
 class Plottable:
@@ -79,6 +91,10 @@ class Plottable2d(Plottable):
         self.ylabel = ylabel
 
     @property
+    def labels(self) -> TitleXYLabelDict:
+        return {"title": self.title, "xlabel": self.xlabel, "ylabel": self.ylabel}
+
+    @property
     def xlabel(self) -> str:
         """
         Associated x-label.
@@ -126,3 +142,12 @@ class Plottable3d(Plottable):
         new_labels = list(self._labels)
         new_labels[2] = zlabel
         self._labels = tuple(new_labels)
+
+    @property
+    def labels(self) -> TitleXYZLabelDict:
+        return {
+            "title": self.title,
+            "xlabel": self.xlabel,
+            "ylabel": self.ylabel,
+            "zlabel": self.zlabel,
+        }

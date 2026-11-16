@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import copy
+import operator
 from collections.abc import Callable, Iterator
 from os import PathLike
 from typing import Any, Literal, Self, TypedDict
@@ -9,7 +12,11 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from numpy.typing import ArrayLike, NDArray
 
-from atompy._core import get_topmost_figure, normalize_columns_or_row_data
+from atompy._core import (
+    get_topmost_figure,
+    normalize_columns_or_row_data,
+    warn_unmatching_scale_factors,
+)
 from atompy._function import Function
 from atompy._plottable import Plottable2d
 
@@ -263,6 +270,82 @@ class DataXY(Plottable2d):
             plt.plot(*data.xy, **data.plot_kwargs)
         """
         return self.x, self.y
+
+    def compatible_with(self, other: object) -> bool:
+        if not isinstance(other, DataXY):
+            return False
+        return bool(np.all(self.x == other.x))
+
+    def _combine(self, other: DataXY, op, *, reflected=False) -> Self:
+        if not isinstance(other, DataXY):
+            return NotImplemented
+        if not self.compatible_with(other):
+            raise ValueError("data are not compatible")
+        warn_unmatching_scale_factors(self.scaled_by, other.scaled_by)
+        if reflected:
+            return type(self)(op(other.y, self.y, op), self.x.copy(), **self._kwargs)
+        else:
+            return type(self)(op(self.y, other.y, op), self.x.copy(), **self._kwargs)
+
+    def _combine_in_place(self, other, op) -> Self:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        if not self.compatible_with(other):
+            raise ValueError("data are not compatible")
+        warn_unmatching_scale_factors(self.scaled_by, other.scaled_by)
+        op(self.y, other.y)
+        return self
+
+    def __add__(self, other: DataXY) -> Self:
+        return self._combine(other, operator.add)
+
+    def __radd__(self, other: DataXY) -> Self:
+        return self._combine(other, operator.add, reflected=True)
+
+    def __iadd__(self, other: DataXY) -> Self:
+        return self._combine_in_place(other, operator.iadd)
+
+    def __sub__(self, other: DataXY) -> Self:
+        return self._combine(other, operator.sub)
+
+    def __rsub__(self, other: DataXY) -> Self:
+        return self._combine(other, operator.sub, reflected=True)
+
+    def __isub__(self, other: DataXY) -> Self:
+        return self._combine_in_place(other, operator.isub)
+
+    def __mul__(self, other: DataXY) -> Self:
+        return self._combine(other, operator.mul)
+
+    def __rmul__(self, other: DataXY) -> Self:
+        return self._combine(other, operator.mul, reflected=True)
+
+    def __imul__(self, other: DataXY) -> Self:
+        return self._combine_in_place(other, operator.imul)
+
+    def __truediv__(self, other: DataXY) -> Self:
+        return self._combine(other, operator.truediv)
+
+    def __rtruediv__(self, other: DataXY) -> Self:
+        return self._combine(other, operator.truediv, reflected=True)
+
+    def __itruediv__(self, other: DataXY) -> Self:
+        return self._combine_in_place(other, operator.itruediv)
+
+    def __floordiv__(self, other: DataXY) -> Self:
+        return self._combine(other, operator.floordiv)
+
+    def __rfloordiv__(self, other: DataXY) -> Self:
+        return self._combine(other, operator.floordiv, reflected=True)
+
+    def __ifloordiv__(self, other: DataXY) -> Self:
+        return self._combine_in_place(other, operator.ifloordiv)
+
+    def __neg__(self) -> Self:
+        return type(self)(-self.x, self.y, **self._kwargs)
+
+    def __pos__(self) -> Self:
+        return self
 
     def __len__(self) -> int:
         return self._data.shape[1]

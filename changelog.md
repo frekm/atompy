@@ -1,7 +1,7 @@
 # Changelog
 ## v5.13.0
 - Add `DataXY.interpolated()` and `Hist1d.intepolated()`
-- Add operator overloading to `Function`
+- Add operator overloading to `Function`, `DataXY`
 
 ## v5.12.0
 - Add `set_plot_method`

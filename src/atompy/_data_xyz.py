@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import operator
 from os import PathLike
 from typing import Any, Literal, Self, TypedDict
 
@@ -340,6 +343,86 @@ class DataXYZ(Plottable3d):
             fill_value_missing=fill_value_missing,
         )
         return cls(x_, y_, zm, title=title, xlabel=xlabel, ylabel=ylabel, zlabel=zlabel)
+
+    def compatible_with(self, other: object) -> bool:
+        if not isinstance(other, DataXYZ):
+            return False
+        return bool(
+            np.logical_and(np.all(self.x == other.x), np.all(self.y == other.y))
+        )
+
+    def _combine(self, other: DataXYZ, op, *, reflected: bool = False) -> Self:
+        if not isinstance(other, DataXYZ):
+            return NotImplemented
+        if not self.compatible_with(other):
+            raise ValueError("data not compatible")
+        if reflected:
+            return type(self)(
+                self.x.copy(), self.y.copy(), op(other.z, self.z, op), **self.labels
+            )
+        else:
+            return type(self)(
+                self.x.copy(), self.y.copy(), op(self.z, other.z, op), **self.labels
+            )
+
+    def _combine_in_place(self, other: DataXYZ, op) -> Self:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        if not self.compatible_with(other):
+            raise ValueError("data not compatible")
+        op(self.z, other.z, op)
+        return self
+
+    def __add__(self, other: DataXYZ) -> Self:
+        return self._combine(other, operator.add)
+
+    def __radd__(self, other: DataXYZ) -> Self:
+        return self._combine(other, operator.add, reflected=True)
+
+    def __iadd__(self, other: DataXYZ) -> Self:
+        return self._combine_in_place(other, operator.iadd)
+
+    def __sub__(self, other: DataXYZ) -> Self:
+        return self._combine(other, operator.sub)
+
+    def __rsub__(self, other: DataXYZ) -> Self:
+        return self._combine(other, operator.sub, reflected=True)
+
+    def __isub__(self, other: DataXYZ) -> Self:
+        return self._combine_in_place(other, operator.isub)
+
+    def __mul__(self, other: DataXYZ) -> Self:
+        return self._combine(other, operator.mul)
+
+    def __rmul__(self, other: DataXYZ) -> Self:
+        return self._combine(other, operator.mul, reflected=True)
+
+    def __imul__(self, other: DataXYZ) -> Self:
+        return self._combine_in_place(other, operator.imul)
+
+    def __truediv__(self, other: DataXYZ) -> Self:
+        return self._combine(other, operator.truediv)
+
+    def __rtruediv__(self, other: DataXYZ) -> Self:
+        return self._combine(other, operator.truediv, reflected=True)
+
+    def __itruediv__(self, other: DataXYZ) -> Self:
+        return self._combine_in_place(other, operator.itruediv)
+
+    def __floordiv__(self, other: DataXYZ) -> Self:
+        return self._combine(other, operator.floordiv)
+
+    def __rfloordiv__(self, other: DataXYZ) -> Self:
+        return self._combine(other, operator.floordiv, reflected=True)
+
+    def __ifloordiv__(self, other: DataXYZ) -> Self:
+        return self._combine_in_place(other, operator.ifloordiv)
+
+    def __neg__(self) -> Self:
+        return type(self)(self.x, self.y, -self.z, **self.labels)
+
+    def __pos__(self) -> Self:
+        return self
 
     def save(
         self,

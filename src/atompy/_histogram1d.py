@@ -596,6 +596,9 @@ class Hist1d(Plottable2d):
     def __neg__(self) -> Self:
         return type(self)(-self.values, self.edges, **self._kwargs)
 
+    def __pos__(self) -> Self:
+        return self
+
     def __iter__(self) -> Iterator[NDArray[Any]]:
         return iter([self.values, self.centers])
 
